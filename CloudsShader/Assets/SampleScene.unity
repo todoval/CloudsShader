@@ -494,7 +494,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   shader: {fileID: 4800000, guid: 793b6161ac488cd45b2d76408561a0ab, type: 3}
   noiseCompShader: {fileID: 7200000, guid: 4ba3ba37ffea53c43a7e3b4161223dbf, type: 3}
-  color: {r: 0, g: 1, b: 0.08247161, a: 1}
+  color: {r: 1, g: 0, b: 0, a: 1}
   noiseTexture: {fileID: 0}
   container: {fileID: 56149229}
   material: {fileID: 2100000, guid: 0a6bcd7dd89ece34b905b4ace7340a2e, type: 2}

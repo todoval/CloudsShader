@@ -30,6 +30,8 @@ public class CloudGenerator : MonoBehaviour
             return;
         }
         
+        color = new Color(1,255, 255, 1);
+
         handleTintMain = noiseCompShader.FindKernel("CSMain");
         
         if (handleTintMain < 0)
@@ -75,22 +77,23 @@ public class CloudGenerator : MonoBehaviour
             {
                 noiseTexture.Release();
             }
-            noiseTexture = new RenderTexture(source.width, source.height, 0);
+            noiseTexture = new RenderTexture(32, 32, 0);
             noiseTexture.graphicsFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_UNorm;
-            noiseTexture.volumeDepth = source.width;
+            noiseTexture.volumeDepth = 32;
             noiseTexture.enableRandomWrite = true;
             noiseTexture.dimension = TextureDimension.Tex3D;
             noiseTexture.Create();
         }
 
         // call the compute shader
-        noiseCompShader.SetTexture(handleTintMain, "Result", noiseTexture);
         noiseCompShader.SetVector("Color", (Vector4)color);
+        noiseCompShader.SetTexture(handleTintMain, "Result", noiseTexture);
         noiseCompShader.Dispatch(handleTintMain, (noiseTexture.width + 7) / 8, 
-            (noiseTexture.height + 7) / 8, 1);
+            (noiseTexture.height + 7) / 8, (noiseTexture.width + 7) / 8);
+
+        Debug.Log(color);
 
         // copy the result
-      //  material.SetTexture("_NoiseTex", noiseTexture);
         material.SetTexture("NoiseTex", noiseTexture);
         material.SetVector("lowerBound", container.position - container.localScale/2);
         material.SetVector("upperBound", container.position + container.localScale/2);
