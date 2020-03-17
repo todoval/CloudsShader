@@ -5,10 +5,11 @@
 // with cs.SetTexture
 float4 Color;
 
+//Texture3D<float4> Source;
 RWTexture3D<float4> Result;
 
 [numthreads(8,8,8)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    Result[id] = /*Source[id.xy] */ Color;
+    Result[id] = /*Source[id] */ Color;
 }

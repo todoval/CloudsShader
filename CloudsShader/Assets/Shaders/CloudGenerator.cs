@@ -29,8 +29,6 @@ public class CloudGenerator : MonoBehaviour
             enabled = false;
             return;
         }
-        
-        color = new Color(1,255, 255, 1);
 
         handleTintMain = noiseCompShader.FindKernel("CSMain");
         
@@ -86,13 +84,12 @@ public class CloudGenerator : MonoBehaviour
         }
 
         // call the compute shader
+
         noiseCompShader.SetVector("Color", (Vector4)color);
         noiseCompShader.SetTexture(handleTintMain, "Result", noiseTexture);
-        noiseCompShader.Dispatch(handleTintMain, (noiseTexture.width + 7) / 8, 
-            (noiseTexture.height + 7) / 8, (noiseTexture.width + 7) / 8);
-
-        Debug.Log(color);
-
+        //noiseCompShader.SetTexture(handleTintMain, "Source", source);
+        noiseCompShader.Dispatch(handleTintMain, 8, 8, 8);
+Debug.Log(color);
         // copy the result
         material.SetTexture("NoiseTex", noiseTexture);
         material.SetVector("lowerBound", container.position - container.localScale/2);
