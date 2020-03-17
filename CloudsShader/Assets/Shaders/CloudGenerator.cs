@@ -76,13 +76,14 @@ public class CloudGenerator : MonoBehaviour
                 noiseTexture.Release();
             }
             noiseTexture = new RenderTexture(source.width, source.height, 0);
+            noiseTexture.graphicsFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_UNorm;
+            noiseTexture.volumeDepth = source.width;
             noiseTexture.enableRandomWrite = true;
-           // noiseTexture.dimension = TextureDimension.Tex3D;
+            noiseTexture.dimension = TextureDimension.Tex3D;
             noiseTexture.Create();
         }
 
         // call the compute shader
-        noiseCompShader.SetTexture(handleTintMain, "Source", source);
         noiseCompShader.SetTexture(handleTintMain, "Result", noiseTexture);
         noiseCompShader.SetVector("Color", (Vector4)color);
         noiseCompShader.Dispatch(handleTintMain, (noiseTexture.width + 7) / 8, 
