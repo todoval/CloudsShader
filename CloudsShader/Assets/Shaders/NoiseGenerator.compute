@@ -7,9 +7,17 @@ float4 Color;
 
 //Texture3D<float4> Source;
 RWTexture3D<float4> Result;
+RWStructuredBuffer<float4> colors;
 
 [numthreads(8,8,8)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    Result[id] = /*Source[id] */ Color;
+    float i = id.x + id.y + id.z;
+
+    float tempX = (float) id.x/ (float) 64;
+    float tempY = (float) id.y/ (float) 64;
+    float tempZ = (float)id.z/(float)64;
+    Result[id] = float4(tempX, tempY, tempZ, 1);
+    
+    //Result[id] = /*Source[id] */ Color;
 }

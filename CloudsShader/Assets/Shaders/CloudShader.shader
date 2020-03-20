@@ -89,7 +89,6 @@ Shader "CloudShader"
                 float4 currColor = NoiseTex.Sample(samplerNoiseTex, i.vertex);
 
                 float4 base = tex2D(_MainTex, i.uv);
-                //float4 other = tex2D(_NoiseTex, i.uv);
 
                 float viewLength = length(i.viewVector);
                 float3 rayDir = i.viewVector / viewLength;

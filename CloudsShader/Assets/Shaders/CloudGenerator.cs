@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
+[ImageEffectAllowedInSceneView]
 public class CloudGenerator : MonoBehaviour
 {
 
     public Shader shader;
 
     public ComputeShader noiseCompShader;
+
+    static public ComputeBuffer colorsBuffer;   
 
     public Color color;
 
@@ -29,6 +32,25 @@ public class CloudGenerator : MonoBehaviour
             enabled = false;
             return;
         }
+        
+        if (null != colorsBuffer)
+            colorsBuffer.Release();
+        Color[] colorArray;	
+        colorArray = new Color[256];
+		int i = 0;
+		while (i < colorArray.Length){
+			colorArray[i] = new Color(0, 0, 0, 1);
+			if (i >= 0 && i < 128)
+				colorArray[i] += new Color(0, 0, Mathf.PingPong(i * 4, 256) / 256, 1);
+			if (i >= 64 && i < 192)
+				colorArray[i] += new Color(0, Mathf.PingPong((i - 64) * 4, 256) / 256, 0, 1);
+			if (i >= 128 && i < 256)
+				colorArray[i] += new Color(Mathf.PingPong(i * 4, 256) / 256, 0, 0, 1);
+			i++;
+		}
+
+        colorsBuffer = new ComputeBuffer(colorArray.Length, 4 * 4); // Color size is four values of four bytes, so 4 * 4
+        colorsBuffer.SetData(colorArray);
 
         handleTintMain = noiseCompShader.FindKernel("CSMain");
         
@@ -53,6 +75,11 @@ public class CloudGenerator : MonoBehaviour
             noiseTexture.Release();
             noiseTexture = null;
         }
+        if (null != colorsBuffer)
+        {
+            colorsBuffer.Release();
+            colorsBuffer = null;
+        }
     }
 
     void OnRenderImage(RenderTexture source, RenderTexture destination)
@@ -75,9 +102,9 @@ public class CloudGenerator : MonoBehaviour
             {
                 noiseTexture.Release();
             }
-            noiseTexture = new RenderTexture(32, 32, 0);
+            noiseTexture = new RenderTexture(64, 64, 0);
             noiseTexture.graphicsFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_UNorm;
-            noiseTexture.volumeDepth = 32;
+            noiseTexture.volumeDepth = 64;
             noiseTexture.enableRandomWrite = true;
             noiseTexture.dimension = TextureDimension.Tex3D;
             noiseTexture.Create();
@@ -87,9 +114,10 @@ public class CloudGenerator : MonoBehaviour
 
         noiseCompShader.SetVector("Color", (Vector4)color);
         noiseCompShader.SetTexture(handleTintMain, "Result", noiseTexture);
+        noiseCompShader.SetBuffer(handleTintMain, "colors", colorsBuffer);
         //noiseCompShader.SetTexture(handleTintMain, "Source", source);
         noiseCompShader.Dispatch(handleTintMain, 8, 8, 8);
-Debug.Log(color);
+
         // copy the result
         material.SetTexture("NoiseTex", noiseTexture);
         material.SetVector("lowerBound", container.position - container.localScale/2);
