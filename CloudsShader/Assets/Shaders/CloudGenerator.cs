@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 public class CloudGenerator : MonoBehaviour
 {
 
-    public Shader shader;
+   // public Shader shader;
 
     public ComputeShader noiseCompShader;
 
@@ -16,9 +16,9 @@ public class CloudGenerator : MonoBehaviour
 
     public RenderTexture noiseTexture = null;
 
-    public Transform container;
+    public GameObject container;
 
-    public Material material;
+   // public Material material;
 
     // Start is called before the first frame update
     void Start()
@@ -31,19 +31,32 @@ public class CloudGenerator : MonoBehaviour
         }
 
         handleTintMain = noiseCompShader.FindKernel("CSMain");
-        
+
         if (handleTintMain < 0)
         {
             Debug.Log("Initialization failed.");
             enabled = false;
             return;
-        }  
+        }
+        
+        noiseTexture = new RenderTexture(64, 64, 0);
+        noiseTexture.enableRandomWrite = true;  
+
+        noiseTexture.graphicsFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_UNorm;
+        noiseTexture.volumeDepth = 64;
+        noiseTexture.dimension = TextureDimension.Tex3D;
+        noiseTexture.Create();
+        noiseCompShader.SetVector("Color", (Vector4)color);
+        noiseCompShader.SetTexture(handleTintMain, "Result", noiseTexture);
+
+        Material mat = new Material();
+        container.GetComponent<Renderer>().material.mainTexture = noiseTexture;
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        noiseCompShader.Dispatch(handleTintMain, 8, 8, 8);
     }
 
     void OnDestroy() 
@@ -57,7 +70,7 @@ public class CloudGenerator : MonoBehaviour
 
     void OnRenderImage(RenderTexture source, RenderTexture destination)
     {      
-        if (null == noiseCompShader || handleTintMain < 0 || null == source) 
+       /* if (null == noiseCompShader || handleTintMain < 0 || null == source) 
         {
             Graphics.Blit(source, destination); // just copy
             return;
@@ -75,9 +88,9 @@ public class CloudGenerator : MonoBehaviour
             {
                 noiseTexture.Release();
             }
-            noiseTexture = new RenderTexture(32, 32, 0);
+            noiseTexture = new RenderTexture(64, 64, 0);
             noiseTexture.graphicsFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_UNorm;
-            noiseTexture.volumeDepth = 32;
+            noiseTexture.volumeDepth = 64;
             noiseTexture.enableRandomWrite = true;
             noiseTexture.dimension = TextureDimension.Tex3D;
             noiseTexture.Create();
@@ -87,14 +100,14 @@ public class CloudGenerator : MonoBehaviour
 
         noiseCompShader.SetVector("Color", (Vector4)color);
         noiseCompShader.SetTexture(handleTintMain, "Result", noiseTexture);
-        //noiseCompShader.SetTexture(handleTintMain, "Source", source);
-        noiseCompShader.Dispatch(handleTintMain, 8, 8, 8);
-Debug.Log(color);
-        // copy the result
-        material.SetTexture("NoiseTex", noiseTexture);
-        material.SetVector("lowerBound", container.position - container.localScale/2);
-        material.SetVector("upperBound", container.position + container.localScale/2);
+        noiseCompShader.Dispatch(handleTintMain, 8, 8, 8);*/
 
-        Graphics.Blit(source, destination, material);
+        // copy the result
+        /* material.SetTexture("NoiseTex", noiseTexture);
+        material.SetVector("lowerBound", container.position - container.localScale/2);
+        material.SetVector("upperBound", container.position + container.localScale/2);*/
+
+        //Graphics.Blit(noiseTexture, destination);
+        //Graphics.Blit(source, destination, material);
     }
 }

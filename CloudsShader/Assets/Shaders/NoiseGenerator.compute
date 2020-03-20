@@ -11,5 +11,9 @@ RWTexture3D<float4> Result;
 [numthreads(8,8,8)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    Result[id] = /*Source[id] */ Color;
+    float i = id.x + id.y + id.z;
+   //if (id.x == 31 && id.y == 31 && id.z == 31)
+      //  Result[id] = float4(id.x/i,id.y/i,id.z/i,1);
+    //else 
+    Result[id.xyz] = /*Source[id] */ Color;
 }
