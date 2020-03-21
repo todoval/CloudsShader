@@ -21,7 +21,7 @@ public class CloudGenerator : MonoBehaviour
 
     public Transform container;
 
-//    public Material material;
+    public Material material;
 
     // Start is called before the first frame update
     void Start()
@@ -90,10 +90,10 @@ public class CloudGenerator : MonoBehaviour
             return;
         }
 
-        /* if (material == null || material.shader != shader) {
+        if (material == null || material.shader != shader) {
             material = new Material (shader);
         }
-        */
+        
         // do we need to create a new temporary destination render texture?
         if (null == noiseTexture || source.width != noiseTexture.width 
             || source.height != noiseTexture.height) 
@@ -119,10 +119,11 @@ public class CloudGenerator : MonoBehaviour
         noiseCompShader.Dispatch(handleTintMain, 8, 8, 1);
 
         // copy the result
-       /* material.SetTexture("NoiseTex", noiseTexture);
+        //material.SetTexture("NoiseTex", noiseTexture);
+        material.SetTexture("_NoiseTex", noiseTexture);
         material.SetVector("lowerBound", container.position - container.localScale/2);
-        material.SetVector("upperBound", container.position + container.localScale/2);*/
+        material.SetVector("upperBound", container.position + container.localScale/2);
 
-        Graphics.Blit(noiseTexture, destination);
+        Graphics.Blit(source, destination, material);
     }
 }
