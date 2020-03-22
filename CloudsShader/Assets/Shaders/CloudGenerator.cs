@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-[ImageEffectAllowedInSceneView]
+[ExecuteInEditMode, ImageEffectAllowedInSceneView]
 public class CloudGenerator : MonoBehaviour
 {
 
@@ -102,11 +102,11 @@ public class CloudGenerator : MonoBehaviour
             {
                 noiseTexture.Release();
             }
-            noiseTexture = new RenderTexture(64, 64, 1);
-           // noiseTexture.graphicsFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_UNorm;
-          //  noiseTexture.volumeDepth = 64;
+            noiseTexture = new RenderTexture(64, 64, 0);
+            noiseTexture.graphicsFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_UNorm;
+            noiseTexture.volumeDepth = 64;
             noiseTexture.enableRandomWrite = true;
-            noiseTexture.dimension = TextureDimension.Tex2D;
+            noiseTexture.dimension = TextureDimension.Tex3D;
             noiseTexture.Create();
         }
 
@@ -119,8 +119,8 @@ public class CloudGenerator : MonoBehaviour
         noiseCompShader.Dispatch(handleTintMain, 8, 8, 1);
 
         // copy the result
-        //material.SetTexture("NoiseTex", noiseTexture);
-        material.SetTexture("_NoiseTex", noiseTexture);
+        material.SetTexture("NoiseTex", noiseTexture);
+        //material.SetTexture("_NoiseTex", noiseTexture);
         material.SetVector("lowerBound", container.position - container.localScale/2);
         material.SetVector("upperBound", container.position + container.localScale/2);
 
