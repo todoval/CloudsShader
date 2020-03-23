@@ -1,0 +1,13 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel Slicer
+
+ Texture3D<float4> voxels;
+ RWTexture2D<float4> Result;
+ int layer;
+
+[numthreads(8,8,1)]
+void Slicer (uint3 id : SV_DispatchThreadID)
+{
+    uint3 pos = uint3(id.x,id.y,layer);
+    Result[id.xy] = voxels[pos];
+}

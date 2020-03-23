@@ -92,7 +92,6 @@ Shader "CloudShader"
             }
 
             sampler2D _MainTex;
-           // sampler2D _NoiseTex;
 
             SamplerState samplerNoiseTex;
 
@@ -116,13 +115,9 @@ Shader "CloudShader"
                 
                 // get intersection with the cloud container
                 float3 entryPoint = rayOrigin + rayDir * containerInfo.dstToBox;
-                float2 eUv = float2(entryPoint.x, entryPoint.y);
 
-              // float4 currColor = NoiseTex[uint3(1,1,0)];
-                float4 currColor = NoiseTex.Sample(samplerNoiseTex, i.vertex);
-
+                float4 currColor = NoiseTex.Sample(samplerNoiseTex, entryPoint);
                 float4 base = tex2D(_MainTex, i.uv);
-               // float4 currColor = tex2D(_NoiseTex, eUv);
 
                 if (containerInfo.intersectedBox)
                     return base * currColor;

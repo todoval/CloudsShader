@@ -2,37 +2,29 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEditor;
 
 [ExecuteInEditMode, ImageEffectAllowedInSceneView]
 public class CloudGenerator : MonoBehaviour
 {
-
-    public Shader shader;
-
-    public ComputeShader noiseCompShader;
-
+    int resolution = 64;
     static public ComputeBuffer colorsBuffer;   
 
     public Color color;
 
-    private int handleTintMain;
 
     public RenderTexture noiseTexture = null;
-
     public Transform container;
 
+    // shader properties
     public Material material;
+    public Shader shader;
+
+    public Texture3D texture;
 
     // Start is called before the first frame update
     void Start()
     {
-        if (null == noiseCompShader) 
-        {
-            Debug.Log("Shader missing.");
-            enabled = false;
-            return;
-        }
-        
         if (null != colorsBuffer)
             colorsBuffer.Release();
         Color[] colorArray;	
@@ -51,15 +43,6 @@ public class CloudGenerator : MonoBehaviour
 
         colorsBuffer = new ComputeBuffer(colorArray.Length, 4 * 4); // Color size is four values of four bytes, so 4 * 4
         colorsBuffer.SetData(colorArray);
-
-        handleTintMain = noiseCompShader.FindKernel("CSMain");
-        
-        if (handleTintMain < 0)
-        {
-            Debug.Log("Initialization failed.");
-            enabled = false;
-            return;
-        }  
     }
 
     // Update is called once per frame
@@ -82,19 +65,27 @@ public class CloudGenerator : MonoBehaviour
         }
     }
 
+    Texture3D LoadTexture(string name)
+    {
+        Texture3D texture = (Texture3D) Resources.Load("noise", typeof(Texture3D));
+        return texture;
+    }
+
     void OnRenderImage(RenderTexture source, RenderTexture destination)
     {      
-        if (null == noiseCompShader || handleTintMain < 0 || null == source) 
+        if (null == source) 
         {
-            Graphics.Blit(source, destination); // just copy
+            // just copy the source
+            Graphics.Blit(source, destination); 
             return;
         }
 
+        // create the material
         if (material == null || material.shader != shader) {
             material = new Material (shader);
         }
         
-        // do we need to create a new temporary destination render texture?
+        // create noiseTexture
         if (null == noiseTexture || source.width != noiseTexture.width 
             || source.height != noiseTexture.height) 
         {
@@ -102,28 +93,27 @@ public class CloudGenerator : MonoBehaviour
             {
                 noiseTexture.Release();
             }
-            noiseTexture = new RenderTexture(64, 64, 0);
+            noiseTexture = new RenderTexture(resolution, resolution, 0);
             noiseTexture.graphicsFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_UNorm;
-            noiseTexture.volumeDepth = 64;
+            noiseTexture.volumeDepth = resolution;
             noiseTexture.enableRandomWrite = true;
             noiseTexture.dimension = TextureDimension.Tex3D;
             noiseTexture.Create();
         }
 
-        // call the compute shader
+        // call the noise compute shader which saves the noise texture into noiseTexture variable
+       /* noiseCompShader.SetVector("Color", (Vector4)color);
+        noiseCompShader.SetTexture(noiseKernel, "Result", noiseTexture);
+        noiseCompShader.SetBuffer(noiseKernel, "colors", colorsBuffer);
+        noiseCompShader.Dispatch(noiseKernel, 8, 8, 1);*/
 
-        noiseCompShader.SetVector("Color", (Vector4)color);
-        noiseCompShader.SetTexture(handleTintMain, "Result", noiseTexture);
-        noiseCompShader.SetBuffer(handleTintMain, "colors", colorsBuffer);
-        //noiseCompShader.SetTexture(handleTintMain, "Source", source);
-        noiseCompShader.Dispatch(handleTintMain, 8, 8, 1);
-
-        // copy the result
-        material.SetTexture("NoiseTex", noiseTexture);
-        //material.SetTexture("_NoiseTex", noiseTexture);
+        // set parameters to the shader
+        Texture3D tex = LoadTexture("noise");
+        material.SetTexture("NoiseTex", tex);
         material.SetVector("lowerBound", container.position - container.localScale/2);
         material.SetVector("upperBound", container.position + container.localScale/2);
 
+        // apply the shader to the source and copy it to destination
         Graphics.Blit(source, destination, material);
     }
 }
