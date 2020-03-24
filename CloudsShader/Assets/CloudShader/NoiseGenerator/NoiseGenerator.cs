@@ -137,7 +137,7 @@ public class NoiseGenerator : MonoBehaviour
         // call the noise compute shader which saves the noise texture into noiseTexture variable
        // noiseCompShader.SetVector("Color", (Vector4) (1,0.5,1,1));
         noiseCompShader.SetTexture(noiseKernel, "Result", noiseTexture);
-        noiseCompShader.Dispatch(noiseKernel, 8, 8, 1);
+        noiseCompShader.Dispatch(noiseKernel, 8, 8, 8);
 
         Texture3D temp = CreateTexture3D(resolution);
         SaveRenderTex(noiseTexture);
