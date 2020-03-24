@@ -8,9 +8,6 @@ using UnityEditor;
 public class CloudGenerator : MonoBehaviour
 {
     int resolution = 64;
-    static public ComputeBuffer colorsBuffer;   
-
-    public Color color;
 
 
     public RenderTexture noiseTexture = null;
@@ -20,29 +17,9 @@ public class CloudGenerator : MonoBehaviour
     public Material material;
     public Shader shader;
 
-    public Texture3D texture;
-
     // Start is called before the first frame update
     void Start()
     {
-        if (null != colorsBuffer)
-            colorsBuffer.Release();
-        Color[] colorArray;	
-        colorArray = new Color[256];
-		int i = 0;
-		while (i < colorArray.Length){
-			colorArray[i] = new Color(0, 0, 0, 1);
-			if (i >= 0 && i < 128)
-				colorArray[i] += new Color(0, 0, Mathf.PingPong(i * 4, 256) / 256, 1);
-			if (i >= 64 && i < 192)
-				colorArray[i] += new Color(0, Mathf.PingPong((i - 64) * 4, 256) / 256, 0, 1);
-			if (i >= 128 && i < 256)
-				colorArray[i] += new Color(Mathf.PingPong(i * 4, 256) / 256, 0, 0, 1);
-			i++;
-		}
-
-        colorsBuffer = new ComputeBuffer(colorArray.Length, 4 * 4); // Color size is four values of four bytes, so 4 * 4
-        colorsBuffer.SetData(colorArray);
     }
 
     // Update is called once per frame
@@ -58,16 +35,11 @@ public class CloudGenerator : MonoBehaviour
             noiseTexture.Release();
             noiseTexture = null;
         }
-        if (null != colorsBuffer)
-        {
-            colorsBuffer.Release();
-            colorsBuffer = null;
-        }
     }
 
     Texture3D LoadTexture(string name)
     {
-        Texture3D texture = (Texture3D) Resources.Load("noise", typeof(Texture3D));
+        Texture3D texture = (Texture3D) Resources.Load(name, typeof(Texture3D));
         return texture;
     }
 
@@ -100,12 +72,6 @@ public class CloudGenerator : MonoBehaviour
             noiseTexture.dimension = TextureDimension.Tex3D;
             noiseTexture.Create();
         }
-
-        // call the noise compute shader which saves the noise texture into noiseTexture variable
-       /* noiseCompShader.SetVector("Color", (Vector4)color);
-        noiseCompShader.SetTexture(noiseKernel, "Result", noiseTexture);
-        noiseCompShader.SetBuffer(noiseKernel, "colors", colorsBuffer);
-        noiseCompShader.Dispatch(noiseKernel, 8, 8, 1);*/
 
         // set parameters to the shader
         Texture3D tex = LoadTexture("noise");
