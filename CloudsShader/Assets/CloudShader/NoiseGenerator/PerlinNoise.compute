@@ -4,7 +4,7 @@ RWTexture3D<float4> Result;
 
 int octaves;
 
-int texRes = 64;
+int texRes = 32;
 
 
 // permutation table defined by Perlin for pseudorandom number generation
@@ -76,9 +76,10 @@ void PerlinNoise (uint3 id : SV_DispatchThreadID)
     resizePermArray();
 
     // get the actual float points we are going to calculate
-    float x = (float) id.x / (float) texRes;
-    float y = (float) id.y / (float) texRes;
-    float z = (float) id.z / (float) texRes;
+    float tex = (float) 8;
+    float x = (float) id.x / tex;
+    float y = (float) id.y / tex;
+    float z = (float) id.z / tex;
 
     // calculate the unit cube point of start
     uint xi = (uint) x & 255;
@@ -133,11 +134,4 @@ void PerlinNoise (uint3 id : SV_DispatchThreadID)
     // interpolate the existing ones by the z coordinate (interpolate with w vector)
     float z1 = lerp(y1, y2, w);
 
-    Result[id.xyz] = float4(z1, z1, z1, 1);
-    //Result[id.xyz] = float4(locX, locY, locZ, 1);
-    float k = id.x + id.y + id.z;
-//    Result[id.xyz] = float4(id.x/k, id.y/k, id.z/k, 1);
-
-    //float k = id.x + id.y + id.z;
-	//Result[id.xyz] = float4(id.x/k, id.y/k, id.z/k, 1);
-}
+    Result[id.xyz] = float4(z1, z1, z1, z1);
