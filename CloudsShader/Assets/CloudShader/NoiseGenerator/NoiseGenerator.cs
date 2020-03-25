@@ -8,7 +8,7 @@ public class NoiseGenerator : MonoBehaviour
 {
 
     public int resolution = 64;
-    public ComputeShader noiseCompShader;
+    public ComputeShader PerlinCompShader;
     public ComputeShader slicer;
     public RenderTexture noiseTexture = null;
     private int noiseKernel;
@@ -17,7 +17,7 @@ public class NoiseGenerator : MonoBehaviour
 
     void Start()
     {
-        if (null == noiseCompShader || slicer == null) 
+        if (null == PerlinCompShader || slicer == null) 
         {
             Debug.Log("Shader missing.");
             enabled = false;
@@ -25,7 +25,7 @@ public class NoiseGenerator : MonoBehaviour
         }
 
         slicerKernel = slicer.FindKernel("Slicer");
-        noiseKernel = noiseCompShader.FindKernel("CSMain");
+        noiseKernel = PerlinCompShader.FindKernel("PerlinNoise");
 
         if (noiseKernel < 0 || slicerKernel < 0)
         {
@@ -35,24 +35,6 @@ public class NoiseGenerator : MonoBehaviour
         }  
     }
 
-    Texture3D CreateTexture3D (int size)
-    {
-        Color[] colorArray = new Color[size * size * size];
-        Texture3D texture = new Texture3D (size, size, size, TextureFormat.RGBA32, true);
-        float r = 1.0f / (size - 1.0f);
-        for (int x = 0; x < size; x++) {
-            for (int y = 0; y < size; y++) {
-                for (int z = 0; z < size; z++) {
-                    Color c = new Color (x * r, y * r, z * r, 1.0f);
-                    colorArray[x + (y * size) + (z * size * size)] = c;
-                }
-            }
-        }
-        texture.SetPixels (colorArray);
-        texture.Apply ();
-        return texture;
-    }
-
     // a helper function returning only one 2D slice (defined by layer) from source
     RenderTexture Copy3DSliceToRenderTexture(RenderTexture source, int layer)
     {
@@ -60,7 +42,7 @@ public class NoiseGenerator : MonoBehaviour
         RenderTexture render = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.ARGB32);
         render.dimension = UnityEngine.Rendering.TextureDimension.Tex2D;
         render.enableRandomWrite = true;
-        //render.wrapMode = TextureWrapMode.Repeat;
+        render.wrapMode = TextureWrapMode.Repeat;
         render.Create();
 
         // insert one slice of the 3D Texture to the 2D textures with the slicer compute shader
@@ -117,7 +99,7 @@ public class NoiseGenerator : MonoBehaviour
 
     void createNewNoise()
     {
-        if (null == noiseCompShader || noiseKernel < 0 || slicerKernel < 0)
+        if (null == PerlinCompShader || noiseKernel < 0 || slicerKernel < 0)
         {
             Debug.Log("Error creating new noise.");
             return;
@@ -135,13 +117,10 @@ public class NoiseGenerator : MonoBehaviour
         }
 
         // call the noise compute shader which saves the noise texture into noiseTexture variable
-       // noiseCompShader.SetVector("Color", (Vector4) (1,0.5,1,1));
-        noiseCompShader.SetTexture(noiseKernel, "Result", noiseTexture);
-        noiseCompShader.Dispatch(noiseKernel, 8, 8, 8);
+        PerlinCompShader.SetTexture(noiseKernel, "Result", noiseTexture);
+        PerlinCompShader.Dispatch(noiseKernel, 8, 8, 8);
 
-        Texture3D temp = CreateTexture3D(resolution);
         SaveRenderTex(noiseTexture);
-        //AssetDatabase.CreateAsset(temp, "Assets/CloudShader/noise.asset");
     }
 
     void Update()

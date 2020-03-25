@@ -492,12 +492,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc885629489236d4b8c9be830c78eeed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  color: {r: 1, g: 0, b: 0, a: 1}
   noiseTexture: {fileID: 0}
   container: {fileID: 56149229}
   material: {fileID: 0}
   shader: {fileID: 4800000, guid: 793b6161ac488cd45b2d76408561a0ab, type: 3}
-  texture: {fileID: 0}
 --- !u!1 &1239379061
 GameObject:
   m_ObjectHideFlags: 0
@@ -713,7 +711,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   resolution: 64
-  noiseCompShader: {fileID: 7200000, guid: 4ba3ba37ffea53c43a7e3b4161223dbf, type: 3}
+  PerlinCompShader: {fileID: 7200000, guid: 4ba3ba37ffea53c43a7e3b4161223dbf, type: 3}
   slicer: {fileID: 7200000, guid: a60837efe51cbc742afd865d8fea6fbf, type: 3}
   noiseTexture: {fileID: 0}
 --- !u!4 &1340083853
