@@ -14,6 +14,12 @@ public class NoiseGenerator : MonoBehaviour
     private int noiseKernel;
     private int slicerKernel;
 
+    // Perlin noise settings
+
+    public int PerlinRes = 8;
+
+    public int PerlinOctaves = 8;
+
 
     void Start()
     {
@@ -118,6 +124,8 @@ public class NoiseGenerator : MonoBehaviour
 
         // call the noise compute shader which saves the noise texture into noiseTexture variable
         PerlinCompShader.SetTexture(noiseKernel, "Result", noiseTexture);
+        PerlinCompShader.SetInt("texRes", PerlinRes);
+        PerlinCompShader.SetInt("octaves", PerlinOctaves);
         PerlinCompShader.Dispatch(noiseKernel, 8, 8, 8);
 
         SaveRenderTex(noiseTexture);

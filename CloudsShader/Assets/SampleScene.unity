@@ -714,6 +714,7 @@ MonoBehaviour:
   PerlinCompShader: {fileID: 7200000, guid: 4ba3ba37ffea53c43a7e3b4161223dbf, type: 3}
   slicer: {fileID: 7200000, guid: a60837efe51cbc742afd865d8fea6fbf, type: 3}
   noiseTexture: {fileID: 0}
+  PerlinRes: 8
 --- !u!4 &1340083853
 Transform:
   m_ObjectHideFlags: 0
@@ -722,7 +723,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1340083851}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.8645209, y: -1.5434632, z: 35.63098}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}

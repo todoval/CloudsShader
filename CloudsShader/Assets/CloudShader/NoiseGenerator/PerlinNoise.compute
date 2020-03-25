@@ -4,7 +4,7 @@ RWTexture3D<float4> Result;
 
 int octaves;
 
-int texRes = 32;
+int texRes;
 
 
 // permutation table defined by Perlin for pseudorandom number generation
@@ -68,19 +68,9 @@ static float lerp(float a, float b, float x)
 	return a + x * (b - a);
 }
 
-// returns the perlin noise at 3D point [id.x, id.y, id.z]
-[numthreads(8,8,8)]
-void PerlinNoise (uint3 id : SV_DispatchThreadID)
+// returns the value of the Perlin function in [x,y,z] point
+float getPerlinValue(float x, float y, float z)
 {
-    // initialize perm array to avoid buffer overflow (by repeating the permutation array)
-    resizePermArray();
-
-    // get the actual float points we are going to calculate
-    float tex = (float) 8;
-    float x = (float) id.x / tex;
-    float y = (float) id.y / tex;
-    float z = (float) id.z / tex;
-
     // calculate the unit cube point of start
     uint xi = (uint) x & 255;
     uint yi = (uint) y & 255;
@@ -134,4 +124,36 @@ void PerlinNoise (uint3 id : SV_DispatchThreadID)
     // interpolate the existing ones by the z coordinate (interpolate with w vector)
     float z1 = lerp(y1, y2, w);
 
-    Result[id.xyz] = float4(z1, z1, z1, z1);
+    return z1;
+}
+
+// returns the perlin noise at 3D point [id.x, id.y, id.z]
+[numthreads(8,8,8)]
+void PerlinNoise (uint3 id : SV_DispatchThreadID)
+{
+    // initialize perm array to avoid buffer overflow (by repeating the permutation array)
+    resizePermArray();
+
+    // get the actual float points we are going to calculate
+    float tex = (float) texRes;
+    float x = (float) id.x / tex;
+    float y = (float) id.y / tex;
+    float z = (float) id.z / tex;
+
+    // define parameters of the Perlin function
+	float result = 0;
+	float frequency = 1;
+	float amplitude = 1;
+	float max = 0;
+
+	for (int i = 0; i < octaves; i++) //compute perlin noise for each octave
+	{
+		result += getPerlinValue(x * frequency, y * frequency, z * frequency) * amplitude;
+		max += amplitude;
+		amplitude *= 0.5;
+		frequency *= 2;
+	}
+
+	float res = result / max;
+    Result[id.xyz] = float4(res, res, res, 0);
+}
