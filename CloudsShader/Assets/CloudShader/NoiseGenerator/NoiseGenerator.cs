@@ -77,12 +77,12 @@ public class NoiseGenerator : MonoBehaviour
         // create an array of 2D RenderTextures
         RenderTexture[] layers = new RenderTexture[resolution];
         // slice 3D RenderTexture into this array
-        for( int i = 0; i < 64; i++)        
+        for( int i = 0; i < resolution; i++)        
             layers[i] = Copy3DSliceToRenderTexture(source, i);
 
         // transform the 2D RenderTexture into Texture2D
         Texture2D[] finalSlices = new Texture2D[resolution];
-        for ( int i = 0; i < 64; i++)        
+        for ( int i = 0; i < resolution; i++)        
             finalSlices[i] = ConvertFromRenderTexture(layers[i]);
 
         // create a new 3D Texture and fill it with the contents of the slices

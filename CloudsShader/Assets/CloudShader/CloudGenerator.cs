@@ -37,6 +37,24 @@ public class CloudGenerator : MonoBehaviour
         }
     }
 
+    Texture3D CreateTexture3D (int size)
+    {
+        Color[] colorArray = new Color[size * size * size];
+        Texture3D texture = new Texture3D (size, size, size, TextureFormat.RGBA32, true);
+        float r = 1.0f / (size - 1.0f);
+        for (int x = 0; x < size; x++) {
+            for (int y = 0; y < size; y++) {
+                for (int z = 0; z < size; z++) {
+                    Color c = new Color (x * r, y * r, z * r, 0);
+                    colorArray[x + (y * size) + (z * size * size)] = c;
+                }
+            }
+        }
+        texture.SetPixels (colorArray);
+        texture.Apply ();
+        return texture;
+    }
+
     Texture3D LoadTexture(string name)
     {
         Texture3D texture = (Texture3D) Resources.Load(name, typeof(Texture3D));

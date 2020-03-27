@@ -155,5 +155,5 @@ void PerlinNoise (uint3 id : SV_DispatchThreadID)
 	}
 
 	float res = result / max;
-    Result[id.xyz] = float4(res, res, res, 0);
+    Result[id.xyz] = float4(res, res, res, res);
 }

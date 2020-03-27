@@ -1,5 +1,4 @@
-﻿// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
-
+﻿
 Shader "CloudShader"
 {
     Properties
@@ -50,7 +49,7 @@ Shader "CloudShader"
             struct rayContainerInfo
             {
                 bool intersectedBox;
-                float dstInsideBox; // 0 if outside box
+                float dstInsideBox; // 0 if does not intersect box
                 float dstToBox; // 0 if inside box
             };
 
@@ -91,7 +90,15 @@ Shader "CloudShader"
                 return containerInfo;
             }
 
+            // a helper function that returns true if the given point is inside the container
+            bool isInsideBox(float3 position, float3 boundsMin, float3 boundsMax, float3 rayDir)
+            {
+                rayContainerInfo containerInfo = getRayContainerInfo(boundsMin, boundsMax, position, rayDir);
+                return (containerInfo.dstInsideBox > 0);
+            }
+
             sampler2D _MainTex;
+            sampler2D _CameraDepthTexture;
 
             SamplerState samplerNoiseTex;
 
@@ -100,6 +107,15 @@ Shader "CloudShader"
             // container properties
             float3 lowerBound;
             float3 upperBound;
+
+            // properties of volume
+            float absorptionCoef; // kapa
+
+            float getDensity(float3 position)
+            {
+                float4 currColor = NoiseTex.SampleLevel(samplerNoiseTex, position, 0);
+                return currColor.r;
+            }
 
             fixed4 frag (VertToFrag i) : COLOR
             {
@@ -113,16 +129,77 @@ Shader "CloudShader"
                 // get the information about the intersection of ray and the container
                 rayContainerInfo containerInfo = getRayContainerInfo(lowerBound, upperBound, rayOrigin, rayDir);
                 
+                // return base if the box was not intersected 
+                float4 base = tex2D(_MainTex, i.uv);
+                
+                //if there are other objects, do not render clouds
+                float nonLinearDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv);
+                float depth = LinearEyeDepth(nonLinearDepth) * viewLength;
+
+                if (!containerInfo.intersectedBox && !containerInfo.dstToBox < depth)
+                    return base;
+
                 // get intersection with the cloud container
                 float3 entryPoint = rayOrigin + rayDir * containerInfo.dstToBox;
 
-                float4 currColor = NoiseTex.Sample(samplerNoiseTex, entryPoint);
-                float4 base = tex2D(_MainTex, i.uv);
+                // ray marching
+                float transmittance = 1; // the current ratio between light that was emitted and light that is received (accumulating variable for transparency)
+                float stepSize = 0.2;
+                float maxDistance = containerInfo.dstInsideBox / stepSize;
+                float currDistance = 0;
+                float4 resColor = float4(0,0,0,0); // accumulating variable for the resulting color
+                float3 currPoint = entryPoint; // current point on the ray during ray marching
+                absorptionCoef = 0.2;
 
-                if (containerInfo.intersectedBox)
+                float totalDens = 0;
+                int steps = 0;
+                float tra = 0;
+                while (currDistance < maxDistance) //(isInsideBox(currPoint, lowerBound, upperBound, rayDir))
+                {
+                    float3 currPos = entryPoint + rayDir * currDistance;
+                    float dens = getDensity(currPoint);
+                    if (dens > 1)
+                        tra = 1;
+                    totalDens += getDensity(currPoint) * stepSize;
+
+
+                    // take a step forward along the ray
+                    currDistance += stepSize;
+                }
+                if (tra == 0)
+                    tra = exp(-totalDens);
+                
+
+                /*while (isInsideBox(currPoint, lowerBound, upperBound, rayDir))
+                {
+                   // float4 currColor =  NoiseTex.SampleLevel(samplerNoiseTex, currPoint, 0);// get the color at the current point
+
+                    float4 currColor = NoiseTex.SampleLevel(samplerNoiseTex, currPoint, 0);// get the density at current position
+                    float density = currColor.x;
+                    float deltaT =  exp(-absorptionCoef * stepSize * density);
+                    //float incLghting = evalIncLighting(); // evaluates the incident lighting
+                    transmittance *= deltaT;
+
+                    // break if transmittance is too low to avoid performance problems
+                    if (transmittance < 0.000001)
+                        break;
+
+                    // Rendering equation 
+                    resColor += density * stepSize * transmittance * absorptionCoef;
+
+                    // take a step forward along the ray
+                    currPoint += rayDir * stepSize;
+                }*/
+
+
+                float4 result = tra * base  /*+ resColor*/;
+                return result;
+
+               /* float4 currColor = NoiseTex.SampleLevel(samplerNoiseTex, entryPoint, 0);
+               // float4 base = tex2D(_MainTex, i.uv);
+                if (isInsideBox(float3(entryPoint.x, entryPoint.y, entryPoint.z + 2), lowerBound, upperBound, rayDir))
                     return base * currColor;
-
-                return base;
+                return base;*/
             }
             ENDCG
         }
