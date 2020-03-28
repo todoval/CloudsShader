@@ -77,7 +77,7 @@ void WorleyNoise (uint3 id : SV_DispatchThreadID)
     float bestDistance = distance(closestfeaturePoint, myPos);
 
     // for the surrounding 26 points, compute the distance and feature point as well
-    for (int i = -1; i < 2; i++) // i == current x offset
+    for (int i = -1; i <= 1; i++) // i == current x offset
     {
         // do not test if out of bouds
         if (i == -1 && id.x == 0)
@@ -95,23 +95,13 @@ void WorleyNoise (uint3 id : SV_DispatchThreadID)
             for (int k = -1; k <= 1; k++) // k == current z offset
             {
                 if (k == -1 && id.z == 0)
-                {
-                    continue;
-                    Result[id.xyz] = float4(1,0,0,1);
-                     return;
-                }
                     continue;
                 if (k == 1 && id.z == 63)
-                    continue;   
+                    continue; 
 
                 // all out of bounds exceptions tested here, [id.x + i, id.y + j, id.z + k] is in cube
                 
                 float3 posOffset = float3(i, j, k);
-                /*if (i == 0 && j == 0 && k == 0)
-                {
-                     Result[id.xyz] = float4(1,0,0,1);
-                     return;
-                }*/
                 float3 currPos = myPos + posOffset;
                 float posInBuffer = (id.x+i) * 63 * 63 + (id.y +j) * 63 + (id.z + k); // the position of the neighbouring cube in featurePoints buffer
                 float3 rndOffset = FeaturePoints[posInBuffer]; // its random offset of featurePoint in featurePoints buffer

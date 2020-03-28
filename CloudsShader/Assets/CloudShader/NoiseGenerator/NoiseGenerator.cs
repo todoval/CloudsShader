@@ -54,7 +54,8 @@ public class NoiseGenerator : MonoBehaviour
             return;
         }  
         
-        worleyFeaturePointsBuffer = new ComputeBuffer( worleyResolution * worleyResolution * worleyResolution, sizeof(float) * 3);
+        CreateWorleyPointsBuffer(new System.Random (1));
+        //worleyFeaturePointsBuffer = new ComputeBuffer( worleyResolution * worleyResolution * worleyResolution, sizeof(float) * 3);
     }
     
 
@@ -142,6 +143,31 @@ public class NoiseGenerator : MonoBehaviour
         SaveRenderTex(perlinTexture, "PerlinNoise");
     }
 
+
+    void CreateWorleyPointsBuffer (System.Random prng)
+    {
+        var points = new Vector3[64 * 64 * 64];
+        float cellSize = 1f / 64;
+
+        for (int x = 0; x < 64; x++) {
+            for (int y = 0; y < 64; y++) {
+                for (int z = 0; z < 64; z++) {
+                    float randomX = (float) prng.NextDouble ();
+                    float randomY = (float) prng.NextDouble ();
+                    float randomZ = (float) prng.NextDouble ();
+                    Vector3 randomOffset = new Vector3 (randomX, randomY, randomZ) * cellSize;
+                    Vector3 cellCorner = new Vector3 (x, y, z) * cellSize;
+
+                    int index = x + 64 * (y + z * 64);
+                    points[index] = cellCorner + randomOffset;
+                }
+            }
+        }
+
+        worleyFeaturePointsBuffer = new ComputeBuffer( worleyResolution * worleyResolution * worleyResolution, sizeof(float) * 3);
+        worleyFeaturePointsBuffer.SetData(points);
+    }
+
     void createWorleyNoise()
     {
         // create noiseTexture
@@ -156,14 +182,15 @@ public class NoiseGenerator : MonoBehaviour
         }
 
         // compute the worley cube
-        WorleyCompShader.SetBuffer(worleyCubeKernel, "FeaturePoints", worleyFeaturePointsBuffer);
-        WorleyCompShader.Dispatch(worleyCubeKernel, 8, 8, 8);
+      //  WorleyCompShader.SetBuffer(worleyCubeKernel, "FeaturePoints", worleyFeaturePointsBuffer);
+     //   WorleyCompShader.Dispatch(worleyCubeKernel, 8, 8, 8);
 
         float[] temp = new float[64*64*64*3];
         worleyFeaturePointsBuffer.GetData(temp);
         int maxI = 0;
-        for (int i = 0; i < 64*64*64*3; i++)
+        for (int i = 0; i < 64*64; i++)
         {
+            Debug.Log(temp[i]);
             if (temp[i] != 0)
                 maxI = i;
         }
