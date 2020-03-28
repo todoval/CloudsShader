@@ -6,7 +6,6 @@ int octaves;
 
 int texRes;
 
-
 // permutation table defined by Perlin for pseudorandom number generation
 static const int permutation[] = { 151,160,137,91,90,15,                
     131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,    
@@ -26,7 +25,7 @@ static const int permutation[] = { 151,160,137,91,90,15,
 static int perm[512];
 
 // resizes permutation array to avoid buffer overflow
-void resizePermArray()
+static void resizePermArray()
 {
     for(uint i = 0; i < 512; i++)
         perm[i] = permutation[i % 256];
@@ -45,7 +44,27 @@ static float fade(float t)
 */
 static float grad(int hash, float x, float y, float z)
 {
-    float u, v;
+        switch(hash & 0xF)
+    {
+        case 0x0: return  x + y;
+        case 0x1: return -x + y;
+        case 0x2: return  x - y;
+        case 0x3: return -x - y;
+        case 0x4: return  x + z;
+        case 0x5: return -x + z;
+        case 0x6: return  x - z;
+        case 0x7: return -x - z;
+        case 0x8: return  y + z;
+        case 0x9: return -y + z;
+        case 0xA: return  y - z;
+        case 0xB: return -y - z;
+        case 0xC: return  y + x;
+        case 0xD: return -y + z;
+        case 0xE: return  y - x;
+        case 0xF: return -y - z;
+        default: return 0; // never happens
+    }
+   /* float u, v;
     hash &= 15; // take the first 4 bits of the hash (15 == 0b1111)
 
     if (hash < 8) // if highest bit is 0, gradient = x, otherwise y
@@ -60,7 +79,7 @@ static float grad(int hash, float x, float y, float z)
     else // highest and second bit are different
         v = z;
 
-    return ((hash & 1) == 0 ? u : -u)+((hash & 2) == 0 ? v : -v); // Use the last 2 bits to decide if u and v are positive or negative.  Then return their addition.
+    return ((hash & 1) == 0 ? u : -u)+((hash & 2) == 0 ? v : -v); // Use the last 2 bits to decide if u and v are positive or negative.  Then return their addition.*/
 }
 
 static float lerp(float a, float b, float x)
@@ -150,7 +169,7 @@ void PerlinNoise (uint3 id : SV_DispatchThreadID)
 	{
 		result += getPerlinValue(x * frequency, y * frequency, z * frequency) * amplitude;
 		max += amplitude;
-		amplitude *= 0.5;
+		amplitude *= 0.5; // change this = persistence
 		frequency *= 2;
 	}
 

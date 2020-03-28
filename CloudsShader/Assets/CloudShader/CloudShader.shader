@@ -142,41 +142,19 @@ Shader "CloudShader"
                 // get intersection with the cloud container
                 float3 entryPoint = rayOrigin + rayDir * containerInfo.dstToBox;
 
-                // ray marching
+                // ray marching, implementation mostly from Palenik
                 float transmittance = 1; // the current ratio between light that was emitted and light that is received (accumulating variable for transparency)
                 float stepSize = 0.2;
-                float maxDistance = containerInfo.dstInsideBox / stepSize;
-                float currDistance = 0;
                 float4 resColor = float4(0,0,0,0); // accumulating variable for the resulting color
                 float3 currPoint = entryPoint; // current point on the ray during ray marching
                 absorptionCoef = 0.2;
 
-                float totalDens = 0;
-                int steps = 0;
-                float tra = 0;
-                while (currDistance < maxDistance) //(isInsideBox(currPoint, lowerBound, upperBound, rayDir))
+                while (isInsideBox(currPoint, lowerBound, upperBound, rayDir))
                 {
-                    float3 currPos = entryPoint + rayDir * currDistance;
-                    float dens = getDensity(currPoint);
-                    if (dens > 1)
-                        tra = 1;
-                    totalDens += getDensity(currPoint) * stepSize;
+                    // get the density (= color that is sampler from the noise texture) at current position 
+                    float density = getDensity(currPoint); 
 
-
-                    // take a step forward along the ray
-                    currDistance += stepSize;
-                }
-                if (tra == 0)
-                    tra = exp(-totalDens);
-                
-
-                /*while (isInsideBox(currPoint, lowerBound, upperBound, rayDir))
-                {
-                   // float4 currColor =  NoiseTex.SampleLevel(samplerNoiseTex, currPoint, 0);// get the color at the current point
-
-                    float4 currColor = NoiseTex.SampleLevel(samplerNoiseTex, currPoint, 0);// get the density at current position
-                    float density = currColor.x;
-                    float deltaT =  exp(-absorptionCoef * stepSize * density);
+                    float deltaT = exp(-absorptionCoef * stepSize * density);
                     //float incLghting = evalIncLighting(); // evaluates the incident lighting
                     transmittance *= deltaT;
 
@@ -189,17 +167,10 @@ Shader "CloudShader"
 
                     // take a step forward along the ray
                     currPoint += rayDir * stepSize;
-                }*/
+                }
 
-
-                float4 result = tra * base  /*+ resColor*/;
+                float4 result = transmittance * base  + resColor;
                 return result;
-
-               /* float4 currColor = NoiseTex.SampleLevel(samplerNoiseTex, entryPoint, 0);
-               // float4 base = tex2D(_MainTex, i.uv);
-                if (isInsideBox(float3(entryPoint.x, entryPoint.y, entryPoint.z + 2), lowerBound, upperBound, rayDir))
-                    return base * currColor;
-                return base;*/
             }
             ENDCG
         }
