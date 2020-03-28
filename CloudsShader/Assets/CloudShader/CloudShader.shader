@@ -154,6 +154,7 @@ Shader "CloudShader"
                     // get the density (= color that is sampler from the noise texture) at current position 
                     float density = getDensity(currPoint); 
 
+                    // compute the 
                     float deltaT = exp(-absorptionCoef * stepSize * density);
                     //float incLghting = evalIncLighting(); // evaluates the incident lighting
                     transmittance *= deltaT;

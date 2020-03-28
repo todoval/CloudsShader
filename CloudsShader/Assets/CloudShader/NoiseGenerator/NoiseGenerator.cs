@@ -8,23 +8,34 @@ public class NoiseGenerator : MonoBehaviour
 {
 
     public int resolution = 64;
+    public int worleyResolution = 64;
+
     public ComputeShader PerlinCompShader;
+    public ComputeShader WorleyCompShader;
     public ComputeShader slicer;
-    public RenderTexture noiseTexture = null;
-    private int noiseKernel;
+
+    public ComputeBuffer worleyFeaturePointsBuffer;
+    
+    public RenderTexture perlinTexture = null;
+    public RenderTexture worleyTexture = null;
+
+    private int perlinKernel;
+    private int worleyCubeKernel;
+    private int worleyNoiseKernel;
     private int slicerKernel;
 
     // Perlin noise settings
 
     public int PerlinRes = 8;
-
     public int PerlinOctaves = 8;
     public float PerlinPersistence = 0.6f;
     public float PerlinLacunarity = 2.0f;
 
+    // Worley noise settings
+
     void Start()
     {
-        if (null == PerlinCompShader || slicer == null) 
+        if (null == PerlinCompShader || slicer == null || null == WorleyCompShader) 
         {
             Debug.Log("Shader missing.");
             enabled = false;
@@ -32,14 +43,18 @@ public class NoiseGenerator : MonoBehaviour
         }
 
         slicerKernel = slicer.FindKernel("Slicer");
-        noiseKernel = PerlinCompShader.FindKernel("PerlinNoise");
+        perlinKernel = PerlinCompShader.FindKernel("PerlinNoise");
+        worleyCubeKernel = WorleyCompShader.FindKernel("WorleyCube");
+        worleyNoiseKernel = WorleyCompShader.FindKernel("WorleyNoise");
 
-        if (noiseKernel < 0 || slicerKernel < 0)
+        if (perlinKernel < 0 || slicerKernel < 0 || worleyNoiseKernel < 0)
         {
             Debug.Log("Initialization failed.");
             enabled = false;
             return;
         }  
+        
+        worleyFeaturePointsBuffer = new ComputeBuffer( worleyResolution * worleyResolution * worleyResolution, sizeof(float) * 3);
     }
     
 
@@ -74,7 +89,7 @@ public class NoiseGenerator : MonoBehaviour
     }
 
     // convert the input RenderTexture to Texture3D
-    void SaveRenderTex (RenderTexture source)
+    void SaveRenderTex (RenderTexture source, string textureName)
     {
         // create an array of 2D RenderTextures
         RenderTexture[] layers = new RenderTexture[resolution];
@@ -102,45 +117,88 @@ public class NoiseGenerator : MonoBehaviour
  
         output.SetPixels(outputPixels);
         output.Apply();
-        AssetDatabase.CreateAsset(output, "Assets/Resources/noise.asset");
+        AssetDatabase.CreateAsset(output, "Assets/Resources/" + textureName + ".asset");
     }
 
-
-    void createNewNoise()
+    void createPerlinNoise()
     {
-        if (null == PerlinCompShader || noiseKernel < 0 || slicerKernel < 0)
+        if (null == perlinTexture) 
+        {
+            perlinTexture = new RenderTexture(resolution, resolution, 0);
+            perlinTexture.graphicsFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_UNorm;
+            perlinTexture.volumeDepth = resolution;
+            perlinTexture.enableRandomWrite = true;
+            perlinTexture.dimension = TextureDimension.Tex3D;
+            perlinTexture.Create();
+        }
+
+        // call the perlin compute shader which saves the perlin texture into perlinTexture variable
+        PerlinCompShader.SetTexture(perlinKernel, "Result", perlinTexture);
+        PerlinCompShader.SetInt("texRes", PerlinRes);
+        PerlinCompShader.SetInt("octaves", PerlinOctaves);
+        PerlinCompShader.SetFloat("persistence", PerlinPersistence);
+        PerlinCompShader.SetFloat("lacunarity", PerlinLacunarity);
+        PerlinCompShader.Dispatch(perlinKernel, 8, 8, 8);
+        SaveRenderTex(perlinTexture, "PerlinNoise");
+    }
+
+    void createWorleyNoise()
+    {
+        // create noiseTexture
+        if (null == worleyTexture) 
+        {
+            worleyTexture = new RenderTexture(resolution, resolution, 0);
+            worleyTexture.graphicsFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_UNorm;
+            worleyTexture.volumeDepth = resolution;
+            worleyTexture.enableRandomWrite = true;
+            worleyTexture.dimension = TextureDimension.Tex3D;
+            worleyTexture.Create();
+        }
+
+        // compute the worley cube
+        WorleyCompShader.SetBuffer(worleyCubeKernel, "FeaturePoints", worleyFeaturePointsBuffer);
+        WorleyCompShader.Dispatch(worleyCubeKernel, 8, 8, 8);
+
+        float[] temp = new float[64*64*64*3];
+        worleyFeaturePointsBuffer.GetData(temp);
+        int maxI = 0;
+        for (int i = 0; i < 64*64*64*3; i++)
+        {
+            if (temp[i] != 0)
+                maxI = i;
+        }
+        Debug.Log(maxI);
+
+        // call the worley compute shader which saves the worley texture into worleyTexture variable
+        WorleyCompShader.SetBuffer(worleyNoiseKernel, "FeaturePoints", worleyFeaturePointsBuffer);
+        WorleyCompShader.SetTexture(worleyNoiseKernel, "Result", worleyTexture);
+        WorleyCompShader.Dispatch(worleyNoiseKernel, 8, 8, 8);
+        SaveRenderTex(worleyTexture, "WorleyNoise");
+    }
+
+    void updateNoiseTextures()
+    {
+        if (null == PerlinCompShader || perlinKernel < 0 || worleyNoiseKernel < 0 || worleyCubeKernel < 0 || slicerKernel < 0)
         {
             Debug.Log("Error creating new noise.");
             return;
         }
 
-        // create noiseTexture
-        if (null == noiseTexture) 
-        {
-            noiseTexture = new RenderTexture(resolution, resolution, 0);
-            noiseTexture.graphicsFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_UNorm;
-            noiseTexture.volumeDepth = resolution;
-            noiseTexture.enableRandomWrite = true;
-            noiseTexture.dimension = TextureDimension.Tex3D;
-            noiseTexture.Create();
-        }
-
-        // call the noise compute shader which saves the noise texture into noiseTexture variable
-        PerlinCompShader.SetTexture(noiseKernel, "Result", noiseTexture);
-        PerlinCompShader.SetInt("texRes", PerlinRes);
-        PerlinCompShader.SetInt("octaves", PerlinOctaves);
-        PerlinCompShader.SetFloat("persistence", PerlinPersistence);
-        PerlinCompShader.SetFloat("lacunarity", PerlinLacunarity);
-        PerlinCompShader.Dispatch(noiseKernel, 8, 8, 8);
-
-        SaveRenderTex(noiseTexture);
+        // create all noise textures in the Resources folder
+        createPerlinNoise();
+        createWorleyNoise();
     }
 
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.W))
         {
-            createNewNoise();
+            updateNoiseTextures();
         }
+    }
+
+    void OnDestroy()
+    {
+        worleyFeaturePointsBuffer.Release();
     }
 }

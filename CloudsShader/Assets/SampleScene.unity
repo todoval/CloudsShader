@@ -772,8 +772,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   resolution: 64
   PerlinCompShader: {fileID: 7200000, guid: 4ba3ba37ffea53c43a7e3b4161223dbf, type: 3}
+  WorleyCompShader: {fileID: 7200000, guid: d3f22e70ad025f544ae493664e4f1e44, type: 3}
   slicer: {fileID: 7200000, guid: a60837efe51cbc742afd865d8fea6fbf, type: 3}
-  noiseTexture: {fileID: 0}
+  perlinTexture: {fileID: 0}
+  worleyTexture: {fileID: 0}
   PerlinRes: 8
   PerlinOctaves: 8
   PerlinPersistence: 0.6

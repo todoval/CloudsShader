@@ -1,0 +1,135 @@
+﻿#pragma kernel WorleyCube
+#pragma kernel WorleyNoise
+
+RWTexture3D<float4> Result;
+RWStructuredBuffer<float3> FeaturePoints;
+
+uint hash(uint seed)
+{
+    seed = (seed + 0x7ed55d16) + (seed << 12);
+    seed = (seed ^ 0xc761c23c) ^ (seed >> 19);
+    seed = (seed + 0x165667b1) + (seed << 5);
+    seed = (seed + 0xd3a2646c) ^ (seed << 9);
+    seed = (seed + 0xfd7046c5) + (seed << 3);
+    seed = (seed ^ 0xb55a4f09) ^ (seed >> 16);
+    return seed;
+}
+
+float rand3dTo1d(float3 value, float3 dotDir = float3(12.9898, 78.233, 37.719))
+{
+	//make value smaller to avoid artefacts
+	float3 smallValue = sin(value);
+	//get scalar value from 3d vector
+	float random = dot(smallValue, dotDir);
+	//make value more random by making it bigger and then taking the factional part
+	random = frac(sin(random) * 143758.5453);
+	return random;
+}
+
+float3 rand3dTo3d(float3 value)
+{
+	return float3(
+		rand3dTo1d(value, float3(12.989, 78.233, 37.719)),
+		rand3dTo1d(value, float3(39.346, 11.135, 83.155)),
+		rand3dTo1d(value, float3(73.156, 52.235, 09.151))
+	);
+}
+
+[numthreads(8,8,8)]
+void WorleyCube(uint3 id : SV_DispatchThreadID)
+{
+    // compute the random feature point at the worley cube [id.x, id.y, id.z] position
+    float3 rnd = rand3dTo3d(float3(id.x, id.y, id.z));
+
+    // get point in the buffer where [id.x, id.y, id.z] is
+    uint pos = id.x * 64 * 64 + id.y * 64 + id.z;
+    FeaturePoints[pos] = rnd;
+}
+
+// returns the distance between two 3D points
+float distance(float3 A, float3 B)
+{
+    return sqrt(pow(B.x - A.x, 2) + pow(B.y - A.y, 2) + pow(B.z - A.z, 2));
+}
+
+// id.x going from 0 to 63
+[numthreads(8,8,8)]
+void WorleyNoise (uint3 id : SV_DispatchThreadID)
+{
+    // get the actual coordinates from 0 to 1
+   // float x = (float) id.x / 64; 
+   // float y = (float) id.y / 64;
+  //  float z = (float) id.z / 64;
+
+    // save my position
+    float3 myPos = float3(id.x, id.y, id.z);
+
+    // get the random feature point from the buffer (buffer now contains random float3 values from 0 to 1)
+    uint pos = id.x * 63 * 63 + id.y * 63 + id.z;
+
+    // the random float3 in featurePoints
+    float3 rndFloat3 = FeaturePoints[pos];
+
+    // the actual position that the feature point is on
+    float3 closestfeaturePoint = rndFloat3 + myPos;
+
+    // get the distance to the feature point
+    float bestDistance = distance(closestfeaturePoint, myPos);
+
+    // for the surrounding 26 points, compute the distance and feature point as well
+    for (int i = -1; i < 2; i++) // i == current x offset
+    {
+        // do not test if out of bouds
+        if (i == -1 && id.x == 0)
+            continue;
+        if (i == 1 && id.x == 63)
+            continue;
+
+        for (int j = -1; j <= 1; j++) // j == current y offset
+        {
+            if (j == -1 && id.y == 0)
+                continue;
+            if (j == 1 && id.y == 63)
+                continue;       
+
+            for (int k = -1; k <= 1; k++) // k == current z offset
+            {
+                if (k == -1 && id.z == 0)
+                {
+                    continue;
+                    Result[id.xyz] = float4(1,0,0,1);
+                     return;
+                }
+                    continue;
+                if (k == 1 && id.z == 63)
+                    continue;   
+
+                // all out of bounds exceptions tested here, [id.x + i, id.y + j, id.z + k] is in cube
+                
+                float3 posOffset = float3(i, j, k);
+                /*if (i == 0 && j == 0 && k == 0)
+                {
+                     Result[id.xyz] = float4(1,0,0,1);
+                     return;
+                }*/
+                float3 currPos = myPos + posOffset;
+                float posInBuffer = (id.x+i) * 63 * 63 + (id.y +j) * 63 + (id.z + k); // the position of the neighbouring cube in featurePoints buffer
+                float3 rndOffset = FeaturePoints[posInBuffer]; // its random offset of featurePoint in featurePoints buffer
+
+                // the actual position that the feature point is on
+                float3 currFeaturePoint = rndOffset + currPos;
+                // get the distance to the feature point
+                float currDistance = distance(currFeaturePoint, myPos);
+
+                if (currDistance < bestDistance)
+                {
+                    bestDistance = currDistance;
+                    closestfeaturePoint = currFeaturePoint;
+                }
+            }
+        }
+    }
+
+    // now we have the closest feature point saved
+    Result[id.xyz] = float4(bestDistance, bestDistance, bestDistance, bestDistance);
+}

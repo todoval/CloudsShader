@@ -4,7 +4,8 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEditor;
 
-[ExecuteInEditMode, ImageEffectAllowedInSceneView]
+//ExecuteInEditMode,
+[ImageEffectAllowedInSceneView]
 public class CloudGenerator : MonoBehaviour
 {
     int resolution = 64;
@@ -92,8 +93,9 @@ public class CloudGenerator : MonoBehaviour
         }
 
         // set parameters to the shader
-        Texture3D tex = LoadTexture("noise");
-        material.SetTexture("NoiseTex", tex);
+        Texture3D perlin = LoadTexture("PerlinNoise");
+        Texture3D worley = LoadTexture("WorleyNoise");
+        material.SetTexture("NoiseTex", worley);
         material.SetVector("lowerBound", container.position - container.localScale/2);
         material.SetVector("upperBound", container.position + container.localScale/2);
 
