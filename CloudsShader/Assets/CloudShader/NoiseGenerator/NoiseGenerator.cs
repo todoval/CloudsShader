@@ -19,7 +19,8 @@ public class NoiseGenerator : MonoBehaviour
     public int PerlinRes = 8;
 
     public int PerlinOctaves = 8;
-
+    public float PerlinPersistence = 0.6f;
+    public float PerlinLacunarity = 2.0f;
 
     void Start()
     {
@@ -40,6 +41,7 @@ public class NoiseGenerator : MonoBehaviour
             return;
         }  
     }
+    
 
     // a helper function returning only one 2D slice (defined by layer) from source
     RenderTexture Copy3DSliceToRenderTexture(RenderTexture source, int layer)
@@ -103,6 +105,7 @@ public class NoiseGenerator : MonoBehaviour
         AssetDatabase.CreateAsset(output, "Assets/Resources/noise.asset");
     }
 
+
     void createNewNoise()
     {
         if (null == PerlinCompShader || noiseKernel < 0 || slicerKernel < 0)
@@ -126,6 +129,8 @@ public class NoiseGenerator : MonoBehaviour
         PerlinCompShader.SetTexture(noiseKernel, "Result", noiseTexture);
         PerlinCompShader.SetInt("texRes", PerlinRes);
         PerlinCompShader.SetInt("octaves", PerlinOctaves);
+        PerlinCompShader.SetFloat("persistence", PerlinPersistence);
+        PerlinCompShader.SetFloat("lacunarity", PerlinLacunarity);
         PerlinCompShader.Dispatch(noiseKernel, 8, 8, 8);
 
         SaveRenderTex(noiseTexture);

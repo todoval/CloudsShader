@@ -3,6 +3,9 @@
 RWTexture3D<float4> Result;
 
 int octaves;
+float frequency;
+float persistence;
+float lacunarity;
 
 int texRes;
 
@@ -39,9 +42,7 @@ static float fade(float t)
 }
 
 /* create a gradient vector from the hash
- * return the dot product between the gradient vector and [x,y,z] vector (the location vector of the current vertex)
- * returns a vector from the following 12 vectors: (1,1,0),(-1,1,0),(1,-1,0),(-1,-1,0), (1,0,1),(-1,0,1),(1,0,-1),(-1,0,-1), (0,1,1),(0,-1,1),(0,1,-1),(0,-1,-1)
-*/
+ * return the dot product between the gradient vector and [x,y,z] vector (the location vector of the current vertex)*/
 static float grad(int hash, float x, float y, float z)
 {
         switch(hash & 0xF)
@@ -64,22 +65,6 @@ static float grad(int hash, float x, float y, float z)
         case 0xF: return -y - z;
         default: return 0; // never happens
     }
-   /* float u, v;
-    hash &= 15; // take the first 4 bits of the hash (15 == 0b1111)
-
-    if (hash < 8) // if highest bit is 0, gradient = x, otherwise y
-        u = x; 
-    else
-        u = y;
-
-    if (hash < 4) // if the first and second significat bits are 0, set v to y
-        v = y;
-    else if (hash == 12 || hash == 14) // if the first and second significat bits are 1, set v to x
-        v = x;
-    else // highest and second bit are different
-        v = z;
-
-    return ((hash & 1) == 0 ? u : -u)+((hash & 2) == 0 ? v : -v); // Use the last 2 bits to decide if u and v are positive or negative.  Then return their addition.*/
 }
 
 static float lerp(float a, float b, float x)
@@ -162,15 +147,15 @@ void PerlinNoise (uint3 id : SV_DispatchThreadID)
     // define parameters of the Perlin function
 	float result = 0;
 	float frequency = 1;
-	float amplitude = 1;
+	float amplitude = 2;
 	float max = 0;
 
 	for (int i = 0; i < octaves; i++) //compute perlin noise for each octave
 	{
 		result += getPerlinValue(x * frequency, y * frequency, z * frequency) * amplitude;
 		max += amplitude;
-		amplitude *= 0.5; // change this = persistence
-		frequency *= 2;
+		amplitude *= persistence;
+		frequency *= lacunarity;
 	}
 
 	float res = result / max;
