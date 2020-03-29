@@ -21,19 +21,29 @@ float distance(float2 A, float2 B)
 [numthreads(8,8,1)]
 void WorleyNoise (uint3 id : SV_DispatchThreadID)
 {
+    // TO DO: lower the number of feature points
+
     float2 myPos = float2(id.x, id.y);
 
-    uint pos = id.x * 64 + id.y;
+    //uint pos = id.x * 64 + id.y;
 
     // the random float3 in featurePoints
-    float2 rndFloat3 = FeaturePoints[pos];
+    //float2 rndFloat3 = FeaturePoints[pos];
 
     // the actual position that the feature point is on
-    float2 closestfeaturePoint = rndFloat3 + myPos;
+    float2 closestfeaturePoint = FeaturePoints[0];
 
     // get the distance to the feature point
     float bestDistance = distance(closestfeaturePoint, myPos);
+    for (int i = 0; i < 64; i++)
+    {
+        float dist = distance(myPos, FeaturePoints[i]);
+        if (bestDistance > dist)
+            bestDistance = dist;
+    }
+    bestDistance = bestDistance/64;
 
+/*
     // for the surrounding 26 points, compute the distance and feature point as well
     for (int i = -1; i <= 1; i++) // i == current x offset
     {
@@ -68,7 +78,7 @@ void WorleyNoise (uint3 id : SV_DispatchThreadID)
                 closestfeaturePoint = currFeaturePoint;
             }
         }
-    }
+    }*/
 
     tempRes[id.xy] = float4(bestDistance, bestDistance, bestDistance, bestDistance);
 }

@@ -146,8 +146,17 @@ public class NoiseGenerator : MonoBehaviour
 
     void CreateWorleyPointsBuffer (System.Random prng)
     {
-        var points = new Vector3[64 * 64 * 64];
-        float cellSize = 1f / 64;
+        var points = new Vector2[64];
+        for (int i = 0; i < 64; i++)
+        {
+            float randomX = (float) prng.NextDouble () * 64;
+            float randomY = (float) prng.NextDouble () * 64;
+        //    float randomZ = (float) prng.NextDouble ();
+            points[i] = new Vector2(randomX, randomY);
+            Debug.Log(points[i]);
+        }
+
+       /* float cellSize = 1f / 64;
 
         for (int x = 0; x < 64; x++) {
             for (int y = 0; y < 64; y++) {
@@ -160,11 +169,12 @@ public class NoiseGenerator : MonoBehaviour
 
                     int index = x + 64 * (y + z * 64);
                     points[index] = cellCorner + randomOffset;
+                    points[x * 64 + ] = float3(randomX, randomY, randomZ);
                 }
             }
         }
-
-        worleyFeaturePointsBuffer = new ComputeBuffer( worleyResolution * worleyResolution * worleyResolution, sizeof(float) * 3);
+*/
+        worleyFeaturePointsBuffer = new ComputeBuffer( worleyResolution, sizeof(float) * 2);
         worleyFeaturePointsBuffer.SetData(points);
     }
 
