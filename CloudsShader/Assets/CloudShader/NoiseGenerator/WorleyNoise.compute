@@ -6,42 +6,40 @@ RWTexture2D<float4> tempRes;
 
 RWStructuredBuffer<float3> FeaturePoints;
 
+int FeatPointBufferSize;
+
 // returns the distance between two 3D points
-/*float distance(float3 A, float3 B)
+float distance(float3 A, float3 B)
 {
     return sqrt(pow(B.x - A.x, 2) + pow(B.y - A.y, 2) + pow(B.z - A.z, 2));
-}*/
-
-float distance(float2 A, float2 B)
-{
-    return sqrt(pow(B.y - A.y, 2) + pow(B.x - A.x, 2));
 }
 
-// id.x going from 0 to 63
-[numthreads(8,8,1)]
+/*float distance(float2 A, float2 B)
+{
+    return sqrt(pow(B.y - A.y, 2) + pow(B.x - A.x, 2));
+}*/
+
+[numthreads(8,8,8)]
 void WorleyNoise (uint3 id : SV_DispatchThreadID)
 {
-    // TO DO: lower the number of feature points
 
-    float2 myPos = float2(id.x, id.y);
+    // save the position of the current point
+    float3 myPos = float3(id.x, id.y, id.z);
 
-    //uint pos = id.x * 64 + id.y;
-
-    // the random float3 in featurePoints
-    //float2 rndFloat3 = FeaturePoints[pos];
-
-    // the actual position that the feature point is on
-    float2 closestfeaturePoint = FeaturePoints[0];
+    // iterate over all the existing featurePoints and find the one that is closest
+    float3 closestfeaturePoint = FeaturePoints[0];
 
     // get the distance to the feature point
     float bestDistance = distance(closestfeaturePoint, myPos);
-    for (int i = 0; i < 64; i++)
+
+    for (int i = 0; i < FeatPointBufferSize; i++)
     {
         float dist = distance(myPos, FeaturePoints[i]);
         if (bestDistance > dist)
             bestDistance = dist;
     }
-    bestDistance = bestDistance/64;
+    bestDistance = bestDistance/32;
+    Result[id.xyz] = float4(bestDistance, bestDistance, bestDistance, bestDistance);
 
 /*
     // for the surrounding 26 points, compute the distance and feature point as well

@@ -9,6 +9,7 @@ public class NoiseGenerator : MonoBehaviour
 
     public int resolution = 64;
     public int worleyResolution = 64;
+    public int worleyFeaturePointsSize = 64;
 
     public ComputeShader PerlinCompShader;
     public ComputeShader WorleyCompShader;
@@ -146,35 +147,17 @@ public class NoiseGenerator : MonoBehaviour
 
     void CreateWorleyPointsBuffer (System.Random prng)
     {
-        var points = new Vector2[64];
-        for (int i = 0; i < 64; i++)
+        var points = new Vector2[worleyFeaturePointsSize];
+        for (int i = 0; i < worleyFeaturePointsSize; i++)
         {
-            float randomX = (float) prng.NextDouble () * 64;
-            float randomY = (float) prng.NextDouble () * 64;
+            float randomX = (float) prng.NextDouble () * worleyResolution;
+            float randomY = (float) prng.NextDouble () * worleyResolution;
         //    float randomZ = (float) prng.NextDouble ();
             points[i] = new Vector2(randomX, randomY);
             Debug.Log(points[i]);
         }
 
-       /* float cellSize = 1f / 64;
-
-        for (int x = 0; x < 64; x++) {
-            for (int y = 0; y < 64; y++) {
-                for (int z = 0; z < 64; z++) {
-                    float randomX = (float) prng.NextDouble ();
-                    float randomY = (float) prng.NextDouble ();
-                    float randomZ = (float) prng.NextDouble ();
-                    Vector3 randomOffset = new Vector3 (randomX, randomY, randomZ) * cellSize;
-                    Vector3 cellCorner = new Vector3 (x, y, z) * cellSize;
-
-                    int index = x + 64 * (y + z * 64);
-                    points[index] = cellCorner + randomOffset;
-                    points[x * 64 + ] = float3(randomX, randomY, randomZ);
-                }
-            }
-        }
-*/
-        worleyFeaturePointsBuffer = new ComputeBuffer( worleyResolution, sizeof(float) * 2);
+        worleyFeaturePointsBuffer = new ComputeBuffer( worleyFeaturePointsSize, sizeof(float) * 2);
         worleyFeaturePointsBuffer.SetData(points);
     }
 
@@ -203,7 +186,8 @@ public class NoiseGenerator : MonoBehaviour
         WorleyCompShader.SetBuffer(worleyNoiseKernel, "FeaturePoints", worleyFeaturePointsBuffer);
         WorleyCompShader.SetTexture(worleyNoiseKernel, "Result", worleyTexture);
         WorleyCompShader.SetTexture(worleyNoiseKernel, "tempRes", tempRes);
-        WorleyCompShader.Dispatch(worleyNoiseKernel, 8, 8, 1);
+        WorleyCompShader.SetInt("FeatPointBufferSize", worleyFeaturePointsSize);
+        WorleyCompShader.Dispatch(worleyNoiseKernel, 8, 8, 8);
         SaveRenderTex(worleyTexture, "WorleyNoise");
     }
 
