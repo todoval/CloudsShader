@@ -19,8 +19,9 @@ public class NoiseGenerator : MonoBehaviour
     public RenderTexture perlinTexture = null;
     public RenderTexture worleyTexture = null;
 
+    public RenderTexture tempRes = null;
+
     private int perlinKernel;
-    private int worleyCubeKernel;
     private int worleyNoiseKernel;
     private int slicerKernel;
 
@@ -44,7 +45,6 @@ public class NoiseGenerator : MonoBehaviour
 
         slicerKernel = slicer.FindKernel("Slicer");
         perlinKernel = PerlinCompShader.FindKernel("PerlinNoise");
-        worleyCubeKernel = WorleyCompShader.FindKernel("WorleyCube");
         worleyNoiseKernel = WorleyCompShader.FindKernel("WorleyNoise");
 
         if (perlinKernel < 0 || slicerKernel < 0 || worleyNoiseKernel < 0)
@@ -181,31 +181,25 @@ public class NoiseGenerator : MonoBehaviour
             worleyTexture.Create();
         }
 
-        // compute the worley cube
-      //  WorleyCompShader.SetBuffer(worleyCubeKernel, "FeaturePoints", worleyFeaturePointsBuffer);
-     //   WorleyCompShader.Dispatch(worleyCubeKernel, 8, 8, 8);
-
-        float[] temp = new float[64*64*64*3];
-        worleyFeaturePointsBuffer.GetData(temp);
-        int maxI = 0;
-        for (int i = 0; i < 64*64; i++)
+        if (null == tempRes) 
         {
-            Debug.Log(temp[i]);
-            if (temp[i] != 0)
-                maxI = i;
+            tempRes = new RenderTexture(resolution, resolution, 0);
+            tempRes.enableRandomWrite = true;
+            tempRes.dimension = TextureDimension.Tex2D;
+            tempRes.Create();
         }
-        Debug.Log(maxI);
 
         // call the worley compute shader which saves the worley texture into worleyTexture variable
         WorleyCompShader.SetBuffer(worleyNoiseKernel, "FeaturePoints", worleyFeaturePointsBuffer);
         WorleyCompShader.SetTexture(worleyNoiseKernel, "Result", worleyTexture);
-        WorleyCompShader.Dispatch(worleyNoiseKernel, 8, 8, 8);
+        WorleyCompShader.SetTexture(worleyNoiseKernel, "tempRes", tempRes);
+        WorleyCompShader.Dispatch(worleyNoiseKernel, 8, 8, 1);
         SaveRenderTex(worleyTexture, "WorleyNoise");
     }
 
     void updateNoiseTextures()
     {
-        if (null == PerlinCompShader || perlinKernel < 0 || worleyNoiseKernel < 0 || worleyCubeKernel < 0 || slicerKernel < 0)
+        if (null == PerlinCompShader || perlinKernel < 0 || worleyNoiseKernel < 0 || slicerKernel < 0)
         {
             Debug.Log("Error creating new noise.");
             return;
@@ -226,6 +220,7 @@ public class NoiseGenerator : MonoBehaviour
 
     void OnDestroy()
     {
-        worleyFeaturePointsBuffer.Release();
+        if (worleyFeaturePointsBuffer != null)
+            worleyFeaturePointsBuffer.Release();
     }
 }
