@@ -156,7 +156,6 @@ public class NoiseGenerator : MonoBehaviour
             float randomY = (float) prng.NextDouble () * worleyPointsPerRes;
             float randomZ = (float) prng.NextDouble () * worleyPointsPerRes;
             points[i] = new Vector3( (int)randomX, (int)randomY, (int)randomZ);
-            Debug.Log(points[i]);
         }
         worleyFeaturePointsBuffer = new ComputeBuffer( numberOfPoints, sizeof(float) * 3);
         worleyFeaturePointsBuffer.SetData(points);
