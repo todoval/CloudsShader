@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 using UnityEditor;
 
 //ExecuteInEditMode,
-[ImageEffectAllowedInSceneView]
+[ExecuteInEditMode, ImageEffectAllowedInSceneView]
 public class CloudGenerator : MonoBehaviour
 {
     int resolution = 64;

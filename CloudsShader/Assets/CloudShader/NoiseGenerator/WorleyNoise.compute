@@ -27,37 +27,91 @@ void WorleyNoise (uint3 id : SV_DispatchThreadID)
     // get the distance to the feature point
     float bestDistance = 30; //distance(closestfeaturePoint, myPos);
 
+    bool xOver64 = false;
+    bool xUnder0 = false;
+    bool yOver64 = false;
+    bool yUnder0 = false;
+    bool zOver64 = false;
+    bool zUnder0 = false;
+
     for (int i = -1; i < 2; i++) // offset on the x coord
     {
         if (myQuadrant.x == 7 && i == 1)
-            continue;
+            xOver64 = true;
         if (myQuadrant.x == 0 && i == -1)
-            continue;
+            xUnder0 = true;
 
         for (int j = -1; j < 2; j++) // offset on the y coord
         {
             if (myQuadrant.y == 7 && j == 1)
-                continue;
+                yOver64 = true;
             if (myQuadrant.y == 0 && j == -1)
-                continue;
+                yUnder0 = true;
 
             for (int k = -1; k < 2; k++) // offset on the z coord
             {
                 if (myQuadrant.z == 7 && k == 1)
-                    continue;
+                    zOver64 = true;
                 if (myQuadrant.z == 0 && k == -1)
-                    continue;
+                    zUnder0 = true;
 
                 float3 neightbourQuadrant = float3(myQuadrant.x + i, myQuadrant.y + j, myQuadrant.z + k);
+
+                if (xOver64)
+                    neightbourQuadrant.x = 0;
+                if (xUnder0)
+                    neightbourQuadrant.x = 7;
+                if (yOver64)
+                    neightbourQuadrant.y = 0;
+                if (yUnder0)
+                    neightbourQuadrant.y = 7;
+                if (zOver64)
+                    neightbourQuadrant.z = 0;
+                if (zUnder0)
+                    neightbourQuadrant.z = 7;
+
                 float posInBuffer = neightbourQuadrant.x * 8 * 8 + neightbourQuadrant.y * 8 + neightbourQuadrant.z;
                 float3 quadrantOffset = FeaturePoints[posInBuffer];
                 float3 currPos = quadrantOffset + neightbourQuadrant * 8;
+
                 float dist = distance(myPos, currPos);
 
+                int diffX = 0;
+                int diffY = 0;
+                int diffZ = 0;
+                if (xOver64)
+                    diffX = 63 - myPos.x + currPos.x;
+                else if (xUnder0)
+                    diffX = 63 - currPos.x + myPos.x;
+                else
+                    diffX = currPos.x - myPos.x;
+                
+                if (yOver64)
+                    diffY = 63 - myPos.y + currPos.y;
+                else if (yUnder0)
+                    diffY = 63 - currPos.y + myPos.y;
+                else
+                    diffY = currPos.y - myPos.y;
+                
+                if (zOver64)
+                    diffZ = 63 - myPos.z + currPos.z;
+                else if (zUnder0)
+                    diffZ = 63 - currPos.z + myPos.z;
+                else
+                    diffZ = currPos.z - myPos.z;
+
+                dist = sqrt(pow(diffX, 2) + pow(diffY, 2) + pow(diffZ, 2));
                 if (bestDistance > dist)
                     bestDistance = dist;
+
+                zOver64 = false;
+                zUnder0 = false;
             }
+            yOver64 = false;
+            yUnder0 = false;
         }
+        xOver64 = false;
+        xUnder0 = false;
     }
     // get the highest possible distance between a feature point and a point
     float highestDistance = 8;//sqrt(64+64+64);

@@ -144,7 +144,6 @@ public class NoiseGenerator : MonoBehaviour
         SaveRenderTex(perlinTexture, "PerlinNoise");
     }
 
-
     void CreateWorleyPointsBuffer ()
     {
         System.Random prng = new System.Random (1);
