@@ -10,94 +10,99 @@ RWStructuredBuffer<float3> FeaturePoints;
 [numthreads(numThreads,numThreads,numThreads)]
 void WorleyNoise (uint3 id : SV_DispatchThreadID)
 {
+    // we create one feature point for one cell, and for all the other points we compute the distances to these feature points
     int resolution = numThreads * numGroups;
+    
+
+    int cellSize = 32;
+    int noOfCells = resolution / cellSize; // in this case, 4
 
     // save the position of the current point
     float3 myPos = float3(id.x, id.y, id.z);
 
-    // get the quadrant our point is in (therefore myQuadrant will have values from 0 to 8)
-    float3 myQuadrant = float3(id.x/ resolution, id.y/ resolution, id.z/ resolution);
+    // get the cell our point is in (therefore myCell will have values from 0 to noOfCells)
+    float3 myCell = float3(id.x/ cellSize, id.y/ cellSize, id.z/ cellSize);
 
     // the distance to the feature point, starting with a max distance
-    float bestDistance = 8 * 8 * 8;
+    float bestDistance = cellSize * cellSize * cellSize;
 
-    // iterate over all the neighboring quadrants to find the nearest feature point
+    // iterate over all the neighboring cells to find the nearest feature point
     for (int i = -1; i < 2; i++) // offset on the x coord
     {
         // boolean values are used to check whether some feature points might be in the next tile
         // used so the tiling is smooth
-        bool xOver64 = false;
-        bool xUnder0 = false;
-        if (myQuadrant.x == 7 && i == 1)
-            xOver64 = true;
-        if (myQuadrant.x == 0 && i == -1)
-            xUnder0 = true;
+        bool xOverCell = false;
+        bool xUnderCell = false;
+        if (myCell.x == (noOfCells - 1) && i == 1)
+            xOverCell = true;
+        if (myCell.x == 0 && i == -1)
+            xUnderCell = true;
 
         for (int j = -1; j < 2; j++) // offset on the y coord
         {
             // tiling for ycoord
-            bool yOver64 = false;
-            bool yUnder0 = false;
-            if (myQuadrant.y == 7 && j == 1)
-                yOver64 = true;
-            if (myQuadrant.y == 0 && j == -1)
-                yUnder0 = true;
+            bool yOverCell = false;
+            bool yUnderCell = false;
+            if (myCell.y == (noOfCells - 1) && j == 1)
+                yOverCell = true;
+            if (myCell.y == 0 && j == -1)
+                yUnderCell = true;
 
             for (int k = -1; k < 2; k++) // offset on the z coord
             {
                 // tiling for z coord
-                bool zOver64 = false;
-                bool zUnder0 = false;
-                if (myQuadrant.z == 7 && k == 1)
-                    zOver64 = true;
-                if (myQuadrant.z == 0 && k == -1)
-                    zUnder0 = true;
+                bool zOverCell = false;
+                bool zUnderCell = false;
+                if (myCell.z == (noOfCells - 1) && k == 1)
+                    zOverCell = true;
+                if (myCell.z == 0 && k == -1)
+                    zUnderCell = true;
 
-                // get the neighbor quadrant
-                float3 neightbourQuadrant = float3(myQuadrant.x + i, myQuadrant.y + j, myQuadrant.z + k);
+                // get the neighbor cell
+                float3 neightbourCell = float3(myCell.x + i, myCell.y + j, myCell.z + k);
 
                 // to avoid overflow
-                if (xOver64)
-                    neightbourQuadrant.x = 0;
-                else if (xUnder0)
-                    neightbourQuadrant.x = 7;
-                if (yOver64)
-                    neightbourQuadrant.y = 0;
-                else if (yUnder0)
-                    neightbourQuadrant.y = 7;
-                if (zOver64)
-                    neightbourQuadrant.z = 0;
-                else if (zUnder0)
-                    neightbourQuadrant.z = 7;
+                if (xOverCell)
+                    neightbourCell.x = 0;
+                else if (xUnderCell)
+                    neightbourCell.x = (noOfCells - 1);
+                if (yOverCell)
+                    neightbourCell.y = 0;
+                else if (yUnderCell)
+                    neightbourCell.y = (noOfCells - 1);
+                if (zOverCell)
+                    neightbourCell.z = 0;
+                else if (zUnderCell)
+                    neightbourCell.z = (noOfCells - 1);
 
-                // get the offset in the quadrant and the actual position
-                float posInBuffer = neightbourQuadrant.x * 8 * 8 + neightbourQuadrant.y * 8 + neightbourQuadrant.z;
-                float3 quadrantOffset = FeaturePoints[posInBuffer];
-                float3 currPos = quadrantOffset + neightbourQuadrant * 8;
+                // get the offset in the cell and the actual position
+                float posInBuffer = neightbourCell.x * noOfCells * noOfCells + neightbourCell.y * noOfCells + neightbourCell.z;
+                float3 cellOffset = FeaturePoints[posInBuffer] ;
+                float3 currPos = cellOffset + neightbourCell * cellSize;
 
                 // get the difference between myPos and feature point position for all axis'
                 int diffX = 0;
                 int diffY = 0;
                 int diffZ = 0;
 
-                if (xOver64)
-                    diffX = 63 - myPos.x + currPos.x;
-                else if (xUnder0)
-                    diffX = 63 - currPos.x + myPos.x;
+                if (xOverCell)
+                    diffX = cellSize - 1 - myPos.x + currPos.x;
+                else if (xUnderCell)
+                    diffX = cellSize - 1 - currPos.x + myPos.x;
                 else
                     diffX = currPos.x - myPos.x;
                 
-                if (yOver64)
-                    diffY = 63 - myPos.y + currPos.y;
-                else if (yUnder0)
-                    diffY = 63 - currPos.y + myPos.y;
+                if (yOverCell)
+                    diffY = cellSize - 1 - myPos.y + currPos.y;
+                else if (yUnderCell)
+                    diffY = cellSize - 1 - currPos.y + myPos.y;
                 else
                     diffY = currPos.y - myPos.y;
                 
-                if (zOver64)
-                    diffZ = 63 - myPos.z + currPos.z;
-                else if (zUnder0)
-                    diffZ = 63 - currPos.z + myPos.z;
+                if (zOverCell)
+                    diffZ = cellSize - 1 - myPos.z + currPos.z;
+                else if (zUnderCell)
+                    diffZ = cellSize - 1 - currPos.z + myPos.z;
                 else
                     diffZ = currPos.z - myPos.z;
 
@@ -111,7 +116,7 @@ void WorleyNoise (uint3 id : SV_DispatchThreadID)
         }
     }
     // get the highest possible distance between a feature point and a point
-    float highestDistance = 8; // a parameter that I found to work the best
+    float highestDistance = 32; // a parameter that I found to work the best
     bestDistance = bestDistance / highestDistance;
 
     // invert the worley noise
