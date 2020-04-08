@@ -86,23 +86,23 @@ void WorleyNoise (uint3 id : SV_DispatchThreadID)
                 int diffZ = 0;
 
                 if (xOverCell)
-                    diffX = cellSize - 1 - myPos.x + currPos.x;
+                    diffX = cellSize * noOfCells - 1 - myPos.x + currPos.x;
                 else if (xUnderCell)
-                    diffX = cellSize - 1 - currPos.x + myPos.x;
+                    diffX = cellSize * noOfCells  - 1 - currPos.x + myPos.x;
                 else
                     diffX = currPos.x - myPos.x;
                 
                 if (yOverCell)
-                    diffY = cellSize - 1 - myPos.y + currPos.y;
+                    diffY = cellSize * noOfCells  - 1 - myPos.y + currPos.y;
                 else if (yUnderCell)
-                    diffY = cellSize - 1 - currPos.y + myPos.y;
+                    diffY = cellSize * noOfCells  - 1 - currPos.y + myPos.y;
                 else
                     diffY = currPos.y - myPos.y;
                 
                 if (zOverCell)
-                    diffZ = cellSize - 1 - myPos.z + currPos.z;
+                    diffZ = cellSize * noOfCells  - 1 - myPos.z + currPos.z;
                 else if (zUnderCell)
-                    diffZ = cellSize - 1 - currPos.z + myPos.z;
+                    diffZ = cellSize * noOfCells  - 1 - currPos.z + myPos.z;
                 else
                     diffZ = currPos.z - myPos.z;
 
