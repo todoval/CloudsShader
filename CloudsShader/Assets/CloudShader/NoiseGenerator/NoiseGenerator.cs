@@ -6,23 +6,25 @@ using UnityEditor;
 
 public class NoiseGenerator : MonoBehaviour
 {
-
-    public int resolution = 64;
-    public int worleyResolution = 64;
+    public int tempRes = 64;
+    public int shapeNoiseResolution = 128;
     public int worleyPointsPerRes = 8;
 
     public ComputeShader PerlinCompShader;
+    public ComputeShader SimplexCompShader;
     public ComputeShader WorleyCompShader;
     public ComputeShader slicer;
+    public ComputeShader randomNumberGenerator;
 
     public ComputeBuffer worleyFeaturePointsBuffer;
     
     public RenderTexture perlinTexture = null;
     public RenderTexture worleyTexture = null;
-
-    public RenderTexture tempRes = null;
+    public RenderTexture simplexTexture = null;
 
     private int perlinKernel;
+    private int simplexKernel;
+    private int rndNumberKernel;
     private int worleyNoiseKernel;
     private int slicerKernel;
 
@@ -37,31 +39,34 @@ public class NoiseGenerator : MonoBehaviour
 
     void Start()
     {
-        if (null == PerlinCompShader || slicer == null || null == WorleyCompShader) 
+        if (null == PerlinCompShader || null == SimplexCompShader ||slicer == null || null == WorleyCompShader || null == randomNumberGenerator) 
         {
             Debug.Log("Shader missing.");
             enabled = false;
             return;
         }
 
+        shapeNoiseResolution = 128;
         slicerKernel = slicer.FindKernel("Slicer");
+        simplexKernel = SimplexCompShader.FindKernel("SimplexNoise");
+        rndNumberKernel = randomNumberGenerator.FindKernel("RandomNumberGenerator");
         perlinKernel = PerlinCompShader.FindKernel("PerlinNoise");
         worleyNoiseKernel = WorleyCompShader.FindKernel("WorleyNoise");
 
-        if (perlinKernel < 0 || slicerKernel < 0 || worleyNoiseKernel < 0)
+        if (simplexKernel < 0 | perlinKernel < 0 || slicerKernel < 0 || worleyNoiseKernel < 0)
         {
             Debug.Log("Initialization failed.");
             enabled = false;
             return;
         }  
         
+        // create the buffer for worley noise with feature point offsets
         CreateWorleyPointsBuffer();
-        //worleyFeaturePointsBuffer = new ComputeBuffer( worleyResolution * worleyResolution * worleyResolution, sizeof(float) * 3);
     }
     
 
     // a helper function returning only one 2D slice (defined by layer) from source
-    RenderTexture Copy3DSliceToRenderTexture(RenderTexture source, int layer)
+    RenderTexture Copy3DSliceToRenderTexture(RenderTexture source, int layer, int resolution)
     {
         // create new 2D RenderTexture
         RenderTexture render = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.ARGB32);
@@ -75,13 +80,13 @@ public class NoiseGenerator : MonoBehaviour
         slicer.SetTexture(kernelIndex, "voxels", source);
         slicer.SetInt("layer", layer);
         slicer.SetTexture(kernelIndex, "Result", render);
-        slicer.Dispatch(kernelIndex, 8, 8, 1);
+        slicer.Dispatch(kernelIndex, 16, 16, 1);
 
         return render;
     }
 
     // 2D renderTexture to Texture2D conversion
-    Texture2D ConvertFromRenderTexture(RenderTexture renderTex)
+    Texture2D ConvertFromRenderTexture(RenderTexture renderTex, int resolution)
     {
         Texture2D output = new Texture2D(resolution, resolution);
         RenderTexture.active = renderTex;
@@ -91,18 +96,18 @@ public class NoiseGenerator : MonoBehaviour
     }
 
     // convert the input RenderTexture to Texture3D
-    void SaveRenderTex (RenderTexture source, string textureName)
+    void SaveRenderTex (RenderTexture source, string textureName, int resolution)
     {
         // create an array of 2D RenderTextures
         RenderTexture[] layers = new RenderTexture[resolution];
         // slice 3D RenderTexture into this array
         for( int i = 0; i < resolution; i++)        
-            layers[i] = Copy3DSliceToRenderTexture(source, i);
+            layers[i] = Copy3DSliceToRenderTexture(source, i, resolution);
 
         // transform the 2D RenderTexture into Texture2D
         Texture2D[] finalSlices = new Texture2D[resolution];
         for ( int i = 0; i < resolution; i++)        
-            finalSlices[i] = ConvertFromRenderTexture(layers[i]);
+            finalSlices[i] = ConvertFromRenderTexture(layers[i], resolution);
 
         // create a new 3D Texture and fill it with the contents of the slices
         Texture3D output = new Texture3D(resolution, resolution, resolution, TextureFormat.ARGB32, true);
@@ -122,30 +127,14 @@ public class NoiseGenerator : MonoBehaviour
         AssetDatabase.CreateAsset(output, "Assets/Resources/" + textureName + ".asset");
     }
 
-    void createPerlinNoise()
-    {
-        if (null == perlinTexture) 
-        {
-            perlinTexture = new RenderTexture(resolution, resolution, 0);
-            perlinTexture.graphicsFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_UNorm;
-            perlinTexture.volumeDepth = resolution;
-            perlinTexture.enableRandomWrite = true;
-            perlinTexture.dimension = TextureDimension.Tex3D;
-            perlinTexture.Create();
-        }
-
-        // call the perlin compute shader which saves the perlin texture into perlinTexture variable
-        PerlinCompShader.SetTexture(perlinKernel, "Result", perlinTexture);
-        PerlinCompShader.SetInt("texRes", PerlinRes);
-        PerlinCompShader.SetInt("octaves", PerlinOctaves);
-        PerlinCompShader.SetFloat("persistence", PerlinPersistence);
-        PerlinCompShader.SetFloat("lacunarity", PerlinLacunarity);
-        PerlinCompShader.Dispatch(perlinKernel, 8, 8, 8);
-        SaveRenderTex(perlinTexture, "PerlinNoise");
-    }
-
     void CreateWorleyPointsBuffer ()
     {
+        //worleyFeaturePointsBuffer = new ComputeBuffer( worleyPointsPerRes * worleyPointsPerRes * worleyPointsPerRes, sizeof(float) * 3);
+      //  randomNumberGenerator.SetBuffer(rndNumberKernel, "FeaturePointOffsets", worleyFeaturePointsBuffer);
+       // randomNumberGenerator.Dispatch(rndNumberKernel, 8, 8, 8);
+
+        //int numberOfPoints = worleyPointsPerRes * worleyPointsPerRes * worleyPointsPerRes;
+        //worleyFeaturePointsBuffer = new ComputeBuffer( numberOfPoints, sizeof(float) * 3);
         System.Random prng = new System.Random (1);
         int numberOfPoints = worleyPointsPerRes * worleyPointsPerRes * worleyPointsPerRes;
         var points = new Vector3[numberOfPoints];
@@ -160,14 +149,55 @@ public class NoiseGenerator : MonoBehaviour
         worleyFeaturePointsBuffer.SetData(points);
     }
 
+    void createPerlinNoise()
+    {
+        if (null == perlinTexture) 
+        {
+            perlinTexture = new RenderTexture(tempRes, tempRes, 0);
+            perlinTexture.graphicsFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_UNorm;
+            perlinTexture.volumeDepth = tempRes;
+            perlinTexture.enableRandomWrite = true;
+            perlinTexture.dimension = TextureDimension.Tex3D;
+            perlinTexture.Create();
+        }
+
+        // call the perlin compute shader which saves the perlin texture into perlinTexture variable
+        PerlinCompShader.SetTexture(perlinKernel, "Result", perlinTexture);
+        PerlinCompShader.SetInt("texRes", PerlinRes);
+        PerlinCompShader.SetInt("octaves", PerlinOctaves);
+        PerlinCompShader.SetFloat("persistence", PerlinPersistence);
+        PerlinCompShader.SetFloat("lacunarity", PerlinLacunarity);
+        PerlinCompShader.SetVector("mask", new Vector4(1,0,0,0));
+        PerlinCompShader.Dispatch(perlinKernel, 8, 8, 8);
+        SaveRenderTex(perlinTexture, "PerlinNoise", tempRes);
+    }
+
+    void createSimplexNoise()
+    {
+        if (null == simplexTexture) 
+        {
+            simplexTexture = new RenderTexture(tempRes, tempRes, 0);
+            simplexTexture.graphicsFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_UNorm;
+            simplexTexture.volumeDepth = tempRes;
+            simplexTexture.enableRandomWrite = true;
+            simplexTexture.dimension = TextureDimension.Tex3D;
+            simplexTexture.Create();
+        }
+
+        // call the simplex compute shader which saves the simplex texture into the simplexTexture variable
+        SimplexCompShader.SetTexture(simplexKernel, "Result", simplexTexture);
+        SimplexCompShader.Dispatch(simplexKernel, 8,8,8);
+        SaveRenderTex(simplexTexture, "SimplexNoise", tempRes);
+    }
+
     void createWorleyNoise()
     {
         // create noiseTexture
         if (null == worleyTexture) 
         {
-            worleyTexture = new RenderTexture(resolution, resolution, 0);
+            worleyTexture = new RenderTexture(shapeNoiseResolution, shapeNoiseResolution, 0);
             worleyTexture.graphicsFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_UNorm;
-            worleyTexture.volumeDepth = resolution;
+            worleyTexture.volumeDepth = shapeNoiseResolution;
             worleyTexture.enableRandomWrite = true;
             worleyTexture.dimension = TextureDimension.Tex3D;
             worleyTexture.Create();
@@ -176,14 +206,14 @@ public class NoiseGenerator : MonoBehaviour
         // call the worley compute shader which saves the worley texture into worleyTexture variable
         WorleyCompShader.SetBuffer(worleyNoiseKernel, "FeaturePoints", worleyFeaturePointsBuffer);
         WorleyCompShader.SetTexture(worleyNoiseKernel, "Result", worleyTexture);
-        WorleyCompShader.SetInt("FeatPointBufferSize", worleyPointsPerRes);
-        WorleyCompShader.Dispatch(worleyNoiseKernel, 8, 8, 8);
-        SaveRenderTex(worleyTexture, "WorleyNoise");
+        int threadGroups = 16;//= shapeNoiseResolution / 8;
+        WorleyCompShader.Dispatch(worleyNoiseKernel, threadGroups, threadGroups, threadGroups);
+        SaveRenderTex(worleyTexture, "WorleyNoise", shapeNoiseResolution);
     }
 
     void updateNoiseTextures()
     {
-        if (null == PerlinCompShader || perlinKernel < 0 || worleyNoiseKernel < 0 || slicerKernel < 0)
+        if (null == PerlinCompShader || rndNumberKernel < 0 || perlinKernel < 0 || worleyNoiseKernel < 0 || slicerKernel < 0)
         {
             Debug.Log("Error creating new noise.");
             return;

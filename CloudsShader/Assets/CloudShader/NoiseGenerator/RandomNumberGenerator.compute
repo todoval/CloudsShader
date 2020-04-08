@@ -1,0 +1,26 @@
+﻿#pragma kernel RandomNumberGenerator
+
+RWStructuredBuffer<float3> FeaturePointOffsets;
+
+uint hash(uint s)
+{
+    s ^= 2747636419u;
+    s *= 2654435769u;
+    s ^= s >> 16;
+    s *= 2654435769u;
+    s ^= s >> 16;
+    s *= 2654435769u;
+    return s;
+}
+
+float randomFloat(unsigned int seed)
+{
+    return float(hash(seed)) / 4294967295.0;
+}
+
+[numthreads(8, 8, 1)]
+void RandomNumberGenerator (uint3 id : SV_DispatchThreadID)
+{
+    // no need for now
+    FeaturePointOffsets[id.x * 8 * 8 + id.y * 8 + id.z] = randomFloat(id.x + id.y * id.z);
+}
