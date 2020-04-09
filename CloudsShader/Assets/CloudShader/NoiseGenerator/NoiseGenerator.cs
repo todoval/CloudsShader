@@ -8,7 +8,7 @@ public class NoiseGenerator : MonoBehaviour
 {
     public int tempRes = 64;
     public int shapeNoiseResolution = 128;
-    public int worleyPointsPerRes = 8;
+    public int worleyPointsPerRes = 64;
 
     public ComputeShader PerlinCompShader;
     public ComputeShader SimplexCompShader;
@@ -140,10 +140,10 @@ public class NoiseGenerator : MonoBehaviour
         var points = new Vector3[numberOfPoints];
         for (int i = 0; i < numberOfPoints; i++)
         {
-            float randomX = (float) prng.NextDouble () * worleyPointsPerRes;
-            float randomY = (float) prng.NextDouble () * worleyPointsPerRes;
-            float randomZ = (float) prng.NextDouble () * worleyPointsPerRes;
-            points[i] = new Vector3( (int)randomX, (int)randomY, (int)randomZ);
+            float randomX = (float) prng.NextDouble (); //* worleyPointsPerRes;
+            float randomY = (float) prng.NextDouble (); //* worleyPointsPerRes;
+            float randomZ = (float) prng.NextDouble (); //* worleyPointsPerRes;
+            points[i] = new Vector3( randomX, randomY,randomZ);
         }
         worleyFeaturePointsBuffer = new ComputeBuffer( numberOfPoints, sizeof(float) * 3);
         worleyFeaturePointsBuffer.SetData(points);
@@ -228,6 +228,7 @@ public class NoiseGenerator : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.W))
         {
+            CreateWorleyPointsBuffer();
             updateNoiseTextures();
         }
     }

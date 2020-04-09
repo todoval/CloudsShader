@@ -13,9 +13,8 @@ void WorleyNoise (uint3 id : SV_DispatchThreadID)
     // we create one feature point for one cell, and for all the other points we compute the distances to these feature points
     int resolution = numThreads * numGroups;
     
-
-    int cellSize = 32;
-    int noOfCells = resolution / cellSize; // in this case, 4
+    int cellSize = 8;
+    int noOfCells = resolution / cellSize;
 
     // save the position of the current point
     float3 myPos = float3(id.x, id.y, id.z);
@@ -24,7 +23,7 @@ void WorleyNoise (uint3 id : SV_DispatchThreadID)
     float3 myCell = float3(id.x/ cellSize, id.y/ cellSize, id.z/ cellSize);
 
     // the distance to the feature point, starting with a max distance
-    float bestDistance = cellSize * cellSize * cellSize;
+    float bestDistance = resolution * resolution * resolution;
 
     // iterate over all the neighboring cells to find the nearest feature point
     for (int i = -1; i < 2; i++) // offset on the x coord
@@ -77,8 +76,8 @@ void WorleyNoise (uint3 id : SV_DispatchThreadID)
 
                 // get the offset in the cell and the actual position
                 float posInBuffer = neightbourCell.x * noOfCells * noOfCells + neightbourCell.y * noOfCells + neightbourCell.z;
-                float3 cellOffset = FeaturePoints[posInBuffer] ;
-                float3 currPos = cellOffset + neightbourCell * cellSize;
+                float3 cellOffset = FeaturePoints[posInBuffer] * cellSize;
+                float3 currPos = cellOffset  + neightbourCell * cellSize;
 
                 // get the difference between myPos and feature point position for all axis'
                 int diffX = 0;
@@ -116,7 +115,7 @@ void WorleyNoise (uint3 id : SV_DispatchThreadID)
         }
     }
     // get the highest possible distance between a feature point and a point
-    float highestDistance = 32; // a parameter that I found to work the best
+    float highestDistance = cellSize; // a parameter that I found to work the best
     bestDistance = bestDistance / highestDistance;
 
     // invert the worley noise
