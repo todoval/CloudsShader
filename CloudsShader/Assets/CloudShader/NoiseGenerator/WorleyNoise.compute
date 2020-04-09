@@ -269,5 +269,5 @@ void WorleyNoise (uint3 id : SV_DispatchThreadID)
 
 
     // invert the worley noise
-    Result[id.xyz] = 1 - float4( (1 - red) * 0.6, worleyChannelGreen, worleyChannelBlue, worleyChannelAlpha);
+    Result[id.xyz] = 1 - float4( (1 - red) , worleyChannelGreen, worleyChannelBlue, worleyChannelAlpha);
 }
