@@ -1,0 +1,109 @@
+﻿
+
+float getWorleyNoise(uint3 id, uint cellSize, uint textureResolution)
+{
+    int noOfCells = textureResolution / cellSize;
+
+    // save the position of the current point
+    float3 myPos = float3(id.x, id.y, id.z);
+
+    // get the cell our point is in (therefore myCell will have values from 0 to noOfCells)
+    float3 myCell = float3(id.x/ cellSize, id.y/ cellSize, id.z/ cellSize);
+
+    // the distance to the feature point, starting with a max distance
+    float bestDistance = textureResolution * textureResolution * textureResolution;
+
+    // iterate over all the neighboring cells to find the nearest feature point
+    for (int i = -1; i < 2; i++) // offset on the x coord
+    {
+        // boolean values are used to check whether some feature points might be in the next tile
+        // used so the tiling is smooth
+        bool xOverCell = false;
+        bool xUnderCell = false;
+        if (myCell.x == (noOfCells - 1) && i == 1)
+            xOverCell = true;
+        if (myCell.x == 0 && i == -1)
+            xUnderCell = true;
+
+        for (int j = -1; j < 2; j++) // offset on the y coord
+        {
+            // tiling for ycoord
+            bool yOverCell = false;
+            bool yUnderCell = false;
+            if (myCell.y == (noOfCells - 1) && j == 1)
+                yOverCell = true;
+            if (myCell.y == 0 && j == -1)
+                yUnderCell = true;
+
+            for (int k = -1; k < 2; k++) // offset on the z coord
+            {
+                // tiling for z coord
+                bool zOverCell = false;
+                bool zUnderCell = false;
+                if (myCell.z == (noOfCells - 1) && k == 1)
+                    zOverCell = true;
+                if (myCell.z == 0 && k == -1)
+                    zUnderCell = true;
+
+                // get the neighbor cell
+                float3 neightbourCell = float3(myCell.x + i, myCell.y + j, myCell.z + k);
+
+                // to avoid overflow
+                if (xOverCell)
+                    neightbourCell.x = 0;
+                else if (xUnderCell)
+                    neightbourCell.x = (noOfCells - 1);
+                if (yOverCell)
+                    neightbourCell.y = 0;
+                else if (yUnderCell)
+                    neightbourCell.y = (noOfCells - 1);
+                if (zOverCell)
+                    neightbourCell.z = 0;
+                else if (zUnderCell)
+                    neightbourCell.z = (noOfCells - 1);
+
+                // get the offset in the cell and the actual position
+                float posInBuffer = neightbourCell.x * noOfCells * noOfCells + neightbourCell.y * noOfCells + neightbourCell.z;
+                float3 cellOffset = FeaturePoints[posInBuffer] * cellSize;
+                float3 currPos = cellOffset  + neightbourCell * cellSize;
+
+                // get the difference between myPos and feature point position for all axis'
+                int diffX = 0;
+                int diffY = 0;
+                int diffZ = 0;
+
+                if (xOverCell)
+                    diffX = cellSize * noOfCells - 1 - myPos.x + currPos.x;
+                else if (xUnderCell)
+                    diffX = cellSize * noOfCells  - 1 - currPos.x + myPos.x;
+                else
+                    diffX = currPos.x - myPos.x;
+                
+                if (yOverCell)
+                    diffY = cellSize * noOfCells  - 1 - myPos.y + currPos.y;
+                else if (yUnderCell)
+                    diffY = cellSize * noOfCells  - 1 - currPos.y + myPos.y;
+                else
+                    diffY = currPos.y - myPos.y;
+                
+                if (zOverCell)
+                    diffZ = cellSize * noOfCells  - 1 - myPos.z + currPos.z;
+                else if (zUnderCell)
+                    diffZ = cellSize * noOfCells  - 1 - currPos.z + myPos.z;
+                else
+                    diffZ = currPos.z - myPos.z;
+
+                // get the distance between our point and the feature point
+                float dist = sqrt(pow(diffX, 2) + pow(diffY, 2) + pow(diffZ, 2));
+
+                // if it's better, update the best distance
+                if (bestDistance > dist)
+                    bestDistance = dist;
+            }
+        }
+    }
+    // get the highest possible distance between a feature point and a point
+    float highestDistance = cellSize; // a parameter that I found to work the best
+    bestDistance = bestDistance / highestDistance;
+    return bestDistance;
+}
