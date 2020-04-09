@@ -8,7 +8,7 @@ public class NoiseGenerator : MonoBehaviour
 {
     public int tempRes = 64;
     public int shapeNoiseResolution = 128;
-    public int worleyPointsPerRes = 64;
+    public int worleyPointsPerRes = 128;
 
     public ComputeShader PerlinCompShader;
     public ComputeShader SimplexCompShader;
@@ -47,6 +47,8 @@ public class NoiseGenerator : MonoBehaviour
         }
 
         shapeNoiseResolution = 128;
+        worleyPointsPerRes = 128;
+
         slicerKernel = slicer.FindKernel("Slicer");
         simplexKernel = SimplexCompShader.FindKernel("SimplexNoise");
         rndNumberKernel = randomNumberGenerator.FindKernel("RandomNumberGenerator");
@@ -147,6 +149,8 @@ public class NoiseGenerator : MonoBehaviour
         }
         worleyFeaturePointsBuffer = new ComputeBuffer( numberOfPoints, sizeof(float) * 3);
         worleyFeaturePointsBuffer.SetData(points);
+        Debug.Log(numberOfPoints);
+        //Debug.Log(points[16*16*16]);
     }
 
     void createPerlinNoise()
