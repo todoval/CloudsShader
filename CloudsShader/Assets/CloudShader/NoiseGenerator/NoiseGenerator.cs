@@ -11,7 +11,6 @@ public class NoiseGenerator : MonoBehaviour
     public int worleyPointsPerRes = 128;
 
     public ComputeShader PerlinCompShader;
-    public ComputeShader SimplexCompShader;
     public ComputeShader WorleyCompShader;
     public ComputeShader slicer;
     public ComputeShader randomNumberGenerator;
@@ -20,10 +19,8 @@ public class NoiseGenerator : MonoBehaviour
     
     public RenderTexture perlinTexture = null;
     public RenderTexture worleyTexture = null;
-    public RenderTexture simplexTexture = null;
 
     private int perlinKernel;
-    private int simplexKernel;
     private int rndNumberKernel;
     private int worleyNoiseKernel;
     private int slicerKernel;
@@ -39,7 +36,7 @@ public class NoiseGenerator : MonoBehaviour
 
     void Start()
     {
-        if (null == PerlinCompShader || null == SimplexCompShader ||slicer == null || null == WorleyCompShader || null == randomNumberGenerator) 
+        if (null == PerlinCompShader || slicer == null || null == WorleyCompShader || null == randomNumberGenerator) 
         {
             Debug.Log("Shader missing.");
             enabled = false;
@@ -50,12 +47,11 @@ public class NoiseGenerator : MonoBehaviour
         worleyPointsPerRes = 128;
 
         slicerKernel = slicer.FindKernel("Slicer");
-        simplexKernel = SimplexCompShader.FindKernel("SimplexNoise");
         rndNumberKernel = randomNumberGenerator.FindKernel("RandomNumberGenerator");
         perlinKernel = PerlinCompShader.FindKernel("PerlinNoise");
         worleyNoiseKernel = WorleyCompShader.FindKernel("WorleyNoise");
 
-        if (simplexKernel < 0 | perlinKernel < 0 || slicerKernel < 0 || worleyNoiseKernel < 0)
+        if (perlinKernel < 0 || slicerKernel < 0 || worleyNoiseKernel < 0)
         {
             Debug.Log("Initialization failed.");
             enabled = false;
@@ -149,17 +145,15 @@ public class NoiseGenerator : MonoBehaviour
         }
         worleyFeaturePointsBuffer = new ComputeBuffer( numberOfPoints, sizeof(float) * 3);
         worleyFeaturePointsBuffer.SetData(points);
-        Debug.Log(numberOfPoints);
-        //Debug.Log(points[16*16*16]);
     }
 
     void createPerlinNoise()
     {
         if (null == perlinTexture) 
         {
-            perlinTexture = new RenderTexture(tempRes, tempRes, 0);
+            perlinTexture = new RenderTexture(shapeNoiseResolution, shapeNoiseResolution, 0);
             perlinTexture.graphicsFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_UNorm;
-            perlinTexture.volumeDepth = tempRes;
+            perlinTexture.volumeDepth = shapeNoiseResolution;
             perlinTexture.enableRandomWrite = true;
             perlinTexture.dimension = TextureDimension.Tex3D;
             perlinTexture.Create();
@@ -172,26 +166,8 @@ public class NoiseGenerator : MonoBehaviour
         PerlinCompShader.SetFloat("persistence", PerlinPersistence);
         PerlinCompShader.SetFloat("lacunarity", PerlinLacunarity);
         PerlinCompShader.SetVector("mask", new Vector4(1,0,0,0));
-        PerlinCompShader.Dispatch(perlinKernel, 8, 8, 8);
-        SaveRenderTex(perlinTexture, "PerlinNoise", tempRes);
-    }
-
-    void createSimplexNoise()
-    {
-        if (null == simplexTexture) 
-        {
-            simplexTexture = new RenderTexture(tempRes, tempRes, 0);
-            simplexTexture.graphicsFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_UNorm;
-            simplexTexture.volumeDepth = tempRes;
-            simplexTexture.enableRandomWrite = true;
-            simplexTexture.dimension = TextureDimension.Tex3D;
-            simplexTexture.Create();
-        }
-
-        // call the simplex compute shader which saves the simplex texture into the simplexTexture variable
-        SimplexCompShader.SetTexture(simplexKernel, "Result", simplexTexture);
-        SimplexCompShader.Dispatch(simplexKernel, 8,8,8);
-        SaveRenderTex(simplexTexture, "SimplexNoise", tempRes);
+        PerlinCompShader.Dispatch(perlinKernel, 16, 16, 16);
+        SaveRenderTex(perlinTexture, "PerlinNoise", shapeNoiseResolution);
     }
 
     void createWorleyNoise()
@@ -210,7 +186,7 @@ public class NoiseGenerator : MonoBehaviour
         // call the worley compute shader which saves the worley texture into worleyTexture variable
         WorleyCompShader.SetBuffer(worleyNoiseKernel, "FeaturePoints", worleyFeaturePointsBuffer);
         WorleyCompShader.SetTexture(worleyNoiseKernel, "Result", worleyTexture);
-        int threadGroups = 16;//= shapeNoiseResolution / 8;
+        int threadGroups = shapeNoiseResolution / 8;
         WorleyCompShader.Dispatch(worleyNoiseKernel, threadGroups, threadGroups, threadGroups);
         SaveRenderTex(worleyTexture, "WorleyNoise", shapeNoiseResolution);
     }

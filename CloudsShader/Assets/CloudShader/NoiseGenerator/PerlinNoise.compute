@@ -6,7 +6,6 @@ int octaves;
 float frequency;
 float persistence;
 float lacunarity;
-float4 mask;
 
 int texRes;
 
@@ -160,5 +159,5 @@ void PerlinNoise (uint3 id : SV_DispatchThreadID)
 	}
 
 	float res = result / max;
-    Result[id.xyz] = float4(res * mask.r, res * mask.g, res * mask.b, res * mask.a);
+    Result[id.xyz] = float4(res, res, res, res);
 }

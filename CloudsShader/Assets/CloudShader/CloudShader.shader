@@ -113,7 +113,7 @@ Shader "CloudShader"
 
             float getDensity(float3 position)
             {
-                float4 currColor = NoiseTex.SampleLevel(samplerNoiseTex, position, 0);
+                float4 currColor = NoiseTex.SampleLevel(samplerNoiseTex, position/10, 1);
                 return currColor.r;
             }
 
@@ -170,6 +170,7 @@ Shader "CloudShader"
                     currPoint += rayDir * stepSize;
                 }
 
+                // TO DO - eliminate bounding artifacts with depth
                 float4 result = transmittance * base  + resColor;
                 return result;
             }
