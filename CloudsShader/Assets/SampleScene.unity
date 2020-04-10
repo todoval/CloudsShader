@@ -770,20 +770,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 87f3dd5ed707f76439a8a381c9320a3b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tempRes: 64
   shapeNoiseResolution: 128
-  worleyPointsPerRes: 8
-  PerlinCompShader: {fileID: 7200000, guid: 4ba3ba37ffea53c43a7e3b4161223dbf, type: 3}
-  WorleyCompShader: {fileID: 7200000, guid: d3f22e70ad025f544ae493664e4f1e44, type: 3}
+  worleyPointsPerRes: 128
+  NoiseTextureGenerator: {fileID: 7200000, guid: d3f22e70ad025f544ae493664e4f1e44,
+    type: 3}
   slicer: {fileID: 7200000, guid: a60837efe51cbc742afd865d8fea6fbf, type: 3}
   randomNumberGenerator: {fileID: 7200000, guid: 0cb84899e00b33145800b612bd45bb9d,
     type: 3}
   perlinTexture: {fileID: 0}
-  worleyTexture: {fileID: 0}
+  shapeTexture: {fileID: 0}
   PerlinRes: 8
   PerlinOctaves: 8
   PerlinPersistence: 0.6
   PerlinLacunarity: 2
+  greenChannelCellSize: 32
+  blueChannelCellSize: 16
+  alphaChannelCellSize: 8
 --- !u!4 &1340083853
 Transform:
   m_ObjectHideFlags: 0

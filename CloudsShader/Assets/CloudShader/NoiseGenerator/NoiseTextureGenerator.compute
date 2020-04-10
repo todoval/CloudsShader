@@ -1,142 +1,52 @@
 ﻿#pragma kernel WorleyNoise
+#include "NoiseHelper.compute"
 
 static const int numThreads = 8;
 static const int numGroups = 16;
 
-//static const int cellSizeGreen;
-//static const int cellSizeBlue;
-//static const int cellSizeAlpha;
+static const int cellSizeGreen;
+static const int cellSizeBlue;
+static const int cellSizeAlpha;
 
 RWTexture3D<float4> Result;
 
 RWStructuredBuffer<float3> FeaturePoints;
 
-// permutation table defined by Perlin for pseudorandom number generation
-static const int permutation[] = { 151,160,137,91,90,15,                
-    131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,    
-    190, 6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,35,11,32,57,177,33,
-    88,237,149,56,87,174,20,125,136,171,168, 68,175,74,165,71,134,139,48,27,166,
-    77,146,158,231,83,111,229,122,60,211,133,230,220,105,92,41,55,46,245,40,244,
-    102,143,54, 65,25,63,161, 1,216,80,73,209,76,132,187,208, 89,18,169,200,196,
-    135,130,116,188,159,86,164,100,109,198,173,186, 3,64,52,217,226,250,124,123,
-    5,202,38,147,118,126,255,82,85,212,207,206,59,227,47,16,58,17,182,189,28,42,
-    223,183,170,213,119,248,152, 2,44,154,163, 70,221,153,101,155,167, 43,172,9,
-    129,22,39,253, 19,98,108,110,79,113,224,232,178,185, 112,104,218,246,97,228,
-    251,34,242,193,238,210,144,12,191,179,162,241, 81,51,145,235,249,14,239,107,
-    49,192,214, 31,181,199,106,157,184, 84,204,176,115,121,50,45,127, 4,150,254,
-    138,236,205,93,222,114,67,29,24,72,243,141,128,195,78,66,215,61,156,180
-};
 
-static int perm[512];
+int octaves;
+float frequency;
+float persistence;
+float lacunarity;
 
-// resizes permutation array to avoid buffer overflow
-static void resizePermArray()
+int texRes;
+
+// returns the perlin noise at 3D point [id.x, id.y, id.z]
+float getPerlinNoise (float x, float y, float z)
 {
-    for(uint i = 0; i < 512; i++)
-        perm[i] = permutation[i % 256];
+    // initialize perm array to avoid buffer overflow (by repeating the permutation array)
+    resizePermArray();
+
+    // define parameters of the Perlin function
+	float result = 0;
+	float frequency = 1;
+	float amplitude = 2;
+	float max = 0;
+
+	for (int i = 0; i < octaves; i++) //compute perlin noise for each octave
+	{
+		result += getPerlinValue(x * frequency, y * frequency, z * frequency) * amplitude;
+		//max += amplitude;
+		//amplitude *= persistence;
+		//frequency *= lacunarity;
+	}
+
+	float res = result / max;
+    return result;
 }
 
-// fade function used for smoothing out the final output
-static float fade(float t)
+float getWorleyNoise(uint3 id, uint cellSize, uint textureResolution)
 {
-    // 6t^5 - 15t^4 + 10t^3 as defined by Perlin
-    return t * t * t * (t * (6 * t - 15) + 10);
-}
-
-/* create a gradient vector from the hash
- * return the dot product between the gradient vector and [x,y,z] vector (the location vector of the current vertex)*/
-static float grad(int hash, float x, float y, float z)
-{
-        switch(hash & 0xF)
-    {
-        case 0x0: return  x + y;
-        case 0x1: return -x + y;
-        case 0x2: return  x - y;
-        case 0x3: return -x - y;
-        case 0x4: return  x + z;
-        case 0x5: return -x + z;
-        case 0x6: return  x - z;
-        case 0x7: return -x - z;
-        case 0x8: return  y + z;
-        case 0x9: return -y + z;
-        case 0xA: return  y - z;
-        case 0xB: return -y - z;
-        case 0xC: return  y + x;
-        case 0xD: return -y + z;
-        case 0xE: return  y - x;
-        case 0xF: return -y - z;
-        default: return 0; // never happens
-    }
-}
-
-static float lerp(float a, float b, float x)
-{
-	return a + x * (b - a);
-}
-
-// returns the value of the Perlin function in [x,y,z] point
-float getPerlinValue(float x, float y, float z)
-{
-    // calculate the unit cube point of start
-    uint xi = (uint) x & 255;
-    uint yi = (uint) y & 255;
-    uint zi = (uint) z & 255;
-
-    // get the location vector
-    float locX = x - (int) x;
-    float locY = y - (int) y;
-    float locZ = z - (int) z;
-
-    // smooth out the location vector
-    float u = fade(locX);
-    float v = fade(locY);
-    float w = fade(locZ);
-
-    // we need create a pseudorandom hash for all 8 vertices of the cube (which will be later used for getting the vectors)
-    uint aaa, aba, aab, abb, baa, bba, bab, bbb; // the 8 resulting hashes
-    // we use the hash function for perlin noise to get the hashes
-    aaa = perm [perm [perm[xi] + yi] + zi]; 
-    aba = perm [perm [perm[xi] + yi + 1] + zi];
-    aab = perm [perm [perm[xi] + yi] + zi + 1];
-    abb = perm [perm [perm[xi] + yi + 1]+ zi + 1];
-    baa = perm [perm [perm[xi + 1] + yi] + zi];
-    bba = perm [perm [perm[xi + 1] + yi + 1]+ zi];
-    bab = perm [perm [perm[xi + 1] + yi]+ zi + 1];
-    bbb = perm [perm [perm[xi + 1] + yi + 1]+ zi + 1];
-
-    // get the dot product of the gradient vector and location vector from the grad function for each vertex
-    float dot1, dot2, dot3, dot4, dot5, dot6, dot7, dot8;
-    dot1 = grad(aaa, locX, locY, locZ);
-    dot2 = grad(baa, locX - 1, locY, locZ);
-    dot3 = grad(aba, locX, locY - 1, locZ);
-    dot4 = grad(bba, locX - 1, locY - 1, locZ);
-    dot5 = grad(aab, locX, locY, locZ - 1);
-    dot6 = grad(bab, locX - 1, locY, locZ - 1);
-    dot7 = grad(abb, locX, locY - 1, locZ - 1);
-    dot8 = grad(bbb, locX - 1, locY - 1, locZ - 1);
-
-    // interpolate dot products by pairs to create one value
-
-    // interpolate pairs by x coordinate (interpolate with u vector)
-    float x1 = lerp(dot1, dot2, u);
-    float x2 = lerp(dot3, dot4, u);
-    float x3 = lerp(dot5, dot6, u);
-    float x4 = lerp(dot7, dot8, u);
-
-    // interpolate the existing ones by the y coordinate (interpolate with v vector)
-    float y1 = lerp(x1, x2, v);
-    float y2 = lerp(x3, x4, v);
-
-    // interpolate the existing ones by the z coordinate (interpolate with w vector)
-    float z1 = lerp(y1, y2, w);
-
-    return z1;
-}
-
-
-float getWorleyNoise(uint3 id, uint cellSize, uint resolution)
-{
-    int noOfCells = resolution / cellSize;
+    int noOfCells = textureResolution / cellSize;
 
     // save the position of the current point
     float3 myPos = float3(id.x, id.y, id.z);
@@ -145,7 +55,7 @@ float getWorleyNoise(uint3 id, uint cellSize, uint resolution)
     float3 myCell = float3(id.x/ cellSize, id.y/ cellSize, id.z/ cellSize);
 
     // the distance to the feature point, starting with a max distance
-    float bestDistance = resolution * resolution * resolution;
+    float bestDistance = textureResolution * textureResolution * textureResolution;
 
     // iterate over all the neighboring cells to find the nearest feature point
     for (int i = -1; i < 2; i++) // offset on the x coord
@@ -248,9 +158,9 @@ void WorleyNoise (uint3 id : SV_DispatchThreadID)
     // we create one feature point for one cell, and for all the other points we compute the distances to these feature points
     int resolution = numThreads * numGroups;
     
-    uint cellSizeGreen = 32;
-    uint cellSizeBlue = 16;
-    uint cellSizeAlpha = 8;
+    uint cellSizeGreen = 16;
+    uint cellSizeBlue = 32;
+    uint cellSizeAlpha = 32;
     
     float worleyChannelGreen = getWorleyNoise(id, cellSizeGreen, resolution);
     float worleyChannelBlue = getWorleyNoise(id, cellSizeBlue, resolution);
@@ -264,8 +174,9 @@ void WorleyNoise (uint3 id : SV_DispatchThreadID)
     float x = (float) id.x / tex;
     float y = (float) id.y / tex;
     float z = (float) id.z / tex;
-    float red = getPerlinValue(x, y, z);
+    float red = getPerlinNoise(x, y, z);
+    red =  getSimplexNoise(float3(x,y,z));
 
     // invert the worley noise
-    Result[id.xyz] = float4(red, red, red, red);//1 - float4( (1 - red) , worleyChannelGreen, worleyChannelBlue, worleyChannelAlpha);
+    Result[id.xyz] = 1 - float4( 1 - red, worleyChannelGreen, worleyChannelBlue, worleyChannelAlpha);
 }
