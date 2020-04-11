@@ -20,6 +20,8 @@ float lacunarity;
 
 int texRes;
 
+
+
 // returns the perlin noise at 3D point [id.x, id.y, id.z]
 float getPerlinNoise (float x, float y, float z)
 {
@@ -35,16 +37,16 @@ float getPerlinNoise (float x, float y, float z)
 	for (int i = 0; i < octaves; i++) //compute perlin noise for each octave
 	{
 		result += getPerlinValue(x * frequency, y * frequency, z * frequency) * amplitude;
-		//max += amplitude;
-		//amplitude *= persistence;
-		//frequency *= lacunarity;
+		max += amplitude;
+		amplitude *= persistence;
+		frequency *= lacunarity;
 	}
 
 	float res = result / max;
     return result;
 }
 
-float getWorleyNoise(uint3 id, uint cellSize, uint textureResolution)
+float getWorleyValue(uint3 id, uint cellSize, uint textureResolution)
 {
     int noOfCells = textureResolution / cellSize;
 
@@ -152,6 +154,28 @@ float getWorleyNoise(uint3 id, uint cellSize, uint textureResolution)
     return bestDistance;
 }
 
+float getWorleyNoise(uint3 id, uint cellSize, uint textureResolution)
+{
+	float result = 0;
+	float worleyFrequency = 1;
+    float worleyPersistence = 0.6;
+	float worleyAmplitude = worleyPersistence;
+    float worleyLacunarity = 2;
+	float max = 0;
+    octaves = 8;
+
+	for (int i = 0; i < octaves; i++) //compute perlin noise for each octave
+	{
+		result += getWorleyValue(uint3(id.x * worleyFrequency, id.y * worleyFrequency, id.z * worleyFrequency), cellSize, textureResolution) * worleyAmplitude;
+        max += worleyAmplitude;
+		worleyAmplitude *= worleyPersistence;
+		worleyFrequency *= worleyLacunarity;
+	}
+
+	float res = result / max;
+    return result;
+}
+
 [numthreads(numThreads,numThreads,numThreads)]
 void WorleyNoise (uint3 id : SV_DispatchThreadID)
 {
@@ -178,5 +202,5 @@ void WorleyNoise (uint3 id : SV_DispatchThreadID)
     red =  getSimplexNoise(float3(x,y,z));
 
     // invert the worley noise
-    Result[id.xyz] = 1 - float4( 1 - red, worleyChannelGreen, worleyChannelBlue, worleyChannelAlpha);
+    Result[id.xyz] = 1 - float4(worleyChannelGreen, worleyChannelBlue, worleyChannelAlpha, 1);
 }
