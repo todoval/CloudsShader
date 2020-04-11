@@ -152,7 +152,7 @@ Shader "CloudShader"
                 while (isInsideBox(currPoint, lowerBound, upperBound, rayDir))
                 {
                     // get the density (= color that is sampler from the noise texture) at current position 
-                    float density = getDensity(currPoint); 
+                    float density = getDensity(currPoint + _Time); 
 
                     // compute the 
                     float deltaT = exp(-absorptionCoef * stepSize * density);
