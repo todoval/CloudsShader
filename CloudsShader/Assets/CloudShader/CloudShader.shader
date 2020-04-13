@@ -147,18 +147,21 @@ Shader "CloudShader"
                 float3 entryPoint = mainLightPos + (-dirVector) * containerInfo.dstToBox;
 
                 // light marching, march in the direction of the main light source
-                //float stepSize = 2;
+
                 float3 currPoint = pos;
                 float distanceToMarch = getDistance(entryPoint, pos);
                 float noOfSteps = 4;
-                float stepSize = distanceToMarch / noOfSteps;
+                float stepSize = 1;//distanceToMarch / noOfSteps;
                 float currSteps = 0;
+                // if light is inside box, set number of steps accordingly
+                if (getDistance(noOfSteps * stepSize * dirVector + currPoint, pos) > getDistance(lightPos, pos))
+                    noOfSteps = getDistance(lightPos, pos) / stepSize; 
                 
                 float resLight = 0;
                 float transmittance = 1/ getDistance(pos, lightPos) * 10;
                 float absorptionCoef = 0.6;
 
-                while (isInsideBox(currPoint, lowerBound, upperBound, dirVector) && currSteps < noOfSteps)
+                while (currSteps < noOfSteps)
                 {
                     // get the density (= color that is sampler from the noise texture) at current position 
                     float density = getDensity(currPoint + _Time); 
@@ -182,7 +185,7 @@ Shader "CloudShader"
 
                 // get cosine of the angle between incDir and dirVector
                 float cosAngle = dot(dirVector, incVector)/ (length(dirVector) * length(incVector));
-                return resLight * getHenyeyGreenstein(cosAngle, 0.6);
+                return resLight * 0.1;//getHenyeyGreenstein(cosAngle, 0.6);
             }
 
             fixed4 frag (VertToFrag i) : COLOR
@@ -238,7 +241,7 @@ Shader "CloudShader"
                             break;
 
                         // Rendering equation 
-                        resColor += density * stepSize * transmittance * absorptionCoef * incLight * 5;
+                        resColor += density * stepSize * transmittance * absorptionCoef * incLight;
                     }
 
                     // take a step forward along the ray
