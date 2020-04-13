@@ -18,6 +18,8 @@ Shader "CloudShader"
 
             #include "UnityCG.cginc"
 
+            #define PI 3.141592653
+
             struct VertInput
             {
                 float4 pos : POSITION;
@@ -97,8 +99,6 @@ Shader "CloudShader"
                 return (containerInfo.dstInsideBox > 0);
             }
 
-            const float PI = 3.141592653589793238462;
-
             sampler2D _MainTex;
             sampler2D _CameraDepthTexture;
 
@@ -129,7 +129,7 @@ Shader "CloudShader"
             // implementing the phase function, cosAngle is the cosine of the angle between two vectors, g is a parameter in [-1,1]  
             float getHenyeyGreenstein(float cosAngle, float g)
             {
-                return (1- pow(g,2))/( 4*PI* (1 + pow(g,2) - 2*g*cosAngle));
+                return (1 - g*g)/( 4*PI* (1 + g*g - 2*g*cosAngle));
             }
 
             float getIncidentLighting(float3 pos, float3 incVector)
@@ -181,9 +181,7 @@ Shader "CloudShader"
 
                 // get cosine of the angle between incDir and dirVector
                 float cosAngle = dot(dirVector, incVector)/ (length(dirVector) * length(incVector));
-                if (cosAngle > 0)
-                    return 0;
-                return resLight * getHenyeyGreenstein( cosAngle, 0.2);
+                return resLight * getHenyeyGreenstein(cosAngle, 0.6);
             }
 
             fixed4 frag (VertToFrag i) : COLOR
@@ -239,7 +237,7 @@ Shader "CloudShader"
                             break;
 
                         // Rendering equation 
-                        resColor += density * stepSize * transmittance * absorptionCoef * incLight;
+                        resColor += density * stepSize * transmittance * absorptionCoef * incLight * 10;
                     }
 
                     // take a step forward along the ray
