@@ -137,20 +137,21 @@ Shader "CloudShader"
                 // get the position of the main light
                 float3 mainLightPos = lightPos;
 
-                // vector from light position to my position
-                float3 dirVector = pos - float3(mainLightPos.x, mainLightPos.y, mainLightPos.z);
+                // vector from my position to light poisiton
+                float3 dirVector = float3(mainLightPos.x, mainLightPos.y, mainLightPos.z) - pos;
                 // get the normalized ray direction
                 dirVector = dirVector / length(dirVector);
 
                 // get intersection with the cloud container
-                rayContainerInfo containerInfo = getRayContainerInfo(lowerBound, upperBound, pos, dirVector);
-                float3 entryPoint = mainLightPos + dirVector * containerInfo.dstToBox;
+                rayContainerInfo containerInfo = getRayContainerInfo(lowerBound, upperBound, mainLightPos, -dirVector);
+                float3 entryPoint = mainLightPos + (-dirVector) * containerInfo.dstToBox;
 
                 // light marching, march in the direction of the main light source
-                float stepSize = 2;
-                float3 currPoint = entryPoint;
+                //float stepSize = 2;
+                float3 currPoint = pos;
                 float distanceToMarch = getDistance(entryPoint, pos);
-                float noOfSteps = distanceToMarch / stepSize;
+                float noOfSteps = 4;
+                float stepSize = distanceToMarch / noOfSteps;
                 float currSteps = 0;
                 
                 float resLight = 0;
@@ -171,7 +172,7 @@ Shader "CloudShader"
                         if (transmittance < 0.01)
                             break;
                         // Rendering equation 
-                        resLight += density * stepSize * transmittance * absorptionCoef;
+                        resLight += density * stepSize * transmittance * absorptionCoef * 8;
                     }
                     
                     // take another step in the direction of the light
@@ -237,7 +238,7 @@ Shader "CloudShader"
                             break;
 
                         // Rendering equation 
-                        resColor += density * stepSize * transmittance * absorptionCoef * incLight * 10;
+                        resColor += density * stepSize * transmittance * absorptionCoef * incLight * 5;
                     }
 
                     // take a step forward along the ray
