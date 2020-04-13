@@ -135,7 +135,7 @@ Shader "CloudShader"
             float getIncidentLighting(float3 pos, float3 incVector)
             {
                 // get the position of the main light
-                float3 mainLightPos = lightPos;
+                float3 mainLightPos = lightPos;//mul(unity_CameraToWorld,lightPos);
 
                 // vector from my position to light poisiton
                 float3 dirVector = float3(mainLightPos.x, mainLightPos.y, mainLightPos.z) - pos;
@@ -155,7 +155,7 @@ Shader "CloudShader"
                 float currSteps = 0;
                 
                 float resLight = 0;
-                float transmittance = 1;
+                float transmittance = 1/ getDistance(pos, lightPos) * 10;
                 float absorptionCoef = 0.6;
 
                 while (isInsideBox(currPoint, lowerBound, upperBound, dirVector) && currSteps < noOfSteps)
