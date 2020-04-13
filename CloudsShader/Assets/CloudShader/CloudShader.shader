@@ -135,7 +135,7 @@ Shader "CloudShader"
             float getIncidentLighting(float3 pos, float3 incVector)
             {
                 // get the position of the main light
-                float3 mainLightPos = lightPos;//mul(unity_CameraToWorld,lightPos);
+                float3 mainLightPos = lightPos;
 
                 // vector from my position to light poisiton
                 float3 dirVector = float3(mainLightPos.x, mainLightPos.y, mainLightPos.z) - pos;
@@ -143,25 +143,25 @@ Shader "CloudShader"
                 dirVector = dirVector / length(dirVector);
 
                 // get intersection with the cloud container
-                rayContainerInfo containerInfo = getRayContainerInfo(lowerBound, upperBound, mainLightPos, -dirVector);
-                float3 entryPoint = mainLightPos + (-dirVector) * containerInfo.dstToBox;
+                //rayContainerInfo containerInfo = getRayContainerInfo(lowerBound, upperBound, mainLightPos, -dirVector);
+                //float3 entryPoint = mainLightPos + (-dirVector) * containerInfo.dstToBox;
 
                 // light marching, march in the direction of the main light source
 
                 float3 currPoint = pos;
-                float distanceToMarch = getDistance(entryPoint, pos);
+                //float distanceToMarch = getDistance(entryPoint, pos);
                 float noOfSteps = 4;
-                float stepSize = 1;//distanceToMarch / noOfSteps;
-                float currSteps = 0;
+                float stepSize = 1;
+                uint currSteps = 0;
                 // if light is inside box, set number of steps accordingly
                 if (getDistance(noOfSteps * stepSize * dirVector + currPoint, pos) > getDistance(lightPos, pos))
-                    noOfSteps = getDistance(lightPos, pos) / stepSize; 
+                    stepSize = getDistance(lightPos, pos)/noOfSteps;
                 
                 float resLight = 0;
                 float transmittance = 1/ getDistance(pos, lightPos) * 10;
                 float absorptionCoef = 0.6;
 
-                while (currSteps < noOfSteps)
+                while (currSteps < uint(noOfSteps))
                 {
                     // get the density (= color that is sampler from the noise texture) at current position 
                     float density = getDensity(currPoint + _Time); 
