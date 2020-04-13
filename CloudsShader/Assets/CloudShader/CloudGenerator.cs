@@ -10,6 +10,7 @@ public class CloudGenerator : MonoBehaviour
 {
     int resolution = 64;
 
+    public Light mainLight;
 
     public RenderTexture noiseTexture = null;
     public Transform container;
@@ -95,6 +96,7 @@ public class CloudGenerator : MonoBehaviour
         // set parameters to the shader
         Texture3D perlin = LoadTexture("PerlinNoise");
         Texture3D worley = LoadTexture("WorleyNoise");
+        material.SetVector("lightPos", mainLight.transform.position);
         material.SetTexture("NoiseTex", worley);
         material.SetVector("lowerBound", container.position - container.localScale/2);
         material.SetVector("upperBound", container.position + container.localScale/2);

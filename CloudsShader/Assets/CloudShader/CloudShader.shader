@@ -97,6 +97,8 @@ Shader "CloudShader"
                 return (containerInfo.dstInsideBox > 0);
             }
 
+            const float PI = 3.141592653589793238462;
+
             sampler2D _MainTex;
             sampler2D _CameraDepthTexture;
 
@@ -108,13 +110,80 @@ Shader "CloudShader"
             float3 lowerBound;
             float3 upperBound;
 
+            float3 lightPos;
+
             // properties of volume
             float absorptionCoef; // kapa
+
+            float getDistance(float3 A, float3 B)
+            {
+                return sqrt(pow(A.x-B.x, 2) + pow(A.y-B.y, 2) + pow(A.z-B.z, 2));
+            }
 
             float getDensity(float3 position)
             {
                 float4 currColor = NoiseTex.SampleLevel(samplerNoiseTex, position/10, 1);
                 return currColor.r;
+            }
+
+            // implementing the phase function, cosAngle is the cosine of the angle between two vectors, g is a parameter in [-1,1]  
+            float getHenyeyGreenstein(float cosAngle, float g)
+            {
+                return (1- pow(g,2))/( 4*PI* (1 + pow(g,2) - 2*g*cosAngle));
+            }
+
+            float getIncidentLighting(float3 pos, float3 incVector)
+            {
+                // get the position of the main light
+                float3 mainLightPos = lightPos;
+
+                // vector from light position to my position
+                float3 dirVector = pos - float3(mainLightPos.x, mainLightPos.y, mainLightPos.z);
+                // get the normalized ray direction
+                dirVector = dirVector / length(dirVector);
+
+                // get intersection with the cloud container
+                rayContainerInfo containerInfo = getRayContainerInfo(lowerBound, upperBound, pos, dirVector);
+                float3 entryPoint = mainLightPos + dirVector * containerInfo.dstToBox;
+
+                // light marching, march in the direction of the main light source
+                float stepSize = 2;
+                float3 currPoint = entryPoint;
+                float distanceToMarch = getDistance(entryPoint, pos);
+                float noOfSteps = distanceToMarch / stepSize;
+                float currSteps = 0;
+                
+                float resLight = 0;
+                float transmittance = 1;
+                float absorptionCoef = 0.6;
+
+                while (isInsideBox(currPoint, lowerBound, upperBound, dirVector) && currSteps < noOfSteps)
+                {
+                    // get the density (= color that is sampler from the noise texture) at current position 
+                    float density = getDensity(currPoint + _Time); 
+                    if (density > 0)
+                    {
+                        // approximate the attenuation of light with the Beer-Lambert's law
+                        float deltaT = exp(-absorptionCoef * stepSize * density);
+                        // lower the transmittance as you march further away from the viewer
+                        transmittance *= deltaT;
+                        // break if transmittance is too low to avoid performance problems
+                        if (transmittance < 0.01)
+                            break;
+                        // Rendering equation 
+                        resLight += density * stepSize * transmittance * absorptionCoef;
+                    }
+                    
+                    // take another step in the direction of the light
+                    currPoint += dirVector * stepSize;
+                    currSteps++;
+                }
+
+                // get cosine of the angle between incDir and dirVector
+                float cosAngle = dot(dirVector, incVector)/ (length(dirVector) * length(incVector));
+                if (cosAngle > 0)
+                    return 0;
+                return resLight * getHenyeyGreenstein( cosAngle, 0.2);
             }
 
             fixed4 frag (VertToFrag i) : COLOR
@@ -153,25 +222,32 @@ Shader "CloudShader"
                 {
                     // get the density (= color that is sampler from the noise texture) at current position 
                     float density = getDensity(currPoint + _Time); 
+                    
+                    // compute the incident light only if there is some density
+                    if (density > 0)
+                    {
+                        // use the light marching algorithm to get the light from the light source 
+                        float incLight = getIncidentLighting(currPoint, rayDir);
+                            
+                        // approximate the attenuation of light with the Beer-Lambert's law
+                        float deltaT = exp(-absorptionCoef * stepSize * density);
 
-                    // compute the 
-                    float deltaT = exp(-absorptionCoef * stepSize * density);
-                    //float incLghting = evalIncLighting(); // evaluates the incident lighting
-                    transmittance *= deltaT;
+                        // lower the transmittance as you march further away from the viewer
+                        transmittance *= deltaT;
+                        // break if transmittance is too low to avoid performance problems
+                        if (transmittance < 0.01)
+                            break;
 
-                    // break if transmittance is too low to avoid performance problems
-                    if (transmittance < 0.000001)
-                        break;
-
-                    // Rendering equation 
-                    resColor += density * stepSize * transmittance * absorptionCoef;
+                        // Rendering equation 
+                        resColor += density * stepSize * transmittance * absorptionCoef * incLight;
+                    }
 
                     // take a step forward along the ray
                     currPoint += rayDir * stepSize;
                 }
 
                 // TO DO - eliminate bounding artifacts with depth
-                float4 result = transmittance * base  + resColor;
+                float4 result = transmittance * base + resColor;
                 return result;
             }
             ENDCG

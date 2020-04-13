@@ -49,6 +49,7 @@ public class NoiseGenerator : MonoBehaviour
 
         slicerKernel = slicer.FindKernel("Slicer");
         rndNumberKernel = randomNumberGenerator.FindKernel("RandomNumberGenerator");
+        noiseTextureKernel = NoiseTextureGenerator.FindKernel("NoiseTextureGen");
 
         if (noiseTextureKernel < 0 || slicerKernel < 0)
         {

@@ -1,4 +1,5 @@
-﻿#pragma kernel WorleyNoise
+﻿#pragma kernel NoiseTextureGen
+
 #include "NoiseHelper.compute"
 
 static const int numThreads = 8;
@@ -19,8 +20,6 @@ float persistence;
 float lacunarity;
 
 int texRes;
-
-
 
 // returns the perlin noise at 3D point [id.x, id.y, id.z]
 float getPerlinNoise (float x, float y, float z)
@@ -177,7 +176,7 @@ float getWorleyNoise(uint3 id, uint cellSize, uint textureResolution)
 }
 
 [numthreads(numThreads,numThreads,numThreads)]
-void WorleyNoise (uint3 id : SV_DispatchThreadID)
+void NoiseTextureGen (uint3 id : SV_DispatchThreadID)
 {
     // we create one feature point for one cell, and for all the other points we compute the distances to these feature points
     int resolution = numThreads * numGroups;
