@@ -121,8 +121,9 @@ Shader "CloudShader"
 
             float getDensity(float3 position)
             {
-                float4 currColor = NoiseTex.SampleLevel(samplerNoiseTex, position/ 30, 1);
-                return currColor.r;
+                float4 currColor = NoiseTex.SampleLevel(samplerNoiseTex, position/(128)*2, 0);
+                float result = (currColor.a + currColor.g + currColor.b) * currColor.r;
+                return result;
             }
 
             // implementing the phase function, cosAngle is the cosine of the angle between two vectors, g is a parameter in [-1,1]  
@@ -237,7 +238,7 @@ Shader "CloudShader"
                             break;
 
                         // Rendering equation 
-                        resColor += density * stepSize * transmittance * absorptionCoef * incLight * 5;
+                        resColor += density * stepSize * transmittance * absorptionCoef * incLight ;
                     }
 
                     // take a step forward along the ray
