@@ -157,11 +157,11 @@ float getWorleyNoise(uint3 id, uint cellSize, uint textureResolution)
 {
 	float result = 0;
 	float worleyFrequency = 1;
-    float worleyPersistence = 0.6;
+    float worleyPersistence = 1;//0.6;
 	float worleyAmplitude = worleyPersistence;
     float worleyLacunarity = 2;
 	float max = 0;
-    octaves = 8;
+    octaves = 1;
 
 	for (int i = 0; i < octaves; i++) //compute perlin noise for each octave
 	{
@@ -171,6 +171,7 @@ float getWorleyNoise(uint3 id, uint cellSize, uint textureResolution)
 		worleyFrequency *= worleyLacunarity;
 	}
 
+    max = 1;
 	float res = result / max;
     return result;
 }
@@ -183,7 +184,7 @@ void NoiseTextureGen (uint3 id : SV_DispatchThreadID)
     
     uint cellSizeGreen = 16;
     uint cellSizeBlue = 32;
-    uint cellSizeAlpha = 32;
+    uint cellSizeAlpha = 2;
     
     float worleyChannelGreen = getWorleyNoise(id, cellSizeGreen, resolution);
     float worleyChannelBlue = getWorleyNoise(id, cellSizeBlue, resolution);
@@ -201,5 +202,5 @@ void NoiseTextureGen (uint3 id : SV_DispatchThreadID)
     red =  getSimplexNoise(float3(x,y,z));
 
     // invert the worley noise
-    Result[id.xyz] = 1 - float4(worleyChannelGreen, worleyChannelBlue, worleyChannelAlpha, 1);
+    Result[id.xyz] = float4(1,1,1,1) - float4(worleyChannelGreen,1,1, 1);
 }

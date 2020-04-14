@@ -113,7 +113,6 @@ Shader "CloudShader"
             float3 lightPos;
 
             // properties of volume
-            float absorptionCoef; // kapa
 
             float getDistance(float3 A, float3 B)
             {
@@ -122,7 +121,7 @@ Shader "CloudShader"
 
             float getDensity(float3 position)
             {
-                float4 currColor = NoiseTex.SampleLevel(samplerNoiseTex, position/10, 1);
+                float4 currColor = NoiseTex.SampleLevel(samplerNoiseTex, position/ 30, 1);
                 return currColor.r;
             }
 
@@ -134,22 +133,19 @@ Shader "CloudShader"
 
             float getIncidentLighting(float3 pos, float3 incVector)
             {
-                // get the position of the main light
-                float3 mainLightPos = lightPos;
-
                 // vector from my position to light poisiton
-                float3 dirVector = float3(mainLightPos.x, mainLightPos.y, mainLightPos.z) - pos;
+                float3 dirVector = float3(lightPos.x, lightPos.y, lightPos.z) - pos;
                 // get the normalized ray direction
                 dirVector = dirVector / length(dirVector);
 
                 // get intersection with the cloud container
-                //rayContainerInfo containerInfo = getRayContainerInfo(lowerBound, upperBound, mainLightPos, -dirVector);
-                //float3 entryPoint = mainLightPos + (-dirVector) * containerInfo.dstToBox;
+                rayContainerInfo containerInfo = getRayContainerInfo(lowerBound, upperBound, lightPos, -dirVector);
+                float3 entryPoint = lightPos + (-dirVector) * containerInfo.dstToBox;
 
                 // light marching, march in the direction of the main light source
 
                 float3 currPoint = pos;
-                //float distanceToMarch = getDistance(entryPoint, pos);
+                float distanceToMarch = getDistance(entryPoint, pos);
                 float noOfSteps = 4;
                 float stepSize = 1;
                 uint currSteps = 0;
@@ -175,7 +171,7 @@ Shader "CloudShader"
                         if (transmittance < 0.01)
                             break;
                         // Rendering equation 
-                        resLight += density * stepSize * transmittance * absorptionCoef * 8;
+                        resLight += density * stepSize * transmittance * absorptionCoef * 10;
                     }
                     
                     // take another step in the direction of the light
@@ -218,7 +214,7 @@ Shader "CloudShader"
                 float stepSize = 0.2;
                 float4 resColor = float4(0,0,0,0); // accumulating variable for the resulting color
                 float3 currPoint = entryPoint; // current point on the ray during ray marching
-                absorptionCoef = 0.2;
+                float absorptionCoef = 0.2;
 
                 while (isInsideBox(currPoint, lowerBound, upperBound, rayDir))
                 {
@@ -241,7 +237,7 @@ Shader "CloudShader"
                             break;
 
                         // Rendering equation 
-                        resColor += density * stepSize * transmittance * absorptionCoef * incLight;
+                        resColor += density * stepSize * transmittance * absorptionCoef * incLight * 5;
                     }
 
                     // take a step forward along the ray
