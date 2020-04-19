@@ -121,8 +121,9 @@ Shader "CloudShader"
 
             float getDensity(float3 position)
             {
-                float4 currColor = NoiseTex.SampleLevel(samplerNoiseTex, position/(128)*2, 0);
-                float result = (currColor.a + currColor.g + currColor.b) * currColor.r;
+                float tileSize = 4;
+                float4 currColor = NoiseTex.SampleLevel(samplerNoiseTex, position/(128)*tileSize, 0);
+                float result = (currColor.a + currColor.g + currColor.b) * (currColor.r);
                 return result;
             }
 

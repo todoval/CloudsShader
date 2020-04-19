@@ -61,9 +61,27 @@ static void resizePermArray()
         perm[i] = permutation[i % 256];
 }
 
+int inc(int num) 
+{
+    float repeat = 8;
+    num++;
+    if (repeat > 0)
+        num %= repeat;
+    
+    return num;
+}
+
 // returns the value of the Perlin function in [x,y,z] point
 float getPerlinValue(float x, float y, float z)
 {
+    float repeat = 8;
+    if(repeat > 0) 
+    {                                 
+        x = x%repeat;
+        y = y%repeat;
+        z = z%repeat;
+    }
+
     // calculate the unit cube point of start
     uint xi = (uint) x & 255;
     uint yi = (uint) y & 255;
@@ -83,13 +101,13 @@ float getPerlinValue(float x, float y, float z)
     uint aaa, aba, aab, abb, baa, bba, bab, bbb; // the 8 resulting hashes
     // we use the hash function for perlin noise to get the hashes
     aaa = perm [perm [perm[xi] + yi] + zi]; 
-    aba = perm [perm [perm[xi] + yi + 1] + zi];
-    aab = perm [perm [perm[xi] + yi] + zi + 1];
-    abb = perm [perm [perm[xi] + yi + 1]+ zi + 1];
-    baa = perm [perm [perm[xi + 1] + yi] + zi];
-    bba = perm [perm [perm[xi + 1] + yi + 1]+ zi];
-    bab = perm [perm [perm[xi + 1] + yi]+ zi + 1];
-    bbb = perm [perm [perm[xi + 1] + yi + 1]+ zi + 1];
+    aba = perm [perm [perm[xi] + inc(yi)] + zi];
+    aab = perm [perm [perm[xi] + yi] + inc(zi)];
+    abb = perm [perm [perm[xi] + inc(yi)]+ inc(zi)];
+    baa = perm [perm [perm[inc(xi)] + yi] + zi];
+    bba = perm [perm [perm[inc(xi)] + inc(yi)]+ zi];
+    bab = perm [perm [perm[inc(xi)] + yi]+ inc(zi)];
+    bbb = perm [perm [perm[inc(xi)] + inc(yi)]+ inc(zi)];
 
     // get the dot product of the gradient vector and location vector from the grad function for each vertex
     float dot1, dot2, dot3, dot4, dot5, dot6, dot7, dot8;
@@ -120,6 +138,7 @@ float getPerlinValue(float x, float y, float z)
     return z1;
 }
 
+/*
 float3 mod289(float3 x)
 {
     return x - floor(x * (1.0 / 289.0)) * 289.0;
@@ -204,4 +223,4 @@ float getSimplexNoise(float3 v)
 
     float4 px = float4(dot(x0, g0), dot(x1, g1), dot(x2, g2), dot(x3, g3));
     return 42.0 * dot(m, px);
-}
+}*/

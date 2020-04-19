@@ -206,8 +206,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 56149225}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.8, y: 10.9, z: 0.6}
-  m_LocalScale: {x: 58.771492, y: 10.635, z: 57.238117}
+  m_LocalPosition: {x: 0, y: 10.9, z: 0}
+  m_LocalScale: {x: 17.77, y: 4.4856, z: 17.95478}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
@@ -305,7 +305,7 @@ Transform:
   m_Father: {fileID: 1794112105}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!84 &513562386
+--- !u!84 &671316134
 RenderTexture:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -425,7 +425,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 705507993}
   m_LocalRotation: {x: 0.29718354, y: -0, z: -0, w: 0.9548204}
-  m_LocalPosition: {x: -0.4, y: 23.3, z: -0.26}
+  m_LocalPosition: {x: -0.4, y: 23.3, z: -16.44}
   m_LocalScale: {x: 3.5139, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -553,7 +553,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mainLight: {fileID: 705507994}
-  noiseTexture: {fileID: 513562386}
+  noiseTexture: {fileID: 671316134}
   container: {fileID: 56149229}
   material: {fileID: 787388110}
   shader: {fileID: 4800000, guid: 793b6161ac488cd45b2d76408561a0ab, type: 3}

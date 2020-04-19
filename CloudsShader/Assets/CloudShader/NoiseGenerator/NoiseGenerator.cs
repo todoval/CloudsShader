@@ -27,7 +27,7 @@ public class NoiseGenerator : MonoBehaviour
 
     // Perlin noise settings
 
-    public int PerlinRes = 8;
+    public int PerlinResolution = 16;
     public int PerlinOctaves = 8;
     public float PerlinPersistence = 0.6f;
     public float PerlinLacunarity = 2.0f;
@@ -193,13 +193,16 @@ public class NoiseGenerator : MonoBehaviour
         // call the worley compute shader which saves the worley texture into shapeTexture variable
         NoiseTextureGenerator.SetBuffer(shapeTextureKernel, "FeaturePoints", worleyFeaturePointsBuffer);
         NoiseTextureGenerator.SetTexture(shapeTextureKernel, "Result", shapeTexture);
-        NoiseTextureGenerator.SetInt("cellSizeGreen", greenChannelCellSize);
-        NoiseTextureGenerator.SetInt("cellSizeBlue", blueChannelCellSize);
-        NoiseTextureGenerator.SetInt("cellSizeAlpha", alphaChannelCellSize);
-        NoiseTextureGenerator.SetInt("texRes", PerlinRes);
-        NoiseTextureGenerator.SetInt("octaves", PerlinOctaves);
-        NoiseTextureGenerator.SetFloat("persistence", PerlinPersistence);
-        NoiseTextureGenerator.SetFloat("lacunarity", PerlinLacunarity);
+
+        // set the properties of the worley cells
+        NoiseTextureGenerator.SetInt("cellSizeGreenShape", greenChannelCellSize);
+        NoiseTextureGenerator.SetInt("cellSizeBlueShape", blueChannelCellSize);
+        NoiseTextureGenerator.SetInt("cellSizeAlphaShape", alphaChannelCellSize);
+        // set the properties of the perlin noise
+        NoiseTextureGenerator.SetInt("perlinTextureResolution", PerlinResolution);
+        NoiseTextureGenerator.SetInt("perlinOctaves", PerlinOctaves);
+        NoiseTextureGenerator.SetFloat("perlinPersistence", PerlinPersistence);
+        NoiseTextureGenerator.SetFloat("perlinLacunarity", PerlinLacunarity);
         int threadGroups = shapeNoiseResolution / 8;
         NoiseTextureGenerator.Dispatch(shapeTextureKernel, threadGroups, threadGroups, threadGroups);
         SaveRenderTex(shapeTexture, "ShapeNoise", shapeNoiseResolution);
