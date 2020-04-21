@@ -15,6 +15,7 @@ public class NoiseGenerator : MonoBehaviour
     public ComputeShader randomNumberGenerator;
     public ComputeBuffer worleyFeaturePointsBuffer;
 
+    public SaveTexture textureSaver;
     
     public RenderTexture detailTexture = null;
     public RenderTexture shapeTexture = null;
@@ -33,6 +34,10 @@ public class NoiseGenerator : MonoBehaviour
     public float perlinLacunarity;
     public float perlinFrequency;
     // Worley noise settings
+
+    public int greenChannelOctaves;
+    public int blueChannelOctaves;
+    public int alphaChannelOctaves;
 
     public int greenChannelCellSize = 32;
     public int blueChannelCellSize = 16;
@@ -53,8 +58,8 @@ public class NoiseGenerator : MonoBehaviour
 
         slicerKernel = slicer.FindKernel("Slicer");
         rndNumberKernel = randomNumberGenerator.FindKernel("RandomNumberGenerator");
-        detailTextureKernel = NoiseTextureGenerator.FindKernel("DetailTextureGen");
         shapeTextureKernel = NoiseTextureGenerator.FindKernel("ShapeTextureGen");
+        detailTextureKernel = NoiseTextureGenerator.FindKernel("DetailTextureGen");
 
         if (shapeTextureKernel < 0 || slicerKernel < 0 || detailTextureKernel < 0)
         {
@@ -62,78 +67,19 @@ public class NoiseGenerator : MonoBehaviour
             enabled = false;
             return;
         }  
+
+        textureSaver = new SaveTexture();
+        textureSaver.slicer = slicer;
+        textureSaver.slicerKernel = slicerKernel;
         
         // create the buffer for worley noise with feature point offsets
         CreateWorleyPointsBuffer();
-    }
-    
-
-    // a helper function returning only one 2D slice (defined by layer) from source
-    RenderTexture Copy3DSliceToRenderTexture(RenderTexture source, int layer, int resolution)
-    {
-        // create new 2D RenderTexture
-        RenderTexture render = new RenderTexture(resolution, resolution, 0, RenderTextureFormat.ARGB32);
-        render.dimension = UnityEngine.Rendering.TextureDimension.Tex2D;
-        render.enableRandomWrite = true;
-        render.wrapMode = TextureWrapMode.Repeat;
-        render.Create();
-
-        // insert one slice of the 3D Texture to the 2D textures with the slicer compute shader
-        int kernelIndex = slicer.FindKernel("Slicer");
-        slicer.SetTexture(kernelIndex, "voxels", source);
-        slicer.SetInt("layer", layer);
-        slicer.SetTexture(kernelIndex, "Result", render);
-        slicer.Dispatch(kernelIndex, 16, 16, 1);
-
-        return render;
-    }
-
-    // 2D renderTexture to Texture2D conversion
-    Texture2D ConvertFromRenderTexture(RenderTexture renderTex, int resolution)
-    {
-        Texture2D output = new Texture2D(resolution, resolution);
-        RenderTexture.active = renderTex;
-        output.ReadPixels(new Rect(0, 0, resolution, resolution), 0, 0);
-        output.Apply();
-        return output;
     }
 
     void OnDestroy()
     {
         if (worleyFeaturePointsBuffer != null)
             worleyFeaturePointsBuffer.Release();
-    }
-
-    // convert the input RenderTexture to Texture3D
-    void SaveRenderTex (RenderTexture source, string textureName, int resolution)
-    {
-        // create an array of 2D RenderTextures
-        RenderTexture[] layers = new RenderTexture[resolution];
-        // slice 3D RenderTexture into this array
-        for( int i = 0; i < resolution; i++)        
-            layers[i] = Copy3DSliceToRenderTexture(source, i, resolution);
-
-        // transform the 2D RenderTexture into Texture2D
-        Texture2D[] finalSlices = new Texture2D[resolution];
-        for ( int i = 0; i < resolution; i++)        
-            finalSlices[i] = ConvertFromRenderTexture(layers[i], resolution);
-
-        // create a new 3D Texture and fill it with the contents of the slices
-        Texture3D output = new Texture3D(resolution, resolution, resolution, TextureFormat.ARGB32, true);
-        output.filterMode = FilterMode.Trilinear;
-        Color[] outputPixels = output.GetPixels();
-
-        for (int k = 0; k < resolution; k++)
-        {
-            Color[] layerPixels = finalSlices[k].GetPixels();
-            for (int i = 0; i < resolution; i++)
-                for (int j = 0; j < resolution; j++)
-                    outputPixels[i + j * resolution + k * resolution * resolution] = layerPixels[i + j * resolution];
-        }
- 
-        output.SetPixels(outputPixels);
-        output.Apply();
-        AssetDatabase.CreateAsset(output, "Assets/Resources/" + textureName + ".asset");
     }
 
     void CreateWorleyPointsBuffer ()
@@ -174,7 +120,7 @@ public class NoiseGenerator : MonoBehaviour
         NoiseTextureGenerator.SetBuffer(detailTextureKernel, "FeaturePoints", worleyFeaturePointsBuffer);
         NoiseTextureGenerator.SetTexture(detailTextureKernel, "Result", detailTexture);
         NoiseTextureGenerator.Dispatch(detailTextureKernel, 4, 4, 4);
-        SaveRenderTex(detailTexture, "DetailNoise", detailNoiseResolution);
+        textureSaver.SaveRenderTex(detailTexture, "DetailNoise", detailNoiseResolution);
     }
 
     void createShapeNoise()
@@ -198,6 +144,10 @@ public class NoiseGenerator : MonoBehaviour
         NoiseTextureGenerator.SetInt("cellSizeGreenShape", greenChannelCellSize);
         NoiseTextureGenerator.SetInt("cellSizeBlueShape", blueChannelCellSize);
         NoiseTextureGenerator.SetInt("cellSizeAlphaShape", alphaChannelCellSize);
+        NoiseTextureGenerator.SetInt("greenChannelOctaves", greenChannelOctaves);
+        NoiseTextureGenerator.SetInt("blueChannelOctaves", blueChannelOctaves);
+        NoiseTextureGenerator.SetInt("alphaChannelOctaves", alphaChannelOctaves);
+
         // set the properties of the perlin noise
         NoiseTextureGenerator.SetInt("perlinTextureResolution", perlinTextureResolution);
         NoiseTextureGenerator.SetInt("perlinOctaves", perlinOctaves);
@@ -206,7 +156,7 @@ public class NoiseGenerator : MonoBehaviour
         NoiseTextureGenerator.SetFloat("perlinLacunarity", perlinLacunarity);
         int threadGroups = shapeNoiseResolution / 8;
         NoiseTextureGenerator.Dispatch(shapeTextureKernel, threadGroups, threadGroups, threadGroups);
-        SaveRenderTex(shapeTexture, "ShapeNoise", shapeNoiseResolution);
+        textureSaver.SaveRenderTex(shapeTexture, "ShapeNoise", shapeNoiseResolution);
     }
 
     void updateNoiseTextures()

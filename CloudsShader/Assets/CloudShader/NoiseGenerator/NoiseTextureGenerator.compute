@@ -7,13 +7,17 @@ static const int numThreads = 8;
 static const int numGroupsShape = 16;
 static const int numGroupsDetail = 4;
 
-static const int cellSizeGreenShape;
-static const int cellSizeBlueShape;
-static const int cellSizeAlphaShape;
+int cellSizeGreenShape;
+int cellSizeBlueShape;
+int cellSizeAlphaShape;
 
-static const int cellSizeGreenDetail;
-static const int cellSizeBlueDetail;
-static const int cellSizeAlphaDetail;
+int greenChannelOctaves;
+int blueChannelOctaves;
+int alphaChannelOctaves;
+
+//static const int cellSizeGreenDetail;
+//static const int cellSizeBlueDetail;
+//static const int cellSizeAlphaDetail;
 
 RWTexture3D<float4> Result;
 RWStructuredBuffer<float3> FeaturePoints;
@@ -186,13 +190,9 @@ void ShapeTextureGen (uint3 id : SV_DispatchThreadID)
     // we create one feature point for one cell, and for all the other points we compute the distances to these feature points
     int resolution = numThreads * numGroupsShape;
     
-    uint cellSizeGreen = 16;
-    uint cellSizeBlue = 32;
-    uint cellSizeAlpha = 8;
-    
-    float worleyChannelGreen = getWorleyNoise(id, cellSizeGreen, resolution, 1);
-    float worleyChannelBlue = getWorleyNoise(id, cellSizeBlue, resolution, 1);
-    float worleyChannelAlpha = getWorleyNoise(id, cellSizeAlpha, resolution, 1);
+    float worleyChannelGreen = getWorleyNoise(id, cellSizeGreenShape, resolution, greenChannelOctaves);
+    float worleyChannelBlue = getWorleyNoise(id, cellSizeBlueShape, resolution, blueChannelOctaves);
+    float worleyChannelAlpha = getWorleyNoise(id, cellSizeAlphaShape, resolution, alphaChannelOctaves);
     
     // initialize perm array to avoid buffer overflow (by repeating the permutation array)
     resizePermArray();
