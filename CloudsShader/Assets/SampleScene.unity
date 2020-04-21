@@ -781,10 +781,11 @@ MonoBehaviour:
     type: 3}
   detailTexture: {fileID: 0}
   shapeTexture: {fileID: 0}
-  PerlinRes: 8
-  PerlinOctaves: 8
-  PerlinPersistence: 0.6
-  PerlinLacunarity: 2
+  perlinTextureResolution: 15
+  perlinOctaves: 8
+  perlinPersistence: 0.6
+  perlinLacunarity: 2
+  perlinFrequency: 1
   greenChannelCellSize: 32
   blueChannelCellSize: 16
   alphaChannelCellSize: 8

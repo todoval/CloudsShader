@@ -25,13 +25,13 @@ public class NoiseGenerator : MonoBehaviour
     private int slicerKernel;
     private int detailKernel;
 
-    // Perlin noise settings
+    // perlin noise settings
 
-    public int PerlinResolution = 16;
-    public int PerlinOctaves = 8;
-    public float PerlinPersistence = 0.6f;
-    public float PerlinLacunarity = 2.0f;
-
+    public int perlinTextureResolution;
+    public int perlinOctaves;
+    public float perlinPersistence;
+    public float perlinLacunarity;
+    public float perlinFrequency;
     // Worley noise settings
 
     public int greenChannelCellSize = 32;
@@ -199,10 +199,11 @@ public class NoiseGenerator : MonoBehaviour
         NoiseTextureGenerator.SetInt("cellSizeBlueShape", blueChannelCellSize);
         NoiseTextureGenerator.SetInt("cellSizeAlphaShape", alphaChannelCellSize);
         // set the properties of the perlin noise
-        NoiseTextureGenerator.SetInt("perlinTextureResolution", PerlinResolution);
-        NoiseTextureGenerator.SetInt("perlinOctaves", PerlinOctaves);
-        NoiseTextureGenerator.SetFloat("perlinPersistence", PerlinPersistence);
-        NoiseTextureGenerator.SetFloat("perlinLacunarity", PerlinLacunarity);
+        NoiseTextureGenerator.SetInt("perlinTextureResolution", perlinTextureResolution);
+        NoiseTextureGenerator.SetInt("perlinOctaves", perlinOctaves);
+        NoiseTextureGenerator.SetFloat("perlinFrequency", perlinFrequency);
+        NoiseTextureGenerator.SetFloat("perlinPersistence", perlinPersistence);
+        NoiseTextureGenerator.SetFloat("perlinLacunarity", perlinLacunarity);
         int threadGroups = shapeNoiseResolution / 8;
         NoiseTextureGenerator.Dispatch(shapeTextureKernel, threadGroups, threadGroups, threadGroups);
         SaveRenderTex(shapeTexture, "ShapeNoise", shapeNoiseResolution);
