@@ -726,12 +726,18 @@ MonoBehaviour:
   perlinPersistence: 0.6
   perlinLacunarity: 2
   perlinFrequency: 1
-  greenChannelOctaves: 1
-  blueChannelOctaves: 4
-  alphaChannelOctaves: 8
-  greenChannelCellSize: 32
-  blueChannelCellSize: 16
-  alphaChannelCellSize: 8
+  shapeGreenChannelOctaves: 5
+  shapeBlueChannelOctaves: 0
+  shapeAlphaChannelOctaves: 0
+  shapeGreenChannelCellSize: 0
+  shapeBlueChannelCellSize: 0
+  shapeAlphaChannelCellSize: 0
+  detailGreenChannelOctaves: 0
+  detailBlueChannelOctaves: 0
+  detailRedChannelOctaves: 7
+  detailGreenChannelCellSize: 0
+  detailBlueChannelCellSize: 0
+  detailRedChannelCellSize: 0
 --- !u!4 &1340083853
 Transform:
   m_ObjectHideFlags: 0

@@ -7,17 +7,21 @@ static const int numThreads = 8;
 static const int numGroupsShape = 16;
 static const int numGroupsDetail = 4;
 
-int cellSizeGreenShape;
-int cellSizeBlueShape;
-int cellSizeAlphaShape;
+int shapeCellSizeGreen;
+int shapeCellSizeBlue;
+int shapeCellSizeAlpha;
 
-int greenChannelOctaves;
-int blueChannelOctaves;
-int alphaChannelOctaves;
+int shapeGreenOctaves;
+int shapeBlueOctaves;
+int shapeAlphaOctaves;
 
-//static const int cellSizeGreenDetail;
-//static const int cellSizeBlueDetail;
-//static const int cellSizeAlphaDetail;
+int detailCellSizeGreen;
+int detailCellSizeBlue;
+int detailCellSizeRed;
+
+int detailGreenOctaves;
+int detailBlueOctaves;
+int detailRedOctaves;
 
 RWTexture3D<float4> Result;
 RWStructuredBuffer<float3> FeaturePoints;
@@ -190,9 +194,9 @@ void ShapeTextureGen (uint3 id : SV_DispatchThreadID)
     // we create one feature point for one cell, and for all the other points we compute the distances to these feature points
     int resolution = numThreads * numGroupsShape;
     
-    float worleyChannelGreen = getWorleyNoise(id, cellSizeGreenShape, resolution, greenChannelOctaves);
-    float worleyChannelBlue = getWorleyNoise(id, cellSizeBlueShape, resolution, blueChannelOctaves);
-    float worleyChannelAlpha = getWorleyNoise(id, cellSizeAlphaShape, resolution, alphaChannelOctaves);
+    float worleyChannelGreen = getWorleyNoise(id, shapeCellSizeGreen, resolution, shapeGreenOctaves);
+    float worleyChannelBlue = getWorleyNoise(id, shapeCellSizeBlue, resolution, shapeBlueOctaves);
+    float worleyChannelAlpha = getWorleyNoise(id, shapeCellSizeAlpha, resolution, shapeAlphaOctaves);
     
     // initialize perm array to avoid buffer overflow (by repeating the permutation array)
     resizePermArray();
@@ -213,13 +217,9 @@ void DetailTextureGen (uint3 id : SV_DispatchThreadID)
 {
     int resolution = numThreads * numGroupsDetail;
     
-    uint cellSizeGreenDetail = 16;
-    uint cellSizeBlueDetail = 16;
-    uint cellSizeRedDetail = 16;
-    
-    float worleyChannelGreen = getWorleyNoise(id, cellSizeGreenDetail, resolution, 1);
-    float worleyChannelBlue = getWorleyNoise(id, cellSizeBlueDetail, resolution, 4);
-    float worleyChannelRed = getWorleyNoise(id, cellSizeRedDetail, resolution, 8);
+    float worleyChannelGreen = getWorleyNoise(id, detailCellSizeGreen, resolution, detailGreenOctaves);
+    float worleyChannelBlue = getWorleyNoise(id, detailCellSizeBlue, resolution, detailBlueOctaves);
+    float worleyChannelRed = getWorleyNoise(id, detailCellSizeRed, resolution, detailRedOctaves);
 
     // invert the worley noise
     Result[id.xyz] = float4(1,1,1,1) - float4(worleyChannelRed, worleyChannelGreen, worleyChannelBlue, 0);
