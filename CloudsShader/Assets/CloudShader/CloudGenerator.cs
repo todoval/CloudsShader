@@ -53,9 +53,18 @@ public class CloudGenerator : MonoBehaviour
             material = new Material (shader);
         }
 
+        Light sun = RenderSettings.sun;
+
         // set parameters to the shader
         Texture3D detailTexture = LoadTexture("DetailNoise");
         Texture3D shapeTexture = LoadTexture("ShapeNoise");
+
+        // sun settings
+        material.SetVector("sunPosition", sun.transform.position);
+        material.SetVector("sunColor", sun.color);
+        material.SetFloat("sunIntensity", sun.intensity);
+
+
         material.SetVector("lightPos", mainLight.transform.position);
         material.SetTexture("ShapeTexture", shapeTexture);
         material.SetTexture("DetailTexture", detailTexture);

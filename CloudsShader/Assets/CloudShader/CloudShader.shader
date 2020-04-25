@@ -55,6 +55,7 @@ Shader "CloudShader"
                 float dstToBox; // 0 if inside box
             };
 
+            // texture and sampler properties
             sampler2D _MainTex;
             sampler2D _CameraDepthTexture;
 
@@ -67,6 +68,11 @@ Shader "CloudShader"
             // container properties
             float3 lowerBound;
             float3 upperBound;
+
+            // sun and light properties
+            float3 sunPosition;
+            float4 sunColor;
+            float sunIntensity;
 
             float3 lightPos;
 
@@ -126,8 +132,8 @@ Shader "CloudShader"
                 float tileSize = 4;
                 float4 shapeDensity = ShapeTexture.SampleLevel(samplerShapeTexture, position/(128)*tileSize, 0);
                 float4 detailDensity = DetailTexture.SampleLevel(samplerDetailTexture, position/(128)*tileSize, 0);
-                float detailColor = (detailDensity.g + detailDensity.b + detailDensity.r);
-                float shapeColor = (shapeDensity.a + shapeDensity.g + shapeDensity.b) * (shapeDensity.r);
+                float detailColor = (detailDensity.g + detailDensity.b + detailDensity.r)/4;
+                float shapeColor = (shapeDensity.a + shapeDensity.g + shapeDensity.b) * shapeDensity.r;
                 return (shapeColor - detailColor) * 2;
             }
 
@@ -139,51 +145,51 @@ Shader "CloudShader"
 
             float getIncidentLighting(float3 pos, float3 incVector)
             {
-                // vector from my position to light poisiton
-                float3 dirVector = float3(lightPos.x, lightPos.y, lightPos.z) - pos;
+                // vector from the light position to my position
+                float3 dirVector = pos - float3(lightPos.x, lightPos.y, lightPos.z);
                 // get the normalized ray direction
                 dirVector = dirVector / length(dirVector);
 
                 // get intersection with the cloud container
-                rayContainerInfo containerInfo = getRayContainerInfo(lowerBound, upperBound, lightPos, -dirVector);
-                float3 entryPoint = lightPos + (-dirVector) * containerInfo.dstToBox;
+                rayContainerInfo containerInfo = getRayContainerInfo(lowerBound, upperBound, lightPos, dirVector);
+                float3 entryPoint = lightPos + dirVector * containerInfo.dstToBox;
 
-                // light marching, march in the direction of the main light source
-
-                float3 currPoint = pos;
+                // light marching, march in the direction from the entry point to my point
+                float3 currPoint = entryPoint;
                 float distanceToMarch = getDistance(entryPoint, pos);
                 float noOfSteps = 4;
-                float stepSize = 1;
-                uint currSteps = 0;
+                float stepSize = distanceToMarch/noOfSteps;
                 // if light is inside box, set number of steps accordingly
                 if (getDistance(noOfSteps * stepSize * dirVector + currPoint, pos) > getDistance(lightPos, pos))
                     stepSize = getDistance(lightPos, pos)/noOfSteps;
                 
                 float resLight = 0;
-                float transmittance = 1/ getDistance(pos, lightPos) * 10;
+                float transmittance = 1;
                 float absorptionCoef = 0.6;
-
-                while (currSteps < uint(noOfSteps))
+                while (distanceToMarch > stepSize)
                 {
                     // get the density (= color that is sampler from the noise texture) at current position 
                     float density = getDensity(currPoint + _Time); 
                     if (density > 0)
                     {
                         // approximate the attenuation of light with the Beer-Lambert's law
-                        float deltaT = exp(-absorptionCoef * stepSize * density);
+                       // float deltaT = exp(-absorptionCoef * stepSize * density);
                         // lower the transmittance as you march further away from the viewer
-                        transmittance *= deltaT;
+                       // transmittance *= deltaT;
                         // break if transmittance is too low to avoid performance problems
-                        if (transmittance < 0.01)
-                            break;
+                       // if (transmittance < 0.01)
+                         //   break;
                         // Rendering equation 
-                        resLight += density * stepSize * transmittance * absorptionCoef;
+                        resLight += density * stepSize; // * transmittance * absorptionCoef;
                     }
                     
                     // take another step in the direction of the light
                     currPoint += dirVector * stepSize;
-                    currSteps++;
+                    distanceToMarch -= stepSize;
                 }
+
+                resLight = exp(-resLight * 0.4);
+
 
                 // get cosine of the angle between incDir and dirVector
                 float cosAngle = dot(dirVector, incVector)/ (length(dirVector) * length(incVector));
