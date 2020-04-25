@@ -58,6 +58,7 @@ Shader "CloudShader"
             //cloud properties
             float4 cloudColor;
             float speed;
+            float tileSize;
 
             // texture and sampler properties
             sampler2D _MainTex;
@@ -133,7 +134,6 @@ Shader "CloudShader"
             float getDensity(float3 position)
             {
                 position+= _Time * speed;
-                float tileSize = 4;
                 float4 shapeDensity = ShapeTexture.SampleLevel(samplerShapeTexture, position/(128)*tileSize, 0);
                 float4 detailDensity = DetailTexture.SampleLevel(samplerDetailTexture, position/(128)*tileSize, 0);
                 float detailColor = (detailDensity.g + detailDensity.b + detailDensity.r)/4;

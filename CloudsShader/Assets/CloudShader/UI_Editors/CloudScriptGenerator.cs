@@ -10,6 +10,7 @@ public class CloudScript : Editor
     private SerializedProperty sceneLight;
     private SerializedProperty speed;
     private SerializedProperty color;
+    private SerializedProperty tileSize;
 
     private void OnEnable()
     {
@@ -17,6 +18,7 @@ public class CloudScript : Editor
         sceneLight = serializedObject.FindProperty("sceneLight");
         speed = serializedObject.FindProperty("speed");
         color = serializedObject.FindProperty("color");
+        tileSize = serializedObject.FindProperty("tileSize");
     }
     public static void DrawUILine(Color color, int thickness = 2, int padding = 10)
     {
@@ -41,6 +43,7 @@ public class CloudScript : Editor
             EditorGUILayout.PropertyField(sceneLight, new GUIContent("Scene light"));
             EditorGUI.indentLevel--;
         }
+        EditorGUILayout.PropertyField(tileSize, new GUIContent("Tile size"));
         EditorGUILayout.PropertyField(speed, new GUIContent("Speed"));
         EditorGUILayout.PropertyField(color);
         serializedObject.ApplyModifiedProperties();
