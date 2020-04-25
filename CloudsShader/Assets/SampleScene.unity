@@ -207,7 +207,7 @@ Transform:
   m_GameObject: {fileID: 56149225}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 10.9, z: 0}
-  m_LocalScale: {x: 17.77, y: 4.4856, z: 17.95478}
+  m_LocalScale: {x: 28.126358, y: 7.0998077, z: 28.418827}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
@@ -390,7 +390,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 705507993}
   m_LocalRotation: {x: 0.29718354, y: -0, z: -0, w: 0.9548204}
-  m_LocalPosition: {x: -0.4, y: 23.3, z: -16.44}
+  m_LocalPosition: {x: -35.9, y: 11.1, z: -3.46}
   m_LocalScale: {x: 3.5139, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -493,7 +493,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mainLight: {fileID: 705507994}
-  noiseTexture: {fileID: 0}
   container: {fileID: 56149229}
   material: {fileID: 0}
   shader: {fileID: 4800000, guid: 793b6161ac488cd45b2d76408561a0ab, type: 3}
@@ -720,24 +719,24 @@ MonoBehaviour:
   randomNumberGenerator: {fileID: 7200000, guid: 0cb84899e00b33145800b612bd45bb9d,
     type: 3}
   detailTexture: {fileID: 0}
-  shapeTexture: {fileID: 0}
+  shapeTexture: {fileID: 1377028134}
   perlinTextureResolution: 16
   perlinOctaves: 8
   perlinPersistence: 0.6
   perlinLacunarity: 2
   perlinFrequency: 1
-  shapeGreenChannelOctaves: 5
-  shapeBlueChannelOctaves: 0
-  shapeAlphaChannelOctaves: 0
-  shapeGreenChannelCellSize: 0
-  shapeBlueChannelCellSize: 0
-  shapeAlphaChannelCellSize: 0
-  detailGreenChannelOctaves: 0
-  detailBlueChannelOctaves: 0
-  detailRedChannelOctaves: 7
-  detailGreenChannelCellSize: 0
-  detailBlueChannelCellSize: 0
-  detailRedChannelCellSize: 0
+  shapeGreenChannelOctaves: 8
+  shapeBlueChannelOctaves: 2
+  shapeAlphaChannelOctaves: 4
+  shapeGreenChannelCellSize: 16
+  shapeBlueChannelCellSize: 16
+  shapeAlphaChannelCellSize: 16
+  detailGreenChannelOctaves: 4
+  detailBlueChannelOctaves: 2
+  detailRedChannelOctaves: 8
+  detailGreenChannelCellSize: 16
+  detailBlueChannelCellSize: 2
+  detailRedChannelCellSize: 16
 --- !u!4 &1340083853
 Transform:
   m_ObjectHideFlags: 0
@@ -752,6 +751,41 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!84 &1377028134
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_ForcedFallbackFormat: 4
+  m_DownscaleFallback: 0
+  serializedVersion: 3
+  m_Width: 128
+  m_Height: 128
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthFormat: 0
+  m_ColorFormat: 24
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 3
+  m_VolumeDepth: 128
 --- !u!1 &1444484219
 GameObject:
   m_ObjectHideFlags: 0

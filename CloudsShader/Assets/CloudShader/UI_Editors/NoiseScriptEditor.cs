@@ -74,8 +74,7 @@ public class NoiseScriptEditor : Editor
     {
         serializedObject.Update();
         // the compute shaders needed for the script to work
-
-
+        
         EditorGUILayout.Space();
         EditorGUILayout.PropertyField(NoiseTextureGenerator);
         EditorGUILayout.PropertyField(randomNumberGenerator);

@@ -60,10 +60,6 @@ public class NoiseGenerator : MonoBehaviour
             return;
         }
 
-        shapeNoiseResolution = 128;
-        detailNoiseResolution = 32;
-        worleyPointsPerRes = 128;
-
         slicerKernel = slicer.FindKernel("Slicer");
         rndNumberKernel = randomNumberGenerator.FindKernel("RandomNumberGenerator");
         shapeTextureKernel = NoiseTextureGenerator.FindKernel("ShapeTextureGen");
@@ -75,11 +71,6 @@ public class NoiseGenerator : MonoBehaviour
             enabled = false;
             return;
         }  
-
-        textureSaver = new SaveTexture();
-        textureSaver.slicer = slicer;
-        textureSaver.slicerKernel = slicerKernel;
-        
         // create the buffer for worley noise with feature point offsets
         CreateWorleyPointsBuffer();
     }
@@ -112,9 +103,23 @@ public class NoiseGenerator : MonoBehaviour
         worleyFeaturePointsBuffer.SetData(points);
     }
 
+    private void prepForNewRenderTexture()
+    {
+        // initialize the texture saver
+        textureSaver = new SaveTexture();
+        textureSaver.slicer = slicer;
+        textureSaver.slicerKernel = slicerKernel;
+
+        CreateWorleyPointsBuffer();
+        if(rndNumberKernel < 0 || detailTextureKernel < 0 || shapeTextureKernel < 0 || slicerKernel < 0 || null == NoiseTextureGenerator)
+        {
+            Debug.Log("Error creating new noise.");
+        }
+    }
+
     public void createDetailNoise()
     {
-        updateNoiseTextures();
+        prepForNewRenderTexture();
         if (null == detailTexture) 
         {
             detailTexture = new RenderTexture(detailNoiseResolution, detailNoiseResolution, 0);
@@ -142,8 +147,10 @@ public class NoiseGenerator : MonoBehaviour
 
     public void createShapeNoise()
     {
-        updateNoiseTextures();
+        prepForNewRenderTexture();
         // create noiseTexture
+    
+        shapeTexture = null;
         if (null == shapeTexture) 
         {
             shapeTexture = new RenderTexture(shapeNoiseResolution, shapeNoiseResolution, 0);
@@ -162,7 +169,7 @@ public class NoiseGenerator : MonoBehaviour
         NoiseTextureGenerator.SetInt("shapeCellSizeGreen", shapeGreenChannelCellSize);
         NoiseTextureGenerator.SetInt("shapeCellSizeBlue", shapeBlueChannelCellSize);
         NoiseTextureGenerator.SetInt("shapeCellSizeAlpha", shapeAlphaChannelCellSize);
-        NoiseTextureGenerator.SetInt("shapeGreenlOctaves", shapeGreenChannelOctaves);
+        NoiseTextureGenerator.SetInt("shapeGreenOctaves", shapeGreenChannelOctaves);
         NoiseTextureGenerator.SetInt("shapeBlueOctaves", shapeBlueChannelOctaves);
         NoiseTextureGenerator.SetInt("shapeAlphaOctaves", shapeAlphaChannelOctaves);
 
@@ -175,19 +182,5 @@ public class NoiseGenerator : MonoBehaviour
         int threadGroups = shapeNoiseResolution / 8;
         NoiseTextureGenerator.Dispatch(shapeTextureKernel, threadGroups, threadGroups, threadGroups);
         textureSaver.SaveRenderTex(shapeTexture, "ShapeNoise", shapeNoiseResolution);
-    }
-
-    private void updateNoiseTextures()
-    {
-        CreateWorleyPointsBuffer();
-        if(rndNumberKernel < 0 || detailTextureKernel < 0 || shapeTextureKernel < 0 || slicerKernel < 0)
-        {
-            return;
-        }
-        if (null == NoiseTextureGenerator)
-        {
-            Debug.Log("Error creating new noise.");
-            return;
-        }
     }
 }

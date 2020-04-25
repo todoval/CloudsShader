@@ -8,11 +8,8 @@ using UnityEditor;
 [ExecuteInEditMode, ImageEffectAllowedInSceneView]
 public class CloudGenerator : MonoBehaviour
 {
-    int resolution = 64;
-
     public Light mainLight;
 
-    public RenderTexture noiseTexture = null;
     public Transform container;
 
     // shader properties
@@ -33,28 +30,7 @@ public class CloudGenerator : MonoBehaviour
     void OnDestroy() 
     {
         // if the noise texture exists, destroy it
-        if (null != noiseTexture) {
-            noiseTexture.Release();
-            noiseTexture = null;
-        }
-    }
-
-    Texture3D CreateTexture3D (int size)
-    {
-        Color[] colorArray = new Color[size * size * size];
-        Texture3D texture = new Texture3D (size, size, size, TextureFormat.RGBA32, true);
-        float r = 1.0f / (size - 1.0f);
-        for (int x = 0; x < size; x++) {
-            for (int y = 0; y < size; y++) {
-                for (int z = 0; z < size; z++) {
-                    Color c = new Color (x * r, y * r, z * r, 0);
-                    colorArray[x + (y * size) + (z * size * size)] = c;
-                }
-            }
-        }
-        texture.SetPixels (colorArray);
-        texture.Apply ();
-        return texture;
+        
     }
 
     Texture3D LoadTexture(string name)
@@ -76,28 +52,13 @@ public class CloudGenerator : MonoBehaviour
         if (material == null || material.shader != shader) {
             material = new Material (shader);
         }
-        
-        // create noiseTexture
-        if (null == noiseTexture || source.width != noiseTexture.width 
-            || source.height != noiseTexture.height) 
-        {
-            if (null != noiseTexture)
-            {
-                noiseTexture.Release();
-            }
-            noiseTexture = new RenderTexture(resolution, resolution, 0);
-            noiseTexture.graphicsFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_UNorm;
-            noiseTexture.volumeDepth = resolution;
-            noiseTexture.enableRandomWrite = true;
-            noiseTexture.dimension = TextureDimension.Tex3D;
-            noiseTexture.Create();
-        }
 
         // set parameters to the shader
         Texture3D detailTexture = LoadTexture("DetailNoise");
         Texture3D shapeTexture = LoadTexture("ShapeNoise");
         material.SetVector("lightPos", mainLight.transform.position);
-        material.SetTexture("NoiseTex", shapeTexture);
+        material.SetTexture("ShapeTexture", shapeTexture);
+        material.SetTexture("DetailTexture", detailTexture);
         material.SetVector("lowerBound", container.position - container.localScale/2);
         material.SetVector("upperBound", container.position + container.localScale/2);
 

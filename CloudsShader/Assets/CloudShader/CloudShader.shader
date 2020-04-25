@@ -55,6 +55,21 @@ Shader "CloudShader"
                 float dstToBox; // 0 if inside box
             };
 
+            sampler2D _MainTex;
+            sampler2D _CameraDepthTexture;
+
+            SamplerState samplerShapeTexture;
+            SamplerState samplerDetailTexture;
+
+            Texture3D<float4> ShapeTexture;
+            Texture3D<float4> DetailTexture;
+
+            // container properties
+            float3 lowerBound;
+            float3 upperBound;
+
+            float3 lightPos;
+
             /*
             input:
                 boundsMin, boundsMax - bounds of the container
@@ -99,32 +114,21 @@ Shader "CloudShader"
                 return (containerInfo.dstInsideBox > 0);
             }
 
-            sampler2D _MainTex;
-            sampler2D _CameraDepthTexture;
-
-            SamplerState samplerNoiseTex;
-
-            Texture3D<float4> NoiseTex;
-
-            // container properties
-            float3 lowerBound;
-            float3 upperBound;
-
-            float3 lightPos;
-
-            // properties of volume
-
+            // returns the distance between two positions in 3D
             float getDistance(float3 A, float3 B)
             {
                 return sqrt(pow(A.x-B.x, 2) + pow(A.y-B.y, 2) + pow(A.z-B.z, 2));
             }
 
+            // returns the cloud density at given point
             float getDensity(float3 position)
             {
                 float tileSize = 4;
-                float4 currColor = NoiseTex.SampleLevel(samplerNoiseTex, position/(128)*tileSize, 0);
-                float result = (currColor.a + currColor.g + currColor.b) * (currColor.r);
-                return result;
+                float4 shapeDensity = ShapeTexture.SampleLevel(samplerShapeTexture, position/(128)*tileSize, 0);
+                float4 detailDensity = DetailTexture.SampleLevel(samplerDetailTexture, position/(128)*tileSize, 0);
+                float detailColor = (detailDensity.g + detailDensity.b + detailDensity.r);
+                float shapeColor = (shapeDensity.a + shapeDensity.g + shapeDensity.b) * (shapeDensity.r);
+                return (shapeColor - detailColor) * 2;
             }
 
             // implementing the phase function, cosAngle is the cosine of the angle between two vectors, g is a parameter in [-1,1]  
@@ -173,7 +177,7 @@ Shader "CloudShader"
                         if (transmittance < 0.01)
                             break;
                         // Rendering equation 
-                        resLight += density * stepSize * transmittance * absorptionCoef * 10;
+                        resLight += density * stepSize * transmittance * absorptionCoef;
                     }
                     
                     // take another step in the direction of the light
@@ -183,7 +187,7 @@ Shader "CloudShader"
 
                 // get cosine of the angle between incDir and dirVector
                 float cosAngle = dot(dirVector, incVector)/ (length(dirVector) * length(incVector));
-                return resLight * 0.1;//getHenyeyGreenstein(cosAngle, 0.6);
+                return resLight;//getHenyeyGreenstein(cosAngle, 0.6);
             }
 
             fixed4 frag (VertToFrag i) : COLOR

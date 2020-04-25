@@ -209,7 +209,7 @@ void ShapeTextureGen (uint3 id : SV_DispatchThreadID)
     float perlinChannelRed = getPerlinValue(x, y, z);
 
     // invert the worley noise
-    Result[id.xyz] = float4(1,1,1,1) - float4(1 - perlinChannelRed, worleyChannelBlue, worleyChannelAlpha, worleyChannelGreen);
+    Result[id.xyz] = float4(1,1,1,1) - float4(1 - perlinChannelRed, worleyChannelGreen,worleyChannelBlue,  worleyChannelAlpha);
 }
 
 [numthreads(numThreads,numThreads,numThreads)]
