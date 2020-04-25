@@ -55,6 +55,10 @@ Shader "CloudShader"
                 float dstToBox; // 0 if inside box
             };
 
+            //cloud properties
+            float4 cloudColor;
+            float speed;
+
             // texture and sampler properties
             sampler2D _MainTex;
             sampler2D _CameraDepthTexture;
@@ -128,6 +132,7 @@ Shader "CloudShader"
             // returns the cloud density at given point
             float getDensity(float3 position)
             {
+                position+= _Time * speed;
                 float tileSize = 4;
                 float4 shapeDensity = ShapeTexture.SampleLevel(samplerShapeTexture, position/(128)*tileSize, 0);
                 float4 detailDensity = DetailTexture.SampleLevel(samplerDetailTexture, position/(128)*tileSize, 0);
@@ -168,7 +173,7 @@ Shader "CloudShader"
                 while (distanceToMarch > stepSize)
                 {
                     // get the density (= color that is sampler from the noise texture) at current position 
-                    float density = getDensity(currPoint + _Time); 
+                    float density = getDensity(currPoint); 
                     if (density > 0)
                     {
                         // approximate the attenuation of light with the Beer-Lambert's law
@@ -230,7 +235,7 @@ Shader "CloudShader"
                 while (isInsideBox(currPoint, lowerBound, upperBound, rayDir))
                 {
                     // get the density (= color that is sampler from the noise texture) at current position 
-                    float density = getDensity(currPoint + _Time); 
+                    float density = getDensity(currPoint); 
                     
                     // compute the incident light only if there is some density
                     if (density > 0)
@@ -258,7 +263,7 @@ Shader "CloudShader"
                 }
 
                 // TO DO - eliminate bounding artifacts with depth
-                float4 result = transmittance * base + resColor;
+                float4 result = transmittance * base + resColor * cloudColor;
                 return result;
             }
             ENDCG

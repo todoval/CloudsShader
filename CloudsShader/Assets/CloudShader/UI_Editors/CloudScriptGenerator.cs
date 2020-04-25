@@ -7,13 +7,16 @@ using UnityEditor.Experimental.AssetImporters;
 public class CloudScript : Editor
 {
     private SerializedProperty lightingType;
-
     private SerializedProperty sceneLight;
+    private SerializedProperty speed;
+    private SerializedProperty color;
 
     private void OnEnable()
     {
         lightingType = serializedObject.FindProperty("lightingType");
         sceneLight = serializedObject.FindProperty("sceneLight");
+        speed = serializedObject.FindProperty("speed");
+        color = serializedObject.FindProperty("color");
     }
     public static void DrawUILine(Color color, int thickness = 2, int padding = 10)
     {
@@ -38,7 +41,8 @@ public class CloudScript : Editor
             EditorGUILayout.PropertyField(sceneLight, new GUIContent("Scene light"));
             EditorGUI.indentLevel--;
         }
-
+        EditorGUILayout.PropertyField(speed, new GUIContent("Speed"));
+        EditorGUILayout.PropertyField(color);
         serializedObject.ApplyModifiedProperties();
         
     }

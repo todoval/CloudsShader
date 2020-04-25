@@ -12,6 +12,9 @@ public class CloudGenerator : MonoBehaviour
     public int lightingType;
     public Light sceneLight;
 
+    public float speed;
+    public Color color;
+
     public Transform container;
 
     // shader properties
@@ -31,8 +34,6 @@ public class CloudGenerator : MonoBehaviour
 
     void OnDestroy() 
     {
-        // if the noise texture exists, destroy it
-        
     }
 
     Texture3D LoadTexture(string name)
@@ -75,6 +76,10 @@ public class CloudGenerator : MonoBehaviour
             material.SetVector("lightColor", sceneLight.color);
             material.SetFloat("lightIntensity", sceneLight.intensity);
         }
+
+        // set other cloud properties
+        material.SetVector("cloudColor", color);
+        material.SetFloat("speed", speed);
 
         material.SetTexture("ShapeTexture", shapeTexture);
         material.SetTexture("DetailTexture", detailTexture);
