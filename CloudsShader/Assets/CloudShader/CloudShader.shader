@@ -70,11 +70,10 @@ Shader "CloudShader"
             float3 upperBound;
 
             // sun and light properties
-            float3 sunPosition;
-            float4 sunColor;
-            float sunIntensity;
-
-            float3 lightPos;
+            bool useLight;
+            float3 lightPosition;
+            float4 lightColor;
+            float lightIntensity;
 
             /*
             input:
@@ -146,13 +145,13 @@ Shader "CloudShader"
             float getIncidentLighting(float3 pos, float3 incVector)
             {
                 // vector from the light position to my position
-                float3 dirVector = pos - float3(lightPos.x, lightPos.y, lightPos.z);
+                float3 dirVector = pos - float3(lightPosition.x, lightPosition.y, lightPosition.z);
                 // get the normalized ray direction
                 dirVector = dirVector / length(dirVector);
 
                 // get intersection with the cloud container
-                rayContainerInfo containerInfo = getRayContainerInfo(lowerBound, upperBound, lightPos, dirVector);
-                float3 entryPoint = lightPos + dirVector * containerInfo.dstToBox;
+                rayContainerInfo containerInfo = getRayContainerInfo(lowerBound, upperBound, lightPosition, dirVector);
+                float3 entryPoint = lightPosition + dirVector * containerInfo.dstToBox;
 
                 // light marching, march in the direction from the entry point to my point
                 float3 currPoint = entryPoint;
@@ -160,8 +159,8 @@ Shader "CloudShader"
                 float noOfSteps = 4;
                 float stepSize = distanceToMarch/noOfSteps;
                 // if light is inside box, set number of steps accordingly
-                if (getDistance(noOfSteps * stepSize * dirVector + currPoint, pos) > getDistance(lightPos, pos))
-                    stepSize = getDistance(lightPos, pos)/noOfSteps;
+                if (getDistance(noOfSteps * stepSize * dirVector + currPoint, pos) > getDistance(lightPosition, pos))
+                    stepSize = getDistance(lightPosition, pos)/noOfSteps;
                 
                 float resLight = 0;
                 float transmittance = 1;
@@ -237,7 +236,9 @@ Shader "CloudShader"
                     if (density > 0)
                     {
                         // use the light marching algorithm to get the light from the light source 
-                        float incLight = getIncidentLighting(currPoint, rayDir);
+                        float incLight = 0;
+                        if (useLight)
+                            incLight = getIncidentLighting(currPoint, rayDir);
                             
                         // approximate the attenuation of light with the Beer-Lambert's law
                         float deltaT = exp(-absorptionCoef * stepSize * density);

@@ -8,7 +8,9 @@ using UnityEditor;
 [ExecuteInEditMode, ImageEffectAllowedInSceneView]
 public class CloudGenerator : MonoBehaviour
 {
-    public Light mainLight;
+    // variables used for light manipulation
+    public int lightingType;
+    public Light sceneLight;
 
     public Transform container;
 
@@ -53,19 +55,27 @@ public class CloudGenerator : MonoBehaviour
             material = new Material (shader);
         }
 
-        Light sun = RenderSettings.sun;
-
         // set parameters to the shader
         Texture3D detailTexture = LoadTexture("DetailNoise");
         Texture3D shapeTexture = LoadTexture("ShapeNoise");
 
         // sun settings
-        material.SetVector("sunPosition", sun.transform.position);
-        material.SetVector("sunColor", sun.color);
-        material.SetFloat("sunIntensity", sun.intensity);
+        material.SetInt("useLight", lightingType == 2 || (sceneLight == null && lightingType == 1) ? 0 : 1);
+        // if the user has chosen to use sun, get sun settings
+        if (lightingType == 0)
+        {
+            Light sun = RenderSettings.sun;
+            material.SetVector("lightPosition", sun.transform.position);
+            material.SetVector("lightColor", sun.color);
+            material.SetFloat("lightIntensity", sun.intensity);
+        }
+        else if (lightingType == 1 && sceneLight != null) // otherwise get the settings of the light the user has set
+        {
+            material.SetVector("lightPosition", sceneLight.transform.position);
+            material.SetVector("lightColor", sceneLight.color);
+            material.SetFloat("lightIntensity", sceneLight.intensity);
+        }
 
-
-        material.SetVector("lightPos", mainLight.transform.position);
         material.SetTexture("ShapeTexture", shapeTexture);
         material.SetTexture("DetailTexture", detailTexture);
         material.SetVector("lowerBound", container.position - container.localScale/2);
