@@ -11,6 +11,7 @@ public class CloudScript : Editor
     private SerializedProperty speed;
     private SerializedProperty color;
     private SerializedProperty tileSize;
+    private SerializedProperty container;
 
     private void OnEnable()
     {
@@ -19,6 +20,7 @@ public class CloudScript : Editor
         speed = serializedObject.FindProperty("speed");
         color = serializedObject.FindProperty("color");
         tileSize = serializedObject.FindProperty("tileSize");
+        container = serializedObject.FindProperty("container");
     }
     public static void DrawUILine(Color color, int thickness = 2, int padding = 10)
     {
@@ -33,6 +35,7 @@ public class CloudScript : Editor
     public override void OnInspectorGUI() 
     {
         serializedObject.Update();
+        EditorGUILayout.PropertyField(container);
         int[] lightOptionsValues = {0,1,2};
         string[] lightOptionsDisplayed = {"Environmental", "Scene light","None"};
         lightingType.intValue = EditorGUILayout.IntPopup("Sun", lightingType.intValue, lightOptionsDisplayed, lightOptionsValues);
