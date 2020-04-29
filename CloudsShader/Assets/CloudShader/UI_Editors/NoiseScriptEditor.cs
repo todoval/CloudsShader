@@ -147,6 +147,7 @@ public class NoiseScriptEditor : Editor
         EditorGUILayout.LabelField("Detail noise:", EditorStyles.boldLabel);
         EditorGUI.indentLevel++;
         EditorGUILayout.LabelField("Worley noise:");
+        EditorGUI.indentLevel++;
 
         EditorGUILayout.LabelField("Red Channel:");
         EditorGUI.indentLevel++;

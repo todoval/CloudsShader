@@ -85,8 +85,8 @@ public class CloudGenerator : MonoBehaviour
 
         material.SetTexture("ShapeTexture", shapeTexture);
         material.SetTexture("DetailTexture", detailTexture);
-        material.SetVector("lowerBound", container.position - container.localScale/2);
-        material.SetVector("upperBound", container.position + container.localScale/2);
+        material.SetVector("containerBound_Min", container.position - container.localScale/2);
+        material.SetVector("containerBound_Max", container.position + container.localScale/2);
 
         // apply the shader to the source and copy it to destination
         Graphics.Blit(source, destination, material);
