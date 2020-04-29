@@ -11,8 +11,10 @@ public class CloudGenerator : MonoBehaviour
     // variables used for light manipulation
     public int lightingType;
     public Light sceneLight;
-    public int tileSize;
 
+    // cloud properties
+    public float absorptionCoeff;
+    public int tileSize;
     public float speed;
     public Color color;
 
@@ -77,6 +79,7 @@ public class CloudGenerator : MonoBehaviour
             material.SetVector("lightColor", sceneLight.color);
             material.SetFloat("lightIntensity", sceneLight.intensity);
         }
+        material.SetFloat("absorptionCoef", absorptionCoeff);
 
         // set other cloud properties
         material.SetVector("cloudColor", color);

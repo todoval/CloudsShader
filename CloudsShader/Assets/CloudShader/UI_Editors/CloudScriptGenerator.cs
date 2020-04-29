@@ -6,17 +6,19 @@ using UnityEditor.Experimental.AssetImporters;
 [CanEditMultipleObjects]
 public class CloudScript : Editor
 {
-    private SerializedProperty lightingType;
-    private SerializedProperty sceneLight;
     private SerializedProperty speed;
     private SerializedProperty color;
     private SerializedProperty tileSize;
     private SerializedProperty container;
+    private SerializedProperty lightingType;
+    private SerializedProperty sceneLight;
+    private SerializedProperty absorptionCoeff;
 
     private void OnEnable()
     {
         lightingType = serializedObject.FindProperty("lightingType");
         sceneLight = serializedObject.FindProperty("sceneLight");
+        absorptionCoeff = serializedObject.FindProperty("absorptionCoeff");
         speed = serializedObject.FindProperty("speed");
         color = serializedObject.FindProperty("color");
         tileSize = serializedObject.FindProperty("tileSize");
@@ -46,6 +48,8 @@ public class CloudScript : Editor
             EditorGUILayout.PropertyField(sceneLight, new GUIContent("Scene light"));
             EditorGUI.indentLevel--;
         }
+        EditorGUILayout.Slider(absorptionCoeff, 0, 1, new GUIContent("Absorption"));
+        //EditorGUILayout.PropertyField(absorptionCoeff, new GUIContent("Absorption"));
         EditorGUILayout.PropertyField(tileSize, new GUIContent("Tile size"));
         EditorGUILayout.PropertyField(speed, new GUIContent("Speed"));
         EditorGUILayout.PropertyField(color);

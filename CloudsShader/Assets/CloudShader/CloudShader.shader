@@ -52,6 +52,7 @@ Shader "CloudShader"
             float4 cloudColor;
             float speed;
             float tileSize;
+            float absorptionCoef;
 
             // texture and sampler properties
             sampler2D _MainTex;
@@ -150,6 +151,12 @@ Shader "CloudShader"
                 return (1 - g*g)/( 4*PI* sqrt(pow(1 + g*g - 2*g*cosAngle, 3)));
             }
 
+            float phase(float cosAngle) {
+                float blend = .5;
+                float hgBlend = getHenyeyGreenstein(cosAngle,0.8); // * (1-blend) + getHenyeyGreenstein(a,-0.3) * blend;
+                return 0.8 + hgBlend*0.2; // base brightness + phase factor * 
+            }
+
             float getIncidentLighting(float3 pos, float3 incVector)
             {
                 // normalized vector from my position to light position
@@ -184,12 +191,12 @@ Shader "CloudShader"
                     noOfSteps --;
                 }
                 // use the beer's law for the light attenuation (from the Fredrik Haggstrom paper)
-                float lightAttenuation = exp(-accumDensity * 0.2);
+                float lightAttenuation = exp(-accumDensity * absorptionCoef);
                 lightAttenuation = 0.2 + lightAttenuation * 0.8;
 
                 // get cosine of the angle between incDir and dirVector
-               float cosAngle = dot(dirVector, incVector)/ (length(dirVector) * length(incVector));
-            return lightAttenuation; // * getHenyeyGreenstein(cosAngle, 0.6);
+                float cosAngle = dot(dirVector, incVector)/ (length(dirVector) * length(incVector));
+                return lightAttenuation; // * getHenyeyGreenstein(cosAngle, 0.6);
             }
 
 
@@ -200,7 +207,9 @@ Shader "CloudShader"
                 float stepSize = 0.2;
                 float4 totalDensity = float4(0,0,0,0); // accumulating variable for the resulting color
                 float3 currPoint = entryPoint; // current point on the ray during ray marching
-                float absorptionCoef = 0.2;
+
+               // float cosAngle = dot(rayDir, _WorldSpaceLightPos0.xyz);
+                //float phaseVal = phase(cosAngle);
 
                 while (isInsideBox(currPoint, rayDir))
                 {
@@ -212,10 +221,10 @@ Shader "CloudShader"
                             incLight = getIncidentLighting(currPoint, rayDir); // use the light marching algorithm to get the light from the light source
                             
                         // approximate the attenuation of light with the Beer-Lambert's law
-                       /* float3 lightVector = currPoint - float3(lightPosition.x, lightPosition.y, lightPosition.z);
+                        float3 lightVector = currPoint - float3(lightPosition.x, lightPosition.y, lightPosition.z);
                         lightVector = lightVector / length(lightVector);
                         float cosAngle = dot(rayDir, lightVector);
-                        float phase = getHenyeyGreenstein(cosAngle, 0.8);*/
+                        float phaseVal = phase(cosAngle);
 
                         float deltaT = exp(-absorptionCoef * stepSize * density);
 
@@ -226,7 +235,7 @@ Shader "CloudShader"
 
 
                         // raymarching render equation
-                        totalDensity += density * stepSize * transmittance * absorptionCoef * incLight;
+                        totalDensity += density * stepSize * transmittance * absorptionCoef * incLight * phaseVal;
                     }
 
                     // take a step forward along the ray

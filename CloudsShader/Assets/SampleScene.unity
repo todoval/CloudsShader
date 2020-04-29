@@ -207,7 +207,7 @@ Transform:
   m_GameObject: {fileID: 56149225}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 8.51, z: 0}
-  m_LocalScale: {x: 56.32516, y: 17.237999, z: 60.95443}
+  m_LocalScale: {x: 30, y: 10, z: 30}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
@@ -425,7 +425,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 705507993}
   m_LocalRotation: {x: 0.29718354, y: -0, z: -0, w: 0.9548204}
-  m_LocalPosition: {x: 0.24, y: 75.1, z: 0}
+  m_LocalPosition: {x: 0, y: 34.6, z: 0}
   m_LocalScale: {x: 3.5139, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -509,7 +509,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 2.98, z: -30.1}
+  m_LocalPosition: {x: 0, y: 1.1, z: -16.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -529,8 +529,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   lightingType: 0
   sceneLight: {fileID: 0}
+  absorptionCoeff: 0.316
   tileSize: 1
-  speed: 1
+  speed: 0.01
   color: {r: 1, g: 1, b: 1, a: 0}
   container: {fileID: 56149229}
   material: {fileID: 0}
