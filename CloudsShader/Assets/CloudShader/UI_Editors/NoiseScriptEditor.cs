@@ -9,7 +9,6 @@ public class NoiseScriptEditor : Editor
     // compute shaders needed for the noise script to work
     private SerializedProperty slicer;
     private SerializedProperty NoiseTextureGenerator;
-    private SerializedProperty randomNumberGenerator;
 
     // perlin settings for the shape noise texture
     private SerializedProperty perlinOctaves; // 8 by default
@@ -33,11 +32,12 @@ public class NoiseScriptEditor : Editor
     private SerializedProperty detailGreenChannelCellSize;
     private SerializedProperty detailBlueChannelCellSize;
     private SerializedProperty detailRedChannelCellSize;
+
+    private SerializedProperty weatherMap;
     private void OnEnable()
     {
         // the compute shaders
         NoiseTextureGenerator = serializedObject.FindProperty("NoiseTextureGenerator");
-        randomNumberGenerator = serializedObject.FindProperty("randomNumberGenerator");
         slicer = serializedObject.FindProperty("slicer");
         // perlin settings (red channel) of the shape texture
         perlinTextureResolution = serializedObject.FindProperty("perlinTextureResolution");
@@ -59,6 +59,8 @@ public class NoiseScriptEditor : Editor
         detailGreenChannelCellSize = serializedObject.FindProperty("detailGreenChannelCellSize");
         detailBlueChannelCellSize = serializedObject.FindProperty("detailBlueChannelCellSize");
         detailRedChannelCellSize = serializedObject.FindProperty("detailRedChannelCellSize");
+
+        weatherMap = serializedObject.FindProperty("weatherMap");
     }
     public static void DrawUILine(Color color, int thickness = 2, int padding = 10)
     {
@@ -77,7 +79,6 @@ public class NoiseScriptEditor : Editor
         
         EditorGUILayout.Space();
         EditorGUILayout.PropertyField(NoiseTextureGenerator);
-        EditorGUILayout.PropertyField(randomNumberGenerator);
         EditorGUILayout.PropertyField(slicer);
 
         // draw a line between compute shader settings and shape noise settings
@@ -177,6 +178,14 @@ public class NoiseScriptEditor : Editor
         }
         GUILayout.EndHorizontal();
         EditorGUILayout.Space();
+
+
+        if (GUILayout.Button("Create Weather Map",GUILayout.Width(150), GUILayout.Height(30)))
+        {
+            FindObjectOfType<NoiseGenerator>().createWeatherMap();
+        }
+        EditorGUILayout.PropertyField(weatherMap);
+
         serializedObject.ApplyModifiedProperties();
     }
 

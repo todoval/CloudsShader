@@ -9,20 +9,21 @@ public class NoiseGenerator : MonoBehaviour
     public int shapeNoiseResolution = 128;
     public int detailNoiseResolution = 32;
     public int worleyPointsPerRes = 128;
+    public int weatherMapResolution = 512;
 
     public ComputeShader NoiseTextureGenerator;
     public ComputeShader slicer;
-    public ComputeShader randomNumberGenerator;
     public ComputeBuffer worleyFeaturePointsBuffer;
 
     public SaveTexture textureSaver;
     
+    public RenderTexture weatherMap = null;
     public RenderTexture detailTexture = null;
     public RenderTexture shapeTexture = null;
 
     private int shapeTextureKernel;
     private int detailTextureKernel;
-    private int rndNumberKernel;
+    private int weatherMapKernel;
     private int slicerKernel;
     private int detailKernel;
 
@@ -53,7 +54,7 @@ public class NoiseGenerator : MonoBehaviour
 
     void Start()
     {
-        if (null == NoiseTextureGenerator || slicer == null || null == randomNumberGenerator) 
+        if (null == NoiseTextureGenerator || slicer == null) 
         {
             Debug.Log("Shader missing.");
             enabled = false;
@@ -61,11 +62,11 @@ public class NoiseGenerator : MonoBehaviour
         }
 
         slicerKernel = slicer.FindKernel("Slicer");
-        rndNumberKernel = randomNumberGenerator.FindKernel("RandomNumberGenerator");
         shapeTextureKernel = NoiseTextureGenerator.FindKernel("ShapeTextureGen");
+        weatherMapKernel = NoiseTextureGenerator.FindKernel("WeatherMapGen");
         detailTextureKernel = NoiseTextureGenerator.FindKernel("DetailTextureGen");
 
-        if (shapeTextureKernel < 0 || slicerKernel < 0 || detailTextureKernel < 0)
+        if (weatherMapKernel < 0 || shapeTextureKernel < 0 || slicerKernel < 0 || detailTextureKernel < 0)
         {
             Debug.Log("Initialization failed.");
             enabled = false;
@@ -83,12 +84,6 @@ public class NoiseGenerator : MonoBehaviour
 
     void CreateWorleyPointsBuffer ()
     {
-        //worleyFeaturePointsBuffer = new ComputeBuffer( worleyPointsPerRes * worleyPointsPerRes * worleyPointsPerRes, sizeof(float) * 3);
-      //  randomNumberGenerator.SetBuffer(rndNumberKernel, "FeaturePointOffsets", worleyFeaturePointsBuffer);
-       // randomNumberGenerator.Dispatch(rndNumberKernel, 8, 8, 8);
-
-        //int numberOfPoints = worleyPointsPerRes * worleyPointsPerRes * worleyPointsPerRes;
-        //worleyFeaturePointsBuffer = new ComputeBuffer( numberOfPoints, sizeof(float) * 3);
         System.Random prng = new System.Random (1);
         int numberOfPoints = worleyPointsPerRes * worleyPointsPerRes * worleyPointsPerRes;
         var points = new Vector3[numberOfPoints];
@@ -111,7 +106,7 @@ public class NoiseGenerator : MonoBehaviour
         textureSaver.slicerKernel = slicerKernel;
 
         CreateWorleyPointsBuffer();
-        if(rndNumberKernel < 0 || detailTextureKernel < 0 || shapeTextureKernel < 0 || slicerKernel < 0 || null == NoiseTextureGenerator)
+        if(weatherMapKernel < 0 || detailTextureKernel < 0 || shapeTextureKernel < 0 || slicerKernel < 0 || null == NoiseTextureGenerator)
         {
             Debug.Log("Error creating new noise.");
         }
@@ -148,8 +143,8 @@ public class NoiseGenerator : MonoBehaviour
     public void createShapeNoise()
     {
         prepForNewRenderTexture();
+
         // create noiseTexture
-    
         shapeTexture = null;
         if (null == shapeTexture) 
         {
@@ -182,5 +177,35 @@ public class NoiseGenerator : MonoBehaviour
         int threadGroups = shapeNoiseResolution / 8;
         NoiseTextureGenerator.Dispatch(shapeTextureKernel, threadGroups, threadGroups, threadGroups);
         textureSaver.SaveRenderTex(shapeTexture, "ShapeNoise", shapeNoiseResolution);
+    }
+
+    Texture2D RenderTextureToTexture2D(RenderTexture rTex, int resolution)
+    {
+        Texture2D tex = new Texture2D(resolution, resolution, TextureFormat.ARGB32, true);
+        RenderTexture.active = rTex;
+        tex.ReadPixels(new Rect(0, 0, resolution, resolution), 0, 0);
+        tex.Apply();
+        return tex;
+    }
+
+    public void createWeatherMap()
+    {
+        prepForNewRenderTexture();
+        weatherMap = null;
+        if (null == weatherMap) 
+        {
+            weatherMap = new RenderTexture(weatherMapResolution, weatherMapResolution, 0);
+            weatherMap.enableRandomWrite = true;
+            weatherMap.dimension = TextureDimension.Tex2D;
+            weatherMap.Create();
+        }
+
+        NoiseTextureGenerator.SetBuffer(weatherMapKernel, "FeaturePoints", worleyFeaturePointsBuffer);
+        NoiseTextureGenerator.SetTexture(weatherMapKernel, "ResultWeatherMap", weatherMap);
+
+        int threadGroups =  weatherMapResolution / 8;
+        NoiseTextureGenerator.Dispatch(weatherMapKernel, 64, 64, 1);
+        Texture2D weatherMapAs2D = RenderTextureToTexture2D(weatherMap, weatherMapResolution);
+        AssetDatabase.CreateAsset(weatherMapAs2D, "Assets/Resources/WeatherMap.asset");   
     }
 }

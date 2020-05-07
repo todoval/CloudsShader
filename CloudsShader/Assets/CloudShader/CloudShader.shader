@@ -137,15 +137,57 @@ Shader "CloudShader"
                 return sqrt(pow(A.x-B.x, 2) + pow(A.y-B.y, 2) + pow(A.z-B.z, 2));
             }
 
+            // remaps a value from one range (original) to new range (new)
+            float remap(float value, float original_min, float original_max, float new_min, float new_max)
+            {
+                return new_min + (((value - original_min) / (original_max - original_min)) * (new_max - new_min));
+            }
+
+            // clamps the value v to be in a range between 0 and 1
+            /*float saturate(float v)
+            {
+                if (v < 0)
+                    return 0;
+                if (v > 1)
+                    return 1;
+                return v;
+            }*/
+
             // returns the cloud density at given point
             float getDensity(float3 position)
             {
+                // sample the shape and detail textures from position
                 position+= _Time * speed;
-                float4 shapeDensity = ShapeTexture.SampleLevel(samplerShapeTexture, position/(128)*tileSize, 0);
-                float4 detailDensity = DetailTexture.SampleLevel(samplerDetailTexture, position/(128)*tileSize, 0);
-                float detailColor = (detailDensity.g + detailDensity.b + detailDensity.r)/4;
-                float shapeColor = (shapeDensity.a + shapeDensity.g + shapeDensity.b) * shapeDensity.r;
-                return (shapeColor - detailColor) * 2;
+                float4 shapeDensity = ShapeTexture.SampleLevel(samplerShapeTexture, position/tileSize, 0);
+                float4 detailDensity = DetailTexture.SampleLevel(samplerDetailTexture, position/tileSize, 0);
+                
+                // use the Perlin noise as base for shape noise and get the shape noise
+                float shapeNoise = shapeDensity.g * 0.625 + shapeDensity.g * 0.25 + shapeDensity.a * 0.125;
+                shapeNoise = -(1 - shapeNoise);
+                shapeNoise = remap(shapeDensity.r, shapeNoise, 1.0, 0.0, 1.0);
+
+                // get the detail noise
+                float detailNoise = detailDensity.r * 0.625 + detailDensity.g * 0.25 + detailDensity.a * 0.125;
+
+                // For low altitude regions the detail noise is used (inverted)
+                //to instead of creating round shapes ,
+                // create more wispy shapes. Transitions to round shapes over altitude.
+                float detail_modifier = lerp (detailNoise, 1-detailNoise, saturate(0));
+
+                // Reduce the amount of detail noise is being "subtracted"
+                // with the global_coverage .
+                detail_modifier *= 0.35 * exp(-0.001 * 0.75);
+                
+
+                // Subtract detail noise from base shape (weighted by inverse density so that edges get eroded more than centre)
+                float oneMinusShape = 1 - shapeNoise;
+                float detailErodeWeight = oneMinusShape * oneMinusShape * oneMinusShape;
+                float cloudDensity = shapeNoise - (1-detailNoise) * detailErodeWeight * 2;
+                return cloudDensity * 0.5;
+
+                // Carve away more from the shape_noise using detail_noise
+                float final_density = saturate(remap(shapeNoise, detail_modifier, 1.0, 0.0, 1.0));
+                return final_density;
             }
 
             // implementing the phase function, cosAngle is the cosine of the angle between two vectors, g is a parameter in [-1,1]  
@@ -184,7 +226,7 @@ Shader "CloudShader"
                 float3 currPoint = entryPoint;
                 // number of steps should be the same for each light march
                 float distanceToMarch = getDistance(entryPoint, pos);
-                float noOfSteps = 4;
+                float noOfSteps = 2;
                 float stepSize = distanceToMarch/noOfSteps;
                 float accumDensity = 0; // accumulated density over all the ray from my point to the entry point
                 float transmittance = 1;
@@ -205,9 +247,7 @@ Shader "CloudShader"
                 }
                 // use the beer's law for the light attenuation (from the Fredrik Haggstrom paper)
                 float lightAttenuation = exp(-accumDensity * stepSize * absorptionCoef);
-                //lightAttenuation = 0.2 + lightAttenuation * 0.8;
-
-                return lightAttenuation * lightIntensity * lightColor;
+                return lightAttenuation * lightIntensity * lightColor; // TO DO add light weights
             }
 
 
@@ -215,7 +255,7 @@ Shader "CloudShader"
             raymarchInfo raymarch(float3 entryPoint, float3 rayDir)
             {
                 float transmittance = 1; // the current ratio between light that was emitted and light that is received (accumulating variable for transparency)
-                float stepSize = 0.2;
+                float stepSize = 0.5;
                 float4 totalDensity = float4(0,0,0,0); // accumulating variable for the resulting color
                 float3 currPoint = entryPoint; // current point on the ray during ray marching
 

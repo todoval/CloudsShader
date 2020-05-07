@@ -36,6 +36,11 @@ static float grad(int hash, float x, float y, float z)
     }
 }
 
+static float grad(int hash, float x, float y)
+{
+    return ((hash & 1) == 0 ? x : -x) + ((hash & 2) == 0 ? y : -y);
+}
+
 // permutation table defined by Perlin for pseudorandom number generation
 static const int permutation[] = { 151,160,137,91,90,15,                
     131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,    
@@ -71,8 +76,36 @@ int inc(int num)
     return num;
 }
 
+// returns the value of the Perlin function in [x,y] point
+float getPerlinValue2D(float x, float y)
+{
+    /*float repeat = 8;
+    if(repeat > 0) 
+    {                                 
+        x = x%repeat;
+        y = y%repeat;
+    }*/
+    uint xi = (uint) x & 255;
+    uint yi = (uint) y & 255;
+
+    // get the location vector
+    float locX = x - (int) x;
+    float locY = y - (int) y;
+
+    float u = fade(x);
+    float v = fade(y);
+
+    float A = (perm[xi] + yi) & 255;
+    float B = (perm[xi+1] + yi) & 255;
+
+    float x1 = lerp(u, grad(perm[A], locX, locY), grad(perm[B], locX-1, locY));
+    float x2 = lerp(u, grad(perm[A+1], locX, locY-1), grad(perm[B+1], locX-1, locY-1));
+
+    return lerp(v, x1, x2);
+}
+
 // returns the value of the Perlin function in [x,y,z] point
-float getPerlinValue(float x, float y, float z)
+float getPerlinValue3D(float x, float y, float z)
 {
     float repeat = 8;
     if(repeat > 0) 

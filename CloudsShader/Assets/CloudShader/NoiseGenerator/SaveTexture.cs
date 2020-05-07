@@ -55,7 +55,6 @@ public class SaveTexture
         slicer.SetInt("layer", layer);
         slicer.SetTexture(kernelIndex, "Result", render);
         slicer.Dispatch(kernelIndex, 16, 16, 1);
-
         return render;
     }
 
