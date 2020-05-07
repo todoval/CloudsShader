@@ -168,6 +168,14 @@ Shader "CloudShader"
                 float3 dirVector = float3(lightPosition.x, lightPosition.y, lightPosition.z) - pos;
                 dirVector = dirVector / length(dirVector);
 
+                // light shouldn't be inside the box, but if it is, only light the box from the inside accordingly
+                /*if (isInsideBox(lightPosition, dirVector))
+                {
+                    float distanceToLight = getDistance(float3(lightPosition.x, lightPosition.y, lightPosition.z), pos);
+                    float containerMaxDistance = getDistance(containerBound_Min, containerBound_Max);
+                    return (containerMaxDistance - distanceToLight)/containerMaxDistance;
+                }*/
+
                 // get intersection with the cloud container
                 rayContainerInfo containerInfo = getRayContainerInfo(lightPosition, -dirVector);
                 float3 entryPoint = lightPosition - dirVector * containerInfo.dstToBox;
@@ -178,15 +186,16 @@ Shader "CloudShader"
                 float distanceToMarch = getDistance(entryPoint, pos);
                 float noOfSteps = 4;
                 float stepSize = distanceToMarch/noOfSteps;
-                // if light is inside box, set number of steps accordingly
-                if (isInsideBox(lightPosition, dirVector))
-                    return 0;
-                
                 float accumDensity = 0; // accumulated density over all the ray from my point to the entry point
                 float transmittance = 1;
+                if (isInsideBox(lightPosition, dirVector))
+                {
+                    stepSize = getDistance(float3(lightPosition.x, lightPosition.y, lightPosition.z), pos)/noOfSteps;
+                    currPoint = lightPosition;
+                }
                 while (noOfSteps > 0)
                 {
-                    float density = getDensity(currPoint) * stepSize; // get the density for the current part of the ray
+                    float density = getDensity(currPoint); // get the density for the current part of the ray
                     if (density > 0)
                         accumDensity += density;
                     
@@ -195,7 +204,7 @@ Shader "CloudShader"
                     noOfSteps --;
                 }
                 // use the beer's law for the light attenuation (from the Fredrik Haggstrom paper)
-                float lightAttenuation = exp(-accumDensity * absorptionCoef);
+                float lightAttenuation = exp(-accumDensity * stepSize * absorptionCoef);
                 //lightAttenuation = 0.2 + lightAttenuation * 0.8;
 
                 return lightAttenuation * lightIntensity * lightColor;
