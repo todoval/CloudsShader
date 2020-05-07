@@ -11,6 +11,9 @@ public class CloudGenerator : MonoBehaviour
     // variables used for light manipulation
     public int lightingType;
     public Light sceneLight;
+    public int phaseType;
+    public float henyeyCoeff;
+    public float henyeyRatio;
 
     // cloud properties
     public float absorptionCoeff;
@@ -49,13 +52,13 @@ public class CloudGenerator : MonoBehaviour
     {      
         if (null == source) 
         {
-            // just copy the source
-            Graphics.Blit(source, destination); 
+            Graphics.Blit(source, destination); // just copy the source
             return;
         }
 
         // create the material
-        if (material == null || material.shader != shader) {
+        if (material == null || material.shader != shader)
+        {
             material = new Material (shader);
         }
 
@@ -63,23 +66,41 @@ public class CloudGenerator : MonoBehaviour
         Texture3D detailTexture = LoadTexture("DetailNoise");
         Texture3D shapeTexture = LoadTexture("ShapeNoise");
 
-        // sun settings
+        // lighting settings
         material.SetInt("useLight", lightingType == 2 || (sceneLight == null && lightingType == 1) ? 0 : 1);
         // if the user has chosen to use sun, get sun settings
         if (lightingType == 0)
         {
             Light sun = RenderSettings.sun;
-            material.SetVector("lightPosition", sun.transform.position);
-            material.SetVector("lightColor", sun.color);
-            material.SetFloat("lightIntensity", sun.intensity);
+            if (sun.isActiveAndEnabled)
+            {
+                material.SetVector("lightPosition", sun.transform.position);
+                material.SetVector("lightColor", sun.color);
+                material.SetFloat("lightIntensity", sun.intensity);
+            }
+            else
+                material.SetInt("useLight", 0);
         }
         else if (lightingType == 1 && sceneLight != null) // otherwise get the settings of the light the user has set
         {
-            material.SetVector("lightPosition", sceneLight.transform.position);
-            material.SetVector("lightColor", sceneLight.color);
-            material.SetFloat("lightIntensity", sceneLight.intensity);
+            if (sceneLight.isActiveAndEnabled)
+            {
+                material.SetVector("lightPosition", sceneLight.transform.position);
+                material.SetVector("lightColor", sceneLight.color);
+                material.SetFloat("lightIntensity", sceneLight.intensity);
+            }
+            else
+                material.SetInt("useLight", 0);
         }
+
+        // phase function settings
+        if (phaseType == 1)
+            henyeyRatio = 0;
+        material.SetFloat("henyeyCoeff", henyeyCoeff);
+        material.SetFloat("henyeyRatio", henyeyRatio);
         material.SetFloat("absorptionCoef", absorptionCoeff);
+
+        // performance settings
 
         // set other cloud properties
         material.SetVector("cloudColor", color);

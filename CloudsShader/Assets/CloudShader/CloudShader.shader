@@ -74,6 +74,9 @@ Shader "CloudShader"
             float4 lightColor;
             float lightIntensity;
 
+            float henyeyCoeff;
+            float henyeyRatio;
+
             // structures used for storage of results from different functions
             struct rayContainerInfo
             {
@@ -151,10 +154,12 @@ Shader "CloudShader"
                 return (1 - g*g)/( 4*PI* sqrt(pow(1 + g*g - 2*g*cosAngle, 3)));
             }
 
-            float phase(float cosAngle) {
-                float blend = .5;
-                float hgBlend = getHenyeyGreenstein(cosAngle,0.8); // * (1-blend) + getHenyeyGreenstein(a,-0.3) * blend;
-                return 0.8 + hgBlend*0.2; // base brightness + phase factor * 
+            // implementation of the phase function with user-chosen henyey coefficient and the weight/ratio of the phase function
+            float phaseFunction(float cosAngle)
+            {
+                // get the henyey-greenstein phase function
+                float hg = getHenyeyGreenstein(cosAngle, henyeyCoeff);
+                return (1 - henyeyRatio) + hg * henyeyRatio;
             }
 
             float getIncidentLighting(float3 pos, float3 incVector)
@@ -174,12 +179,11 @@ Shader "CloudShader"
                 float noOfSteps = 4;
                 float stepSize = distanceToMarch/noOfSteps;
                 // if light is inside box, set number of steps accordingly
-                /*if (getDistance(noOfSteps * stepSize * dirVector + currPoint, pos) > getDistance(lightPosition, pos))
-                    stepSize = getDistance(lightPosition, pos)/noOfSteps;*/
+                if (isInsideBox(lightPosition, dirVector))
+                    return 0;
                 
                 float accumDensity = 0; // accumulated density over all the ray from my point to the entry point
                 float transmittance = 1;
-                float absorptionCoef = 0.6;
                 while (noOfSteps > 0)
                 {
                     float density = getDensity(currPoint) * stepSize; // get the density for the current part of the ray
@@ -192,11 +196,9 @@ Shader "CloudShader"
                 }
                 // use the beer's law for the light attenuation (from the Fredrik Haggstrom paper)
                 float lightAttenuation = exp(-accumDensity * absorptionCoef);
-                lightAttenuation = 0.2 + lightAttenuation * 0.8;
+                //lightAttenuation = 0.2 + lightAttenuation * 0.8;
 
-                // get cosine of the angle between incDir and dirVector
-                float cosAngle = dot(dirVector, incVector)/ (length(dirVector) * length(incVector));
-                return lightAttenuation; // * getHenyeyGreenstein(cosAngle, 0.6);
+                return lightAttenuation * lightIntensity * lightColor;
             }
 
 
@@ -208,34 +210,37 @@ Shader "CloudShader"
                 float4 totalDensity = float4(0,0,0,0); // accumulating variable for the resulting color
                 float3 currPoint = entryPoint; // current point on the ray during ray marching
 
-               // float cosAngle = dot(rayDir, _WorldSpaceLightPos0.xyz);
-                //float phaseVal = phase(cosAngle);
-
                 while (isInsideBox(currPoint, rayDir))
                 {
                     float density = getDensity(currPoint); //density = color that is sampled from the noise texture
                     if (density > 0)
                     {
                         float incLight = 0;
+                        float phaseVal = 1;
                         if (useLight)
-                            incLight = getIncidentLighting(currPoint, rayDir); // use the light marching algorithm to get the light from the light source
-                            
-                        // approximate the attenuation of light with the Beer-Lambert's law
-                        float3 lightVector = currPoint - float3(lightPosition.x, lightPosition.y, lightPosition.z);
-                        lightVector = lightVector / length(lightVector);
-                        float cosAngle = dot(rayDir, lightVector);
-                        float phaseVal = phase(cosAngle);
+                        {
+                            // use the light marching algorithm to get the light from the light source
+                            incLight = getIncidentLighting(currPoint, rayDir);
+                            // compute the value of the phase function only if desired
+                            if (henyeyRatio > 0)
+                            {
+                                float3 lightVector = currPoint - float3(lightPosition.x, lightPosition.y, lightPosition.z);
+                                lightVector = lightVector / length(lightVector);
+                                float cosAngle = dot(rayDir, lightVector);
+                                phaseVal = phaseFunction(cosAngle);
+                            }
+                        }
 
+                        // approximate the attenuation of light with the Beer-Lambert's law
                         float deltaT = exp(-absorptionCoef * stepSize * density);
 
                         // lower the transmittance as you march further away from the viewer
                         transmittance *= deltaT;
-                        if (transmittance < 0.01) // break if transmittance is too low to avoid performance problems
+                        if (transmittance < 0.0001) // break if transmittance is too low to avoid performance problems
                             break;
 
-
-                        // raymarching render equation
-                        totalDensity += density * stepSize * transmittance * absorptionCoef * incLight * phaseVal;
+                        // raymarching render equation, the terms that are constant aren't added here to improve performance
+                        totalDensity += density * transmittance * incLight * phaseVal;
                     }
 
                     // take a step forward along the ray
@@ -243,7 +248,9 @@ Shader "CloudShader"
                 }
                 raymarchInfo result;
                 result.transmittance = transmittance;
-                result.density = totalDensity;
+                
+                // the other part of the raymarch render equation - adding the terms that were constant so they didn't have to be added in each raymarch step
+                result.density = totalDensity * lightColor  * absorptionCoef * stepSize;
                 return result;
             }
 
