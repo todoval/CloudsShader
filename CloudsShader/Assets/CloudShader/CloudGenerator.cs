@@ -42,9 +42,15 @@ public class CloudGenerator : MonoBehaviour
     {
     }
 
-    Texture3D LoadTexture(string name)
+    Texture3D LoadTexture3D(string name)
     {
         Texture3D texture = (Texture3D) Resources.Load(name, typeof(Texture3D));
+        return texture;
+    }
+
+    Texture2D LoadTexture2D(string name)
+    {
+        Texture2D texture = (Texture2D) Resources.Load(name, typeof(Texture2D));
         return texture;
     }
 
@@ -63,8 +69,9 @@ public class CloudGenerator : MonoBehaviour
         }
 
         // set parameters to the shader
-        Texture3D detailTexture = LoadTexture("DetailNoise");
-        Texture3D shapeTexture = LoadTexture("ShapeNoise");
+        Texture3D detailTexture = LoadTexture3D("DetailNoise");
+        Texture3D shapeTexture = LoadTexture3D("ShapeNoise");
+        Texture2D WeatherMap = LoadTexture2D("WeatherMap");
 
         // lighting settings
         material.SetInt("useLight", lightingType == 2 || (sceneLight == null && lightingType == 1) ? 0 : 1);
@@ -109,6 +116,7 @@ public class CloudGenerator : MonoBehaviour
 
         material.SetTexture("ShapeTexture", shapeTexture);
         material.SetTexture("DetailTexture", detailTexture);
+        material.SetTexture("WeatherMap", WeatherMap);
         material.SetVector("containerBound_Min", container.position - container.localScale/2);
         material.SetVector("containerBound_Max", container.position + container.localScale/2);
 

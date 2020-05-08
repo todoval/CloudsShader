@@ -60,9 +60,11 @@ Shader "CloudShader"
 
             SamplerState samplerShapeTexture;
             SamplerState samplerDetailTexture;
+            SamplerState samplerWeatherMap;
 
             Texture3D<float4> ShapeTexture;
             Texture3D<float4> DetailTexture;
+            Texture2D<float4> WeatherMap;
 
             // container properties
             float3 containerBound_Min;
@@ -158,8 +160,11 @@ Shader "CloudShader"
             {
                 // sample the shape and detail textures from position
                 position+= _Time * speed;
-                float4 shapeDensity = ShapeTexture.SampleLevel(samplerShapeTexture, position/tileSize, 0);
-                float4 detailDensity = DetailTexture.SampleLevel(samplerDetailTexture, position/tileSize, 0);
+                float samplePos =position/tileSize;
+                float4 shapeDensity = ShapeTexture.SampleLevel(samplerShapeTexture, samplePos, 0);
+                float4 detailDensity = DetailTexture.SampleLevel(samplerDetailTexture, samplePos, 0);
+                float4 weatherValue = WeatherMap.SampleLevel(samplerWeatherMap, samplePos, 0);
+                return weatherValue.b;
                 
                 // use the Perlin noise as base for shape noise and get the shape noise
                 float shapeNoise = shapeDensity.g * 0.625 + shapeDensity.g * 0.25 + shapeDensity.a * 0.125;
@@ -183,7 +188,7 @@ Shader "CloudShader"
                 float oneMinusShape = 1 - shapeNoise;
                 float detailErodeWeight = oneMinusShape * oneMinusShape * oneMinusShape;
                 float cloudDensity = shapeNoise - (1-detailNoise) * detailErodeWeight * 2;
-                return cloudDensity * 0.5;
+                return cloudDensity;
 
                 // Carve away more from the shape_noise using detail_noise
                 float final_density = saturate(remap(shapeNoise, detail_modifier, 1.0, 0.0, 1.0));

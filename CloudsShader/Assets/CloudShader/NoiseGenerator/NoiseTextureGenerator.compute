@@ -55,6 +55,30 @@ float getPerlinNoise3D (float x, float y, float z)
 	}
 
 	float res = result / max;
+    return res;
+}
+
+// returns the perlin noise at 3D point [id.x, id.y, id.z]
+float getPerlinNoise2D (float x, float y)
+{
+    // initialize perm array to avoid buffer overflow (by repeating the permutation array)
+    resizePermArray();
+
+    // define parameters of the Perlin function
+	float result = 0;
+	float amplitude = 1;
+    float perlinFrequency = 1;
+	float max = 0;
+    float perlinPersistence = 0.6;
+    float perlinLacunarity = 2;
+
+	for (int i = 0; i < perlinOctaves; i++) //compute perlin noise for each octave
+	{
+		result += getPerlinValue2D(x * perlinFrequency, y * perlinFrequency) * amplitude;
+		max += amplitude;
+		amplitude *= perlinPersistence;
+		perlinFrequency *= perlinLacunarity;
+	}
     return result;
 }
 
@@ -230,9 +254,27 @@ void DetailTextureGen (uint3 id : SV_DispatchThreadID)
 [numthreads(numThreads,numThreads,1)]
 void WeatherMapGen (uint3 id : SV_DispatchThreadID)
 {
-    float tex = (float) 8;
+    // initialize perm array to avoid buffer overflow (by repeating the permutation array)
+    //resizePermArray();
+
+    float tex = (float) 128;
     float x = (float) id.x / tex;
     float y = (float) id.y / tex;
-    float perlinChannelRed = getPerlinValue2D(x, y);
-    ResultWeatherMap[id.xy] = float4(perlinChannelRed,perlinChannelRed,perlinChannelRed,1);
+
+    perlinOctaves = 1; // 8 by default
+    perlinFrequency = 1; // 1 by default
+    perlinPersistence = 0.6; // 0.6 by default
+    perlinLacunarity = 2; // 2 by default
+    float perlinChannelRed = getPerlinNoise2D(x,y);
+    perlinOctaves = 1;
+    tex = (float) 128;
+    x = (float) id.x / tex;
+    y = (float) id.y / tex;
+    float perlinChannelGreen = getPerlinNoise2D(x,y);
+    perlinOctaves = 2;
+    tex = (float) 64;
+    x = (float) id.x / tex;
+    y = (float) id.y / tex;    
+    float perlinChannelBlue = getPerlinNoise2D(x,y);
+    ResultWeatherMap[id.xy] = float4(perlinChannelRed,perlinChannelGreen,perlinChannelBlue,1);//perlinChannelGreen,perlinChannelBlue,1);
 }
