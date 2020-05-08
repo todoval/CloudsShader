@@ -86,9 +86,8 @@ static void resizePermArray()
         perm[i] = permutation[i % 256];
 }
 
-int inc(int num) 
+int inc(int num, int repeat) 
 {
-    float repeat = 8;
     num++;
     if (repeat > 0)
         num %= repeat;
@@ -98,6 +97,13 @@ int inc(int num)
 // returns the value of the Perlin function in [x,y] point
 float getPerlinValue2D(float x, float y)
 {
+    int repeat = 4;
+    if(repeat > 0) 
+    {                                 
+        x = x%repeat;
+        y = y%repeat;
+    }
+
     // calculate the unit cube point of start
     uint xi = (uint) x & 255;
     uint yi = (uint) y & 255;
@@ -114,9 +120,9 @@ float getPerlinValue2D(float x, float y)
     uint aa, ab, ba, bb; // the 4 resulting hashes
     // we use the hash function for perlin noise to get the hashes
     aa = perm [perm [perm[xi] + yi]]; 
-    ab = perm [perm [perm[xi] +yi+1]];
-    ba = perm [perm [perm[xi+1] + yi]];
-    bb = perm [perm [perm[xi+1] + yi+1]];
+    ab = perm [perm [perm[xi] + inc(yi, repeat)]];
+    ba = perm [perm [perm[inc(xi, repeat)] + yi]];
+    bb = perm [perm [perm[inc(xi, repeat)] + inc(yi, repeat)]];
 
     // get the dot product of the gradient vector and location vector from the grad function for each vertex
     float dot1, dot2, dot3, dot4;
@@ -136,7 +142,7 @@ float getPerlinValue2D(float x, float y)
 // returns the value of the Perlin function in [x,y,z] point
 float getPerlinValue3D(float x, float y, float z)
 {
-    float repeat = 8;
+    int repeat = 8;
     if(repeat > 0) 
     {                                 
         x = x%repeat;
@@ -163,13 +169,13 @@ float getPerlinValue3D(float x, float y, float z)
     uint aaa, aba, aab, abb, baa, bba, bab, bbb; // the 8 resulting hashes
     // we use the hash function for perlin noise to get the hashes
     aaa = perm [perm [perm[xi] + yi] + zi]; 
-    aba = perm [perm [perm[xi] + inc(yi)] + zi];
-    aab = perm [perm [perm[xi] + yi] + inc(zi)];
-    abb = perm [perm [perm[xi] + inc(yi)]+ inc(zi)];
-    baa = perm [perm [perm[inc(xi)] + yi] + zi];
-    bba = perm [perm [perm[inc(xi)] + inc(yi)]+ zi];
-    bab = perm [perm [perm[inc(xi)] + yi]+ inc(zi)];
-    bbb = perm [perm [perm[inc(xi)] + inc(yi)]+ inc(zi)];
+    aba = perm [perm [perm[xi] + inc(yi, repeat)] + zi];
+    aab = perm [perm [perm[xi] + yi] + inc(zi, repeat)];
+    abb = perm [perm [perm[xi] + inc(yi, repeat)]+ inc(zi, repeat)];
+    baa = perm [perm [perm[inc(xi, repeat)] + yi] + zi];
+    bba = perm [perm [perm[inc(xi, repeat)] + inc(yi, repeat)]+ zi];
+    bab = perm [perm [perm[inc(xi, repeat)] + yi]+ inc(zi, repeat)];
+    bbb = perm [perm [perm[inc(xi, repeat)] + inc(yi, repeat)]+ inc(zi, repeat)];
 
     // get the dot product of the gradient vector and location vector from the grad function for each vertex
     float dot1, dot2, dot3, dot4, dot5, dot6, dot7, dot8;

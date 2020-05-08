@@ -160,19 +160,47 @@ Shader "CloudShader"
             {
                 // sample the shape and detail textures from position
                 position+= _Time * speed;
-                float samplePos =position/tileSize;
-                float4 shapeDensity = ShapeTexture.SampleLevel(samplerShapeTexture, samplePos, 0);
-                float4 detailDensity = DetailTexture.SampleLevel(samplerDetailTexture, samplePos, 0);
-                float4 weatherValue = WeatherMap.SampleLevel(samplerWeatherMap, samplePos, 0);
-                return weatherValue.b;
-                
-                // use the Perlin noise as base for shape noise and get the shape noise
-                float shapeNoise = shapeDensity.g * 0.625 + shapeDensity.g * 0.25 + shapeDensity.a * 0.125;
-                shapeNoise = -(1 - shapeNoise);
-                shapeNoise = remap(shapeDensity.r, shapeNoise, 1.0, 0.0, 1.0);
+                float3 samplePos = position/tileSize;
 
-                // get the detail noise
+                // weather texture
+                // red channel - coverage, base density of the clouds
+                // green channel - height of the clouds
+                // blue channel - type of cloud (0 - stratus, 1 - cumulus, 0.5 - stratoculumus)
+                float2 weatherSamplePos = float2(samplePos.x, samplePos.z);
+                float4 weatherValue = WeatherMap.SampleLevel(samplerWeatherMap, weatherSamplePos, 0);
+                
+                
+                // get the base shape of the clouds from the shape texture, use the perlin noise as base
+                float4 shapeDensity = ShapeTexture.SampleLevel(samplerShapeTexture, samplePos, 0);
+                float shapeNoise = shapeDensity.g * 0.625 + shapeDensity.b * 0.25 + shapeDensity.a * 0.125;
+                shapeNoise = -(1 - shapeNoise);
+                shapeNoise = remap(shapeDensity.r, shapeNoise, 1.0, 0.0, 1.0); // this is now the base cloud
+                
+                // use the red channel from weather texture as cloud coverage and apply it to the base cloud
+                float cloudCoverage = weatherValue.r;
+                float baseCloudWithCoverage = remap(shapeNoise, cloudCoverage, 1.0, 1.0, 0.0);
+                baseCloudWithCoverage *= cloudCoverage;
+
+                // get the height gradient from weather map
+                float heightValue = weatherValue.g;
+                float gMin = remap(heightValue,0,1,0.1,0.5);
+                float gMax = remap(heightValue,0,1,gMin,0.9);
+                float heightOfContainer = containerBound_Max.y - containerBound_Min.y;
+                float heightPercent = (samplePos.y - containerBound_Min.y) / heightOfContainer;
+                float heightGradient = saturate(remap(heightPercent, 0.0, gMin, 0, 1)) * saturate(remap(heightPercent, 1, gMax, 0, 1));
+
+                baseCloudWithCoverage *= baseCloudWithCoverage * heightGradient;
+
+                // sample the detail noise (for erosion of the cloud edges) similarly to the shape noise
+                float4 detailDensity = DetailTexture.SampleLevel(samplerDetailTexture, samplePos, 0);
                 float detailNoise = detailDensity.r * 0.625 + detailDensity.g * 0.25 + detailDensity.a * 0.125;
+                // Subtract detail noise from base shape (weighted by inverse density so that edges get eroded more than centre)
+                float oneMinusShape = 1 - baseCloudWithCoverage;
+                float detailErodeWeight = oneMinusShape * oneMinusShape * oneMinusShape;
+                float cloudDensity = baseCloudWithCoverage;
+                //if (baseCloudWithCoverage > 1)
+                 //   cloudDensity = baseCloudWithCoverage - detailNoise;// (1-detailNoise) * detailErodeWeight * 0.0005;
+                return cloudDensity * 10;
 
                 // For low altitude regions the detail noise is used (inverted)
                 //to instead of creating round shapes ,
@@ -182,17 +210,8 @@ Shader "CloudShader"
                 // Reduce the amount of detail noise is being "subtracted"
                 // with the global_coverage .
                 detail_modifier *= 0.35 * exp(-0.001 * 0.75);
-                
-
-                // Subtract detail noise from base shape (weighted by inverse density so that edges get eroded more than centre)
-                float oneMinusShape = 1 - shapeNoise;
-                float detailErodeWeight = oneMinusShape * oneMinusShape * oneMinusShape;
-                float cloudDensity = shapeNoise - (1-detailNoise) * detailErodeWeight * 2;
-                return cloudDensity;
-
                 // Carve away more from the shape_noise using detail_noise
                 float final_density = saturate(remap(shapeNoise, detail_modifier, 1.0, 0.0, 1.0));
-                return final_density;
             }
 
             // implementing the phase function, cosAngle is the cosine of the angle between two vectors, g is a parameter in [-1,1]  
