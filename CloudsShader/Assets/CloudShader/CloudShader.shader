@@ -204,8 +204,8 @@ Shader "CloudShader"
                // baseCloudWithCoverage *= cloudCoverage;
 
                 // alter the height of the clouds so they are rounded at the bottom and a bit to the top as well
-                float heightValue = 0.9; //weatherValue.g; // get the height gradient from weather map
-                float globalDensity = 1; // weatherValue.b
+                float heightValue = weatherValue.g; // get the height gradient from weather map
+                float globalDensity = weatherValue.b;
                 float cloudCoverage = weatherValue.r; // WMc
                 float globalCoverage = 1; //gc
 
@@ -288,7 +288,7 @@ Shader "CloudShader"
                 }
                 // use the beer's law for the light attenuation (from the Fredrik Haggstrom paper)
                 float lightAttenuation = exp(-accumDensity * stepSize * absorptionCoef);
-                return lightAttenuation * lightIntensity * lightColor * 0.5; // TO DO add light weights
+                return lightAttenuation * lightIntensity * lightColor; // TO DO add light weights
             }
 
             // ray marching, implementation mostly from Palenik

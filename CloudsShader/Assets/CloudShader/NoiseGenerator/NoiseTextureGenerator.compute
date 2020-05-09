@@ -54,9 +54,8 @@ float getPerlinNoise3D (float x, float y, float z)
 
     // define parameters of the Perlin function
 	float result = 0;
-	float amplitude = 2;
+	float amplitude = 1;
 	float max = 0;
-
 	for (int i = 0; i < perlinOctaves; i++) //compute perlin noise for each octave
 	{
 		result += getPerlinValue3D(x * perlinFrequency, y * perlinFrequency, z * perlinFrequency) * amplitude;
@@ -64,7 +63,6 @@ float getPerlinNoise3D (float x, float y, float z)
 		amplitude *= perlinPersistence;
 		perlinFrequency *= perlinLacunarity;
 	}
-
 	float res = result / max;
     return res;
 }
@@ -78,17 +76,13 @@ float getPerlinNoise2D (float x, float y)
     // define parameters of the Perlin function
 	float result = 0;
 	float amplitude = 1;
-    float perlinFrequency = 1;
 	float max = 0;
-    float perlinPersistence = 0.6;
-    float perlinLacunarity = 2;
-
-	for (int i = 0; i < perlinOctaves; i++) //compute perlin noise for each octave
+	for (int i = 0; i < coveragePerlinOctaves; i++) //compute perlin noise for each octave
 	{
-		result += getPerlinValue2D(x * perlinFrequency, y * perlinFrequency) * amplitude;
+		result += getPerlinValue2D(x * coveragePerlinFrequency, y * coveragePerlinFrequency) * amplitude;
 		max += amplitude;
-		amplitude *= perlinPersistence;
-		perlinFrequency *= perlinLacunarity;
+		amplitude *= coveragePerlinPersistence;
+		coveragePerlinFrequency *= coveragePerlinLacunarity;
 	}
     return result;
 }
@@ -265,27 +259,21 @@ void DetailTextureGen (uint3 id : SV_DispatchThreadID)
 [numthreads(numThreads,numThreads,1)]
 void WeatherMapGen (uint3 id : SV_DispatchThreadID)
 {
-    // initialize perm array to avoid buffer overflow (by repeating the permutation array)
-    //resizePermArray();
+    float redChannel = 0;
+    if (!coverageOption)
+        redChannel = coverageConstant; // constant coverage chosen by the user
+    else
+    {
+        // compute perlin from user-inserted perlin values
+        float tex = (float) coveragePerlinTextureResolution;
+        float x = (float) id.x / tex;
+        float y = (float) id.y / tex;
+        redChannel = getPerlinNoise2D(x,y);
+    }
 
-    float tex = (float) 128;
-    float x = (float) id.x / tex;
-    float y = (float) id.y / tex;
-
-    perlinOctaves = 1; // 8 by default
-    perlinFrequency = 1; // 1 by default
-    perlinPersistence = 0.6; // 0.6 by default
-    perlinLacunarity = 2; // 2 by default
-    float perlinChannelRed = getPerlinNoise2D(x,y);
-    perlinOctaves = 1;
-    tex = (float) 128;
-    x = (float) id.x / tex;
-    y = (float) id.y / tex;
-    float perlinChannelGreen = getPerlinNoise2D(x,y);
-    perlinOctaves = 2;
-    tex = (float) 64;
-    x = (float) id.x / tex;
-    y = (float) id.y / tex;    
-    float perlinChannelBlue = getPerlinNoise2D(x,y);
-    ResultWeatherMap[id.xy] = float4(perlinChannelRed,perlinChannelGreen,perlinChannelBlue,1);//perlinChannelGreen,perlinChannelBlue,1);
+    //compute the cloud height from 400nm to 1000nm as a value from 0 to 1
+    float greenChannel = (cloudHeight - 400) / 600;
+    // cloud type is already from 0 to 1
+    float blueChannel = cloudType;
+    ResultWeatherMap[id.xy] = float4(redChannel,greenChannel,blueChannel,1);
 }

@@ -222,6 +222,7 @@ public class NoiseGenerator : MonoBehaviour
         NoiseTextureGenerator.SetBool("coverageOption", (coverageOption == 0) ? false : true);
         NoiseTextureGenerator.SetFloat("coverageConstant", coverageConstant);
         NoiseTextureGenerator.SetFloat("cloudHeight", cloudHeight);
+        Debug.Log(coveragePerlinPersistence);
         NoiseTextureGenerator.SetFloat("cloudType", cloudType);
 
         int threadGroups =  weatherMapResolution / 8;
