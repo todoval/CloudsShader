@@ -86,9 +86,9 @@ public class NoiseScriptEditor : Editor
         DrawUILine(new Color((float)0.5,(float)0.5,(float)0.5,1), 1, 10);
         
         // perlin noise options
-        EditorGUILayout.LabelField("Shape noise", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField("Shape Noise", EditorStyles.boldLabel);
         EditorGUI.indentLevel++;
-        EditorGUILayout.LabelField("Perlin noise");
+        EditorGUILayout.LabelField("Perlin Noise");
         EditorGUI.indentLevel++;
         EditorGUILayout.LabelField("Red Channel");
         EditorGUI.indentLevel++;
@@ -145,9 +145,9 @@ public class NoiseScriptEditor : Editor
         DrawUILine(new Color((float)0.5,(float)0.5,(float)0.5,1), 1, 10);
         
         // start of the detail noise
-        EditorGUILayout.LabelField("Detail noise", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField("Detail Noise", EditorStyles.boldLabel);
         EditorGUI.indentLevel++;
-        EditorGUILayout.LabelField("Worley noise");
+        EditorGUILayout.LabelField("Worley Noise");
         EditorGUI.indentLevel++;
 
         EditorGUILayout.LabelField("Red Channel");
@@ -169,7 +169,7 @@ public class NoiseScriptEditor : Editor
         EditorGUI.indentLevel--;
         EditorGUILayout.Space();
 
-        // add the add noise button
+        // add the create detail noise button
         GUILayout.BeginHorizontal();
         GUILayout.Space(Screen.width/2 - 150/2);
         if (GUILayout.Button("Create Detail Texture",GUILayout.Width(150), GUILayout.Height(30)))
@@ -179,12 +179,35 @@ public class NoiseScriptEditor : Editor
         GUILayout.EndHorizontal();
         EditorGUILayout.Space();
 
+        // draw a line between detail noise and weather map
+        DrawUILine(new Color((float)0.5,(float)0.5,(float)0.5,1), 1, 10);
+        
+        // start of the detail noise
+        EditorGUILayout.LabelField("Weather Map", EditorStyles.boldLabel);
+        EditorGUI.indentLevel++;
+        EditorGUILayout.LabelField("Perlin Noise");
+        EditorGUI.indentLevel++;
+        EditorGUILayout.LabelField("Cloud Coverage");
+        EditorGUI.indentLevel++;
+        EditorGUI.indentLevel--;
+        EditorGUILayout.LabelField("Cloud Height");
+        EditorGUI.indentLevel++;
+        EditorGUI.indentLevel--;
+        EditorGUILayout.LabelField("Cloud Type");
+        EditorGUI.indentLevel++;
+        EditorGUI.indentLevel--;
 
+        EditorGUI.indentLevel--;
+        EditorGUI.indentLevel--;
+        // create weather map button
+        GUILayout.BeginHorizontal();
+        GUILayout.Space(Screen.width/2 - 150/2);
         if (GUILayout.Button("Create Weather Map",GUILayout.Width(150), GUILayout.Height(30)))
         {
             FindObjectOfType<NoiseGenerator>().createWeatherMap();
         }
-        EditorGUILayout.PropertyField(weatherMap);
+        GUILayout.EndHorizontal();
+        EditorGUILayout.Space();
 
         serializedObject.ApplyModifiedProperties();
     }

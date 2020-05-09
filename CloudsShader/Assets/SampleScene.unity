@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 2100000, guid: d9a12ffaaa5dd67418211def4dfaee9a, type: 2}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 4b69052f7844d214dbf3b501b3acb456, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.5398445, g: 0.6167105, b: 0.74652267, a: 1}
+  m_IndirectSpecularColor: {r: 0.47513002, g: 0.49906188, b: 0.466825, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -207,7 +207,7 @@ Transform:
   m_GameObject: {fileID: 56149225}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 8.51, z: 0}
-  m_LocalScale: {x: 509.2805, y: 20, z: 330.7387}
+  m_LocalScale: {x: 559.6111, y: 31.919374, z: 405.1307}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
@@ -499,7 +499,7 @@ MonoBehaviour:
   henyeyRatio: 0.405
   absorptionCoeff: 0.316
   tileSize: 200
-  speed: 1
+  speed: 10
   color: {r: 1, g: 1, b: 1, a: 0}
   container: {fileID: 56149229}
   material: {fileID: 0}

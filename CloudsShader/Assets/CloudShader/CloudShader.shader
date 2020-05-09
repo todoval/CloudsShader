@@ -162,6 +162,9 @@ Shader "CloudShader"
                 position+= _Time * speed;
                 float3 samplePos = position/tileSize;
 
+                float globalHeight = 0.8;
+                float globalDensity = 0.5;
+
                 // weather texture
                 // red channel - coverage, base density of the clouds
                 // green channel - height of the clouds
@@ -181,15 +184,33 @@ Shader "CloudShader"
                 float baseCloudWithCoverage = remap(shapeNoise, cloudCoverage, 1.0, 1.0, 0.0);
                 baseCloudWithCoverage *= cloudCoverage;
 
+                // Have density be generally increasing over height
+                float percent_height = 0.2;
+                float ret_val = percent_height;
+                // Reduce density at base
+                ret_val  *= saturate(remap(percent_height, 0.0, 0.2, 0.0, 1.0));
+                // Apply weather_map density
+                ret_val  *= globalDensity;
+                // Reduce density for the anvil ( cumulonimbus clouds)
+                //ret_val *= lerp (1,saturate(remap(pow(percent_height,0.5)0.4, 0.95, 1.0, 0.2)), cloud_anvil_amount);
+                // Reduce density at top to make better transition
+                ret_val *= saturate(remap(percent_height, 0.9, 1.0, 1.0, 0.0));
+                //baseCloudWithCoverage *= ret_val;
+                return baseCloudWithCoverage * ret_val;
+
+
                 // get the height gradient from weather map
                 float heightValue = weatherValue.g;
-                float gMin = remap(heightValue,0,1,0.1,0.5);
+                //float heightFrequencyModifier = mix(baseCloudWithCoverage, 1.0 - baseCloudWithCoverage, saturate(heightValue * 10));
+                //float finalCloud = remap(baseCloudWithCoverage, heightFrequencyModifier * 0.2, 1.0, 0.0, 1.0);
+
+               /* float gMin = remap(heightValue,0,1,0.1,0.5);
                 float gMax = remap(heightValue,0,1,gMin,0.9);
                 float heightOfContainer = containerBound_Max.y - containerBound_Min.y;
                 float heightPercent = (samplePos.y - containerBound_Min.y) / heightOfContainer;
                 float heightGradient = saturate(remap(heightPercent, 0.0, gMin, 0, 1)) * saturate(remap(heightPercent, 1, gMax, 0, 1));
 
-                baseCloudWithCoverage *= baseCloudWithCoverage * heightGradient;
+                baseCloudWithCoverage *= baseCloudWithCoverage * heightGradient * 0.5;*/
 
                 // sample the detail noise (for erosion of the cloud edges) similarly to the shape noise
                 float4 detailDensity = DetailTexture.SampleLevel(samplerDetailTexture, samplePos, 0);
@@ -199,8 +220,8 @@ Shader "CloudShader"
                 float detailErodeWeight = oneMinusShape * oneMinusShape * oneMinusShape;
                 float cloudDensity = baseCloudWithCoverage;
                 //if (baseCloudWithCoverage > 1)
-                 //   cloudDensity = baseCloudWithCoverage - detailNoise;// (1-detailNoise) * detailErodeWeight * 0.0005;
-                return cloudDensity * 10;
+                cloudDensity = baseCloudWithCoverage - detailNoise * 0.2;// (1-detailNoise) * detailErodeWeight * 0.0005;
+                return cloudDensity;
 
                 // For low altitude regions the detail noise is used (inverted)
                 //to instead of creating round shapes ,
@@ -279,7 +300,7 @@ Shader "CloudShader"
             raymarchInfo raymarch(float3 entryPoint, float3 rayDir)
             {
                 float transmittance = 1; // the current ratio between light that was emitted and light that is received (accumulating variable for transparency)
-                float stepSize = 0.5;
+                float stepSize = 2;
                 float4 totalDensity = float4(0,0,0,0); // accumulating variable for the resulting color
                 float3 currPoint = entryPoint; // current point on the ray during ray marching
 
