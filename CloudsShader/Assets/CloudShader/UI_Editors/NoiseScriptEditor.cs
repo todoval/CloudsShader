@@ -34,6 +34,13 @@ public class NoiseScriptEditor : Editor
     private SerializedProperty detailRedChannelCellSize;
 
     private SerializedProperty weatherMap;
+    private SerializedProperty cloudCoverageOption;
+    private SerializedProperty cloudCoverageConstant;
+    private SerializedProperty coveragePerlinOctaves; // 8 by default
+    private SerializedProperty coveragePerlinFrequency; // 1 by default
+    private SerializedProperty coveragePerlinPersistence; // 0.6 by default
+    private SerializedProperty coveragePerlinLacunarity; // 2 by default
+    private SerializedProperty coveragePerlinTextureResolution; // 128 by default
     private void OnEnable()
     {
         // the compute shaders
@@ -60,7 +67,9 @@ public class NoiseScriptEditor : Editor
         detailBlueChannelCellSize = serializedObject.FindProperty("detailBlueChannelCellSize");
         detailRedChannelCellSize = serializedObject.FindProperty("detailRedChannelCellSize");
 
+        // weather map
         weatherMap = serializedObject.FindProperty("weatherMap");
+        cloudCoverageOption =  serializedObject.FindProperty("cloudCoverageOption");
     }
     public static void DrawUILine(Color color, int thickness = 2, int padding = 10)
     {
@@ -185,7 +194,18 @@ public class NoiseScriptEditor : Editor
         // start of the detail noise
         EditorGUILayout.LabelField("Weather Map", EditorStyles.boldLabel);
         EditorGUI.indentLevel++;
-        EditorGUILayout.LabelField("Perlin Noise");
+        EditorGUILayout.LabelField("Cloud Coverage");
+        string[] cloudCoverageOptionNames = {"Constant","Perlin"};
+        int[] cloudCoverageOptionValues = {0,1};
+        cloudCoverageOption.intValue = EditorGUILayout.IntPopup("Cloud Coverage", cloudCoverageOption.intValue, cloudCoverageOptionNames, cloudCoverageOptionValues);
+        if (cloudCoverageOption.intValue == 0)
+        {
+            EditorGUI.indentLevel++;
+            EditorGUILayout.Slider(henyeyRatio, 0, 1, new GUIContent("Weight"));
+            EditorGUI.indentLevel--;
+        }
+
+
         EditorGUI.indentLevel++;
         EditorGUILayout.LabelField("Cloud Coverage");
         EditorGUI.indentLevel++;

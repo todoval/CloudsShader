@@ -145,25 +145,45 @@ Shader "CloudShader"
                 return new_min + (((value - original_min) / (original_max - original_min)) * (new_max - new_min));
             }
 
-            // clamps the value v to be in a range between 0 and 1
-            /*float saturate(float v)
+            /* alters the cloud shape so that the clouds and slightly rounded towards the bottom and a lot to the top
+            percentHeight - the height percent of the point we want to change density to
+            heightValue - from the weather map
+            */
+            
+            float HeightAlter(float percentHeight, float heightValue)
             {
-                if (v < 0)
-                    return 0;
-                if (v > 1)
-                    return 1;
-                return v;
-            }*/
+                // round a bit to the bottom
+                float retVal = saturate(remap(percentHeight, 0.0, 0.07, 0.0, 1.0));
+                // round at the top
+                float stopHeight = saturate (heightValue + 0.12);
+                retVal *= saturate(remap(percentHeight, stopHeight * 0.2, stopHeight, 1.0, 0.0));
+
+                // apply storm clouds
+
+                //retVal = pow (retVal, saturate(remap(percent_height, 0.65, 0.95, 1.0, (1-cloud_anvil_amount * global_coverage))));
+                return retVal;
+            }
+
+            float DensityAlter (float percent_height, float cloudType)
+            {
+                // Have density be generally increasing over height
+                float ret_val = percent_height ;
+                // Reduce density at base
+                ret_val *= saturate(remap(percent_height, 0.0, 0.2, 0.0, 1.0));
+                // Apply weather_map density
+                ret_val *= cloudType * 2;
+                // Reduce density for the anvil ( cumulonimbus clouds)
+                ret_val *= lerp (1, saturate(remap(pow(percent_height, 0.5), 0.4, 0.95, 1.0, 0.2)), 0.2);
+                // Reduce density at top to make better transition
+                ret_val *= saturate(remap(percent_height, 0.9, 1.0, 1.0, 0.0));
+                return ret_val;
+            }
 
             // returns the cloud density at given point
             float getDensity(float3 position)
             {
                 // sample the shape and detail textures from position
-                position+= _Time * speed;
-                float3 samplePos = position/tileSize;
-
-                float globalHeight = 0.8;
-                float globalDensity = 0.5;
+                float3 samplePos = (position + _Time * speed )/tileSize;
 
                 // weather texture
                 // red channel - coverage, base density of the clouds
@@ -172,67 +192,43 @@ Shader "CloudShader"
                 float2 weatherSamplePos = float2(samplePos.x, samplePos.z);
                 float4 weatherValue = WeatherMap.SampleLevel(samplerWeatherMap, weatherSamplePos, 0);
                 
-                
                 // get the base shape of the clouds from the shape texture, use the perlin noise as base
                 float4 shapeDensity = ShapeTexture.SampleLevel(samplerShapeTexture, samplePos, 0);
                 float shapeNoise = shapeDensity.g * 0.625 + shapeDensity.b * 0.25 + shapeDensity.a * 0.125;
                 shapeNoise = -(1 - shapeNoise);
-                shapeNoise = remap(shapeDensity.r, shapeNoise, 1.0, 0.0, 1.0); // this is now the base cloud
+                shapeNoise = remap(shapeDensity.r, shapeNoise, 1.0, 0.0, 1.0); // this is now the base cloud - SNsample
                 
                 // use the red channel from weather texture as cloud coverage and apply it to the base cloud
-                float cloudCoverage = weatherValue.r;
-                float baseCloudWithCoverage = remap(shapeNoise, cloudCoverage, 1.0, 1.0, 0.0);
-                baseCloudWithCoverage *= cloudCoverage;
+               // float cloudCoverage = weatherValue.r;
+               // float baseCloudWithCoverage = remap(shapeNoise, cloudCoverage, 1.0, 1.0, 0.0);
+               // baseCloudWithCoverage *= cloudCoverage;
 
-                // Have density be generally increasing over height
-                float percent_height = 0.2;
-                float ret_val = percent_height;
-                // Reduce density at base
-                ret_val  *= saturate(remap(percent_height, 0.0, 0.2, 0.0, 1.0));
-                // Apply weather_map density
-                ret_val  *= globalDensity;
-                // Reduce density for the anvil ( cumulonimbus clouds)
-                //ret_val *= lerp (1,saturate(remap(pow(percent_height,0.5)0.4, 0.95, 1.0, 0.2)), cloud_anvil_amount);
-                // Reduce density at top to make better transition
-                ret_val *= saturate(remap(percent_height, 0.9, 1.0, 1.0, 0.0));
-                //baseCloudWithCoverage *= ret_val;
-                return baseCloudWithCoverage * ret_val;
+                // alter the height of the clouds so they are rounded at the bottom and a bit to the top as well
+                float heightValue = 0.9; //weatherValue.g; // get the height gradient from weather map
+                float globalDensity = 1; // weatherValue.b
+                float cloudCoverage = weatherValue.r; // WMc
+                float globalCoverage = 1; //gc
 
-
-                // get the height gradient from weather map
-                float heightValue = weatherValue.g;
-                //float heightFrequencyModifier = mix(baseCloudWithCoverage, 1.0 - baseCloudWithCoverage, saturate(heightValue * 10));
-                //float finalCloud = remap(baseCloudWithCoverage, heightFrequencyModifier * 0.2, 1.0, 0.0, 1.0);
-
-               /* float gMin = remap(heightValue,0,1,0.1,0.5);
-                float gMax = remap(heightValue,0,1,gMin,0.9);
-                float heightOfContainer = containerBound_Max.y - containerBound_Min.y;
-                float heightPercent = (samplePos.y - containerBound_Min.y) / heightOfContainer;
-                float heightGradient = saturate(remap(heightPercent, 0.0, gMin, 0, 1)) * saturate(remap(heightPercent, 1, gMax, 0, 1));
-
-                baseCloudWithCoverage *= baseCloudWithCoverage * heightGradient * 0.5;*/
+                // get the height percentage of the current point
+                float heightPercentage = (position.y - containerBound_Min.y) / (containerBound_Max.y - containerBound_Min.y);
+                float heightAlter = HeightAlter(heightPercentage, heightValue); // Shape altering height function, SA
+                float densityAlter = DensityAlter(heightPercentage, globalDensity); // Density altering height function, DA
 
                 // sample the detail noise (for erosion of the cloud edges) similarly to the shape noise
                 float4 detailDensity = DetailTexture.SampleLevel(samplerDetailTexture, samplePos, 0);
                 float detailNoise = detailDensity.r * 0.625 + detailDensity.g * 0.25 + detailDensity.a * 0.125;
                 // Subtract detail noise from base shape (weighted by inverse density so that edges get eroded more than centre)
-                float oneMinusShape = 1 - baseCloudWithCoverage;
-                float detailErodeWeight = oneMinusShape * oneMinusShape * oneMinusShape;
-                float cloudDensity = baseCloudWithCoverage;
-                //if (baseCloudWithCoverage > 1)
-                cloudDensity = baseCloudWithCoverage - detailNoise * 0.2;// (1-detailNoise) * detailErodeWeight * 0.0005;
-                return cloudDensity;
-
-                // For low altitude regions the detail noise is used (inverted)
-                //to instead of creating round shapes ,
+                // For low altitude regions the detail noise is used (inverted) to instead of creating round shapes ,
                 // create more wispy shapes. Transitions to round shapes over altitude.
-                float detail_modifier = lerp (detailNoise, 1-detailNoise, saturate(0));
+                float detail_modifier = lerp (detailNoise, 1 - detailNoise, saturate(heightPercentage * 5.0));
+                // Reduce the amount of detail noise is being "subtracted" with the global_coverage .
+                detail_modifier *= 0.35 * exp(-cloudCoverage *0.75);
 
-                // Reduce the amount of detail noise is being "subtracted"
-                // with the global_coverage .
-                detail_modifier *= 0.35 * exp(-0.001 * 0.75);
+                float shapeND = saturate(remap(heightAlter * shapeNoise, 1 - globalCoverage * cloudCoverage, 1.0, 0.0, 1.0));
+
                 // Carve away more from the shape_noise using detail_noise
-                float final_density = saturate(remap(shapeNoise, detail_modifier, 1.0, 0.0, 1.0));
+                float final_density = saturate(remap(shapeND, detail_modifier, 1.0, 0.0, 1.0));
+                return final_density * densityAlter;
             }
 
             // implementing the phase function, cosAngle is the cosine of the angle between two vectors, g is a parameter in [-1,1]  
@@ -292,9 +288,8 @@ Shader "CloudShader"
                 }
                 // use the beer's law for the light attenuation (from the Fredrik Haggstrom paper)
                 float lightAttenuation = exp(-accumDensity * stepSize * absorptionCoef);
-                return lightAttenuation * lightIntensity * lightColor; // TO DO add light weights
+                return lightAttenuation * lightIntensity * lightColor * 0.5; // TO DO add light weights
             }
-
 
             // ray marching, implementation mostly from Palenik
             raymarchInfo raymarch(float3 entryPoint, float3 rayDir)
