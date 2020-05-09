@@ -35,6 +35,17 @@ float perlinPersistence; // 0.6 by default
 float perlinLacunarity; // 2 by default
 int perlinTextureResolution;
 
+// weather map settings
+int coveragePerlinOctaves; // 8 by default
+float coveragePerlinFrequency; // 1 by default
+float coveragePerlinPersistence; // 0.6 by default
+float coveragePerlinLacunarity; // 2 by default
+int coveragePerlinTextureResolution;
+bool coverageOption;
+float coverageConstant;
+float cloudHeight;
+float cloudType;
+
 // returns the perlin noise at 3D point [id.x, id.y, id.z]
 float getPerlinNoise3D (float x, float y, float z)
 {

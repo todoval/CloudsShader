@@ -207,7 +207,7 @@ Transform:
   m_GameObject: {fileID: 56149225}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 8.51, z: 0}
-  m_LocalScale: {x: 500, y: 104.785385, z: 500}
+  m_LocalScale: {x: 406.155, y: 107.77177, z: 372.35843}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
@@ -763,11 +763,11 @@ MonoBehaviour:
   weatherMap: {fileID: 1682268208}
   detailTexture: {fileID: 0}
   shapeTexture: {fileID: 1189422417}
-  perlinTextureResolution: 16
-  perlinOctaves: 8
-  perlinPersistence: 0.6
-  perlinLacunarity: 2
-  perlinFrequency: 1
+  shapePerlinTextureResolution: 0
+  shapePerlinOctaves: 0
+  shapePerlinPersistence: 0
+  shapePerlinLacunarity: 0
+  shapePerlinFrequency: 0
   shapeGreenChannelOctaves: 4
   shapeBlueChannelOctaves: 2
   shapeAlphaChannelOctaves: 8
@@ -780,6 +780,15 @@ MonoBehaviour:
   detailGreenChannelCellSize: 16
   detailBlueChannelCellSize: 2
   detailRedChannelCellSize: 16
+  coveragePerlinTextureResolution: 8
+  coveragePerlinOctaves: 0
+  coveragePerlinPersistence: 0
+  coveragePerlinLacunarity: 0
+  coveragePerlinFrequency: 0
+  coverageOption: 0
+  coverageConstant: 605
+  cloudHeight: 1000
+  cloudType: 0
 --- !u!4 &1340083853
 Transform:
   m_ObjectHideFlags: 0

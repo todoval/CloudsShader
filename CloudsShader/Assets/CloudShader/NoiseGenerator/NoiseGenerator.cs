@@ -28,11 +28,11 @@ public class NoiseGenerator : MonoBehaviour
     private int detailKernel;
 
     // perlin noise settings of the shape texture
-    public int perlinTextureResolution;
-    public int perlinOctaves;
-    public float perlinPersistence;
-    public float perlinLacunarity;
-    public float perlinFrequency;
+    public int shapePerlinTextureResolution;
+    public int shapePerlinOctaves;
+    public float shapePerlinPersistence;
+    public float shapePerlinLacunarity;
+    public float shapePerlinFrequency;
 
     // Worley noise settings of the shape texture
     public int shapeGreenChannelOctaves;
@@ -51,6 +51,18 @@ public class NoiseGenerator : MonoBehaviour
     public int detailGreenChannelCellSize;
     public int detailBlueChannelCellSize;
     public int detailRedChannelCellSize;
+
+    // weather map options
+    public int coveragePerlinTextureResolution;
+    public int coveragePerlinOctaves;
+    public float coveragePerlinPersistence;
+    public float coveragePerlinLacunarity;
+    public float coveragePerlinFrequency;
+
+    public int coverageOption; // 0 - constant, 1 - perlin
+    public float coverageConstant;
+    public float cloudHeight;
+    public float cloudType;
 
     void Start()
     {
@@ -169,11 +181,11 @@ public class NoiseGenerator : MonoBehaviour
         NoiseTextureGenerator.SetInt("shapeAlphaOctaves", shapeAlphaChannelOctaves);
 
         // set the properties of the perlin noise
-        NoiseTextureGenerator.SetInt("perlinTextureResolution", perlinTextureResolution);
-        NoiseTextureGenerator.SetInt("perlinOctaves", perlinOctaves);
-        NoiseTextureGenerator.SetFloat("perlinFrequency", perlinFrequency);
-        NoiseTextureGenerator.SetFloat("perlinPersistence", perlinPersistence);
-        NoiseTextureGenerator.SetFloat("perlinLacunarity", perlinLacunarity);
+        NoiseTextureGenerator.SetInt("perlinTextureResolution", shapePerlinTextureResolution);
+        NoiseTextureGenerator.SetInt("perlinOctaves", shapePerlinOctaves);
+        NoiseTextureGenerator.SetFloat("perlinFrequency", shapePerlinFrequency);
+        NoiseTextureGenerator.SetFloat("perlinPersistence", shapePerlinPersistence);
+        NoiseTextureGenerator.SetFloat("perlinLacunarity", shapePerlinLacunarity);
         int threadGroups = shapeNoiseResolution / 8;
         NoiseTextureGenerator.Dispatch(shapeTextureKernel, threadGroups, threadGroups, threadGroups);
         textureSaver.SaveRenderTex(shapeTexture, "ShapeNoise", shapeNoiseResolution);
@@ -202,6 +214,15 @@ public class NoiseGenerator : MonoBehaviour
 
         NoiseTextureGenerator.SetBuffer(weatherMapKernel, "FeaturePoints", worleyFeaturePointsBuffer);
         NoiseTextureGenerator.SetTexture(weatherMapKernel, "ResultWeatherMap", weatherMap);
+        NoiseTextureGenerator.SetInt("coveragePerlinOctaves",coveragePerlinOctaves);
+        NoiseTextureGenerator.SetInt("coveragePerlinTextureResolution",coveragePerlinTextureResolution);
+        NoiseTextureGenerator.SetFloat("coveragePerlinPersistence", coveragePerlinPersistence);
+        NoiseTextureGenerator.SetFloat("coveragePerlinLacunarity", coveragePerlinLacunarity);
+        NoiseTextureGenerator.SetFloat("coveragePerlinFrequency", coveragePerlinFrequency);
+        NoiseTextureGenerator.SetBool("coverageOption", (coverageOption == 0) ? false : true);
+        NoiseTextureGenerator.SetFloat("coverageConstant", coverageConstant);
+        NoiseTextureGenerator.SetFloat("cloudHeight", cloudHeight);
+        NoiseTextureGenerator.SetFloat("cloudType", cloudType);
 
         int threadGroups =  weatherMapResolution / 8;
         NoiseTextureGenerator.Dispatch(weatherMapKernel, 64, 64, 1);

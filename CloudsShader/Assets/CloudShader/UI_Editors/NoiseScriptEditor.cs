@@ -11,11 +11,11 @@ public class NoiseScriptEditor : Editor
     private SerializedProperty NoiseTextureGenerator;
 
     // perlin settings for the shape noise texture
-    private SerializedProperty perlinOctaves; // 8 by default
-    private SerializedProperty perlinFrequency; // 1 by default
-    private SerializedProperty perlinPersistence; // 0.6 by default
-    private SerializedProperty perlinLacunarity; // 2 by default
-    private SerializedProperty perlinTextureResolution; // 16 by default
+    private SerializedProperty shapePerlinOctaves; // 8 by default
+    private SerializedProperty shapePerlinFrequency; // 1 by default
+    private SerializedProperty shapePerlinPersistence; // 0.6 by default
+    private SerializedProperty shapePerlinLacunarity; // 2 by default
+    private SerializedProperty shapePerlinTextureResolution; // 16 by default
 
     // worley settings for other three channels of the shape noise texture
     private SerializedProperty shapeGreenChannelOctaves;
@@ -34,24 +34,26 @@ public class NoiseScriptEditor : Editor
     private SerializedProperty detailRedChannelCellSize;
 
     private SerializedProperty weatherMap;
-    private SerializedProperty cloudCoverageOption;
-    private SerializedProperty cloudCoverageConstant;
+    private SerializedProperty coverageOption;
+    private SerializedProperty coverageConstant;
     private SerializedProperty coveragePerlinOctaves; // 8 by default
     private SerializedProperty coveragePerlinFrequency; // 1 by default
     private SerializedProperty coveragePerlinPersistence; // 0.6 by default
     private SerializedProperty coveragePerlinLacunarity; // 2 by default
     private SerializedProperty coveragePerlinTextureResolution; // 128 by default
+    private SerializedProperty cloudHeight;
+    private SerializedProperty cloudType;
     private void OnEnable()
     {
         // the compute shaders
         NoiseTextureGenerator = serializedObject.FindProperty("NoiseTextureGenerator");
         slicer = serializedObject.FindProperty("slicer");
         // perlin settings (red channel) of the shape texture
-        perlinTextureResolution = serializedObject.FindProperty("perlinTextureResolution");
-        perlinOctaves = serializedObject.FindProperty("perlinOctaves");
-        perlinFrequency = serializedObject.FindProperty("perlinFrequency");
-        perlinPersistence = serializedObject.FindProperty("perlinPersistence");
-        perlinLacunarity = serializedObject.FindProperty("perlinLacunarity");
+        shapePerlinTextureResolution = serializedObject.FindProperty("shapePerlinTextureResolution");
+        shapePerlinOctaves = serializedObject.FindProperty("shapePerlinOctaves");
+        shapePerlinFrequency = serializedObject.FindProperty("shapePerlinFrequency");
+        shapePerlinPersistence = serializedObject.FindProperty("shapePerlinPersistence");
+        shapePerlinLacunarity = serializedObject.FindProperty("shapePerlinLacunarity");
         // worley settings of the shape texture
         shapeGreenChannelOctaves = serializedObject.FindProperty("shapeGreenChannelOctaves");
         shapeBlueChannelOctaves = serializedObject.FindProperty("shapeBlueChannelOctaves");
@@ -69,7 +71,15 @@ public class NoiseScriptEditor : Editor
 
         // weather map
         weatherMap = serializedObject.FindProperty("weatherMap");
-        cloudCoverageOption =  serializedObject.FindProperty("cloudCoverageOption");
+        coverageOption = serializedObject.FindProperty("coverageOption");
+        coverageConstant = serializedObject.FindProperty("coverageConstant");
+        coveragePerlinOctaves = serializedObject.FindProperty("coveragePerlinOctaves");
+        coveragePerlinFrequency = serializedObject.FindProperty("coveragePerlinFrequency");
+        coveragePerlinPersistence = serializedObject.FindProperty("coveragePerlinPersistence");
+        coveragePerlinLacunarity = serializedObject.FindProperty("coveragePerlinLacunarity");
+        coveragePerlinTextureResolution = serializedObject.FindProperty("coveragePerlinTextureResolution");
+        cloudHeight = serializedObject.FindProperty("cloudHeight");
+        cloudType = serializedObject.FindProperty("cloudType");
     }
     public static void DrawUILine(Color color, int thickness = 2, int padding = 10)
     {
@@ -103,11 +113,11 @@ public class NoiseScriptEditor : Editor
         EditorGUI.indentLevel++;
         string[] textureResolutionOptionNames = {"1","2","4","8","16"};
         int[] textureResolutionOptionValues = {1,2,4,8,16};
-        perlinTextureResolution.intValue = EditorGUILayout.IntPopup("Resolution", perlinTextureResolution.intValue, textureResolutionOptionNames, textureResolutionOptionValues);
-        EditorGUILayout.IntSlider(perlinOctaves, 1, 8, "Octaves");
-        EditorGUILayout.PropertyField(perlinFrequency, new GUIContent("Frequency"));
-        EditorGUILayout.PropertyField(perlinPersistence, new GUIContent("Persistence"));
-        EditorGUILayout.PropertyField(perlinLacunarity, new GUIContent("Lacunarity"));
+        shapePerlinTextureResolution.intValue = EditorGUILayout.IntPopup("Resolution", shapePerlinTextureResolution.intValue, textureResolutionOptionNames, textureResolutionOptionValues);
+        EditorGUILayout.IntSlider(shapePerlinOctaves, 1, 8, "Octaves");
+        EditorGUILayout.PropertyField(shapePerlinFrequency, new GUIContent("Frequency"));
+        EditorGUILayout.PropertyField(shapePerlinPersistence, new GUIContent("Persistence"));
+        EditorGUILayout.PropertyField(shapePerlinLacunarity, new GUIContent("Lacunarity"));
         EditorGUI.indentLevel--;
         EditorGUI.indentLevel--;
 
@@ -135,8 +145,6 @@ public class NoiseScriptEditor : Editor
         EditorGUILayout.IntSlider(shapeAlphaChannelOctaves, 1, 8,"Octaves");
         shapeAlphaChannelCellSize.intValue = EditorGUILayout.IntPopup("Cell Size", shapeAlphaChannelCellSize.intValue,cellOptionNames, cellOptionValues);
         EditorGUI.indentLevel--;
-
-        EditorGUILayout.Space();
         EditorGUILayout.Space();
 
         // add a button to create shape texture
@@ -147,6 +155,7 @@ public class NoiseScriptEditor : Editor
             FindObjectOfType<NoiseGenerator>().createShapeNoise();
         }
         GUILayout.EndHorizontal();
+        EditorGUILayout.Space();
         EditorGUI.indentLevel--;
         EditorGUI.indentLevel--;
 
@@ -194,28 +203,30 @@ public class NoiseScriptEditor : Editor
         // start of the detail noise
         EditorGUILayout.LabelField("Weather Map", EditorStyles.boldLabel);
         EditorGUI.indentLevel++;
-        EditorGUILayout.LabelField("Cloud Coverage");
         string[] cloudCoverageOptionNames = {"Constant","Perlin"};
         int[] cloudCoverageOptionValues = {0,1};
-        cloudCoverageOption.intValue = EditorGUILayout.IntPopup("Cloud Coverage", cloudCoverageOption.intValue, cloudCoverageOptionNames, cloudCoverageOptionValues);
-        if (cloudCoverageOption.intValue == 0)
+        coverageOption.intValue = EditorGUILayout.IntPopup("Cloud Coverage", coverageOption.intValue, cloudCoverageOptionNames, cloudCoverageOptionValues);
+        if (coverageOption.intValue == 0)
         {
             EditorGUI.indentLevel++;
-            EditorGUILayout.Slider(henyeyRatio, 0, 1, new GUIContent("Weight"));
+            EditorGUILayout.Slider(coverageConstant, 0, 1, new GUIContent("Coverage Value"));
             EditorGUI.indentLevel--;
         }
-
-
-        EditorGUI.indentLevel++;
-        EditorGUILayout.LabelField("Cloud Coverage");
-        EditorGUI.indentLevel++;
-        EditorGUI.indentLevel--;
-        EditorGUILayout.LabelField("Cloud Height");
-        EditorGUI.indentLevel++;
-        EditorGUI.indentLevel--;
-        EditorGUILayout.LabelField("Cloud Type");
-        EditorGUI.indentLevel++;
-        EditorGUI.indentLevel--;
+        else
+        {
+            EditorGUI.indentLevel++;
+            string[] wmTexResolutionOptionNames = {"1","2","4","8","16","32","64","128","256","512"};
+            int[] wmTexResolutionOptionValues = {1,2,4,8,16,32,64,128,256,512};
+            coveragePerlinTextureResolution.intValue = EditorGUILayout.IntPopup("Resolution", coveragePerlinTextureResolution.intValue, wmTexResolutionOptionNames, wmTexResolutionOptionValues);
+            EditorGUILayout.IntSlider(coveragePerlinOctaves, 1, 8, "Octaves");
+            EditorGUILayout.PropertyField(coveragePerlinFrequency, new GUIContent("Frequency"));
+            EditorGUILayout.PropertyField(coveragePerlinPersistence, new GUIContent("Persistence"));
+            EditorGUILayout.PropertyField(coveragePerlinLacunarity, new GUIContent("Lacunarity"));  
+            EditorGUI.indentLevel--; 
+        }
+        EditorGUILayout.Slider(cloudHeight, 400, 1000, new GUIContent("Cloud Height (m)"));
+        EditorGUILayout.Slider(cloudType, 0, 1, new GUIContent("Cloud Type"));
+        EditorGUILayout.Space();
 
         EditorGUI.indentLevel--;
         EditorGUI.indentLevel--;
