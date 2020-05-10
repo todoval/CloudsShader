@@ -530,16 +530,18 @@ MonoBehaviour:
   lightingType: 1
   sceneLight: {fileID: 705507994}
   phaseType: 1
-  henyeyCoeff: 0.209
-  henyeyRatio: 0
-  detailAmount: 0.19
-  detailModifier: 0.842
-  densityConstant: 2.28
+  henyeyCoeff: -0.95
+  henyeyRatio: 0.476
+  detailAmount: 0.56
+  detailModifier: 0.448
+  densityConstant: 1.9
+  cloudMaxHeight: 0.314
+  cloudHeightModifier: 0.381
+  cloudBottomModifier: 0.0575
   absorptionCoeff: 0.663
   tileSize: 200
   speed: 2
   color: {r: 1, g: 1, b: 1, a: 0}
-  rotation: 190
   container: {fileID: 56149229}
   material: {fileID: 0}
   shader: {fileID: 4800000, guid: 793b6161ac488cd45b2d76408561a0ab, type: 3}

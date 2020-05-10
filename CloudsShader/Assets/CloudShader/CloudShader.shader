@@ -53,12 +53,14 @@ Shader "CloudShader"
             float speed;
             float tileSize;
             float absorptionCoef;
-            float rotation;
 
-            // density properties
+            //shape properties
             float detailAmount;
             float maxDetailModifier;
             float densityConstant;
+            float cloudMaxHeight;
+            float cloudHeightModifier;
+            float cloudBottomModifier;
 
             // texture and sampler properties
             sampler2D _MainTex;
@@ -151,15 +153,16 @@ Shader "CloudShader"
                 return new_min + (((value - original_min) / (original_max - original_min)) * (new_max - new_min));
             }
 
+
             // alter the cloud shape so that the clouds are slightly rounded towards the bottom and a lot to the top (depending on the height value from weather map)
             float HeightAlter(float percentHeight, float heightValue)
             {
                 // round a bit to the bottom, almost unpercievable
-                float bottomRound = saturate(remap(percentHeight, 0.0, 0.07, 0.0, 1.0));
+                float bottomRound = saturate(remap(percentHeight, 0.0, cloudBottomModifier, 0.0, 1.0));
                 // round at the top
-                float stopHeight = saturate(heightValue + 0.12);
-                float retVal = saturate(remap(percentHeight, stopHeight * 0.2, stopHeight, 1.0, 0.0));
-                return retVal;
+                float stopHeight = saturate(heightValue + cloudMaxHeight);
+                float topRound = saturate(remap(percentHeight, stopHeight * cloudHeightModifier, stopHeight, 1.0, 0.0));
+                return topRound * bottomRound;
             }
 
             // depending on the cloud type, make the clouds more fluffy at the bottom and more rounded at the top
@@ -206,7 +209,7 @@ Shader "CloudShader"
                 detailModifier *= detailAmount * exp(-maxDetailModifier);
 
                 // sample the height and density altering functions from the current heightPercetange
-                float heightAlter = HeightAlter(heightPercentage, heightValue); 
+                float heightAlter = HeightAlter(heightPercentage, heightValue); //round the clouds to the bottom and to the top according to their height
                 float densityAlter = DensityAlter(heightPercentage, globalDensity); //edit the density so clouds are more fluffier at bottom and rounder at top
                 
                 float shapeND = saturate(remap(heightAlter * shapeNoise, 1 - cloudCoverage, 1.0, 0.0, 1.0));

@@ -16,10 +16,12 @@ public class CloudScript : Editor
     private SerializedProperty phaseType;
     private SerializedProperty henyeyCoeff;
     private SerializedProperty henyeyRatio;
-    private SerializedProperty rotation;
+    private SerializedProperty cloudMaxHeight;
+    private SerializedProperty cloudHeightModifier;
     private SerializedProperty detailAmount;
     private SerializedProperty detailModifier;
     private SerializedProperty densityConstant;
+    private SerializedProperty cloudBottomModifier;
 
     private void OnEnable()
     {
@@ -36,6 +38,9 @@ public class CloudScript : Editor
         detailAmount = serializedObject.FindProperty("detailAmount");
         detailModifier = serializedObject.FindProperty("detailModifier");
         densityConstant = serializedObject.FindProperty("densityConstant");
+        cloudMaxHeight = serializedObject.FindProperty("cloudMaxHeight");
+        cloudHeightModifier = serializedObject.FindProperty("cloudHeightModifier");
+        cloudBottomModifier = serializedObject.FindProperty("cloudBottomModifier");
     }
     public static void DrawUILine(Color color, int thickness = 2, int padding = 10)
     {
@@ -52,11 +57,37 @@ public class CloudScript : Editor
         serializedObject.Update();
         EditorGUILayout.Space();
         EditorGUILayout.PropertyField(container);
+        EditorGUILayout.Space();
 
-        // draw a line between above lighting settings
-        DrawUILine(new Color((float)0.5,(float)0.5,(float)0.5,1), 1, 10);
 
-        EditorGUILayout.LabelField("Lighting", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField("--- Main ---", EditorStyles.boldLabel);
+        EditorGUI.indentLevel++;
+        EditorGUILayout.PropertyField(tileSize, new GUIContent("Cloud size"));
+        EditorGUILayout.PropertyField(speed, new GUIContent("Speed"));
+        EditorGUILayout.PropertyField(color);
+        EditorGUILayout.Slider(absorptionCoeff, 0, 1, new GUIContent("Absorption"));
+        EditorGUI.indentLevel--;
+        EditorGUILayout.Space();
+
+        EditorGUILayout.LabelField("--- Shape ---", EditorStyles.boldLabel);
+        EditorGUI.indentLevel++;
+        EditorGUILayout.Slider(densityConstant, 0, 5, new GUIContent("Density Multiplier"));
+        EditorGUILayout.Slider(cloudMaxHeight, 0, 1, new GUIContent("Max Height"));
+        EditorGUILayout.LabelField("Detail Noise");
+        EditorGUI.indentLevel++;
+        EditorGUILayout.Slider(detailAmount, 0, 1, new GUIContent("Max Value"));
+        EditorGUILayout.Slider(detailModifier, 0, 1, new GUIContent("Detail Modifier"));
+        EditorGUI.indentLevel--;
+        EditorGUILayout.LabelField("Roundness");
+        EditorGUI.indentLevel++;
+        EditorGUILayout.Slider(cloudHeightModifier, 0, 1, new GUIContent("Cloud Top"));
+        EditorGUILayout.Slider(cloudBottomModifier, 0, (float) 0.2, new GUIContent("Cloud Bottom"));
+        EditorGUI.indentLevel--;
+        EditorGUI.indentLevel--;
+        EditorGUILayout.Space();
+
+
+        EditorGUILayout.LabelField("--- Lighting ---", EditorStyles.boldLabel);
         EditorGUI.indentLevel++;
         int[] lightOptionsValues = {0,1,2};
         string[] lightOptionsDisplayed = {"Environmental", "Scene light","None"};
@@ -80,28 +111,9 @@ public class CloudScript : Editor
             EditorGUI.indentLevel--;
         }
         EditorGUI.indentLevel--;
+        EditorGUILayout.Space();
 
-        // draw a line after the container settings to distinguish cloud properties
-        DrawUILine(new Color((float)0.5,(float)0.5,(float)0.5,1), 1, 10);
-
-        EditorGUILayout.LabelField("Cloud Properties", EditorStyles.boldLabel);
-        EditorGUI.indentLevel++;
-        EditorGUILayout.PropertyField(tileSize, new GUIContent("Cloud size"));
-        EditorGUILayout.PropertyField(speed, new GUIContent("Speed"));
-        EditorGUILayout.PropertyField(color);
-        EditorGUILayout.Slider(absorptionCoeff, 0, 1, new GUIContent("Absorption"));
-        EditorGUI.indentLevel--;
-        EditorGUILayout.LabelField("Cloud Density", EditorStyles.boldLabel);
-        EditorGUI.indentLevel++;
-        EditorGUILayout.Slider(detailAmount, 0, 1, new GUIContent("Detail Noise Max Amount"));
-        EditorGUILayout.Slider(detailModifier, 0, 1, new GUIContent("Detail Noise Modifier"));
-        EditorGUILayout.Slider(densityConstant, 0, 5, new GUIContent("Density Modifier"));
-        EditorGUI.indentLevel--;
-
-        // draw a line between above performance settings
-        DrawUILine(new Color((float)0.5,(float)0.5,(float)0.5,1), 1, 10);
-
-        EditorGUILayout.LabelField("Performance", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField("--- Performance ---", EditorStyles.boldLabel);
         EditorGUI.indentLevel++;
         EditorGUILayout.Toggle("Default settings", true);
         EditorGUI.indentLevel--;

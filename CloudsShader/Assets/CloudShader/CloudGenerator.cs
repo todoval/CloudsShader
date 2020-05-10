@@ -15,17 +15,19 @@ public class CloudGenerator : MonoBehaviour
     public float henyeyCoeff;
     public float henyeyRatio;
 
-    // density properties
+    // shape properties
     public float detailAmount;
     public float detailModifier;
     public float densityConstant;
+    public float cloudMaxHeight;
+    public float cloudHeightModifier;
+    public float cloudBottomModifier;
 
     // cloud properties
     public float absorptionCoeff;
     public int tileSize;
     public float speed;
     public Color color;
-    public float rotation;
 
     public Transform container;
 
@@ -119,12 +121,14 @@ public class CloudGenerator : MonoBehaviour
         material.SetVector("cloudColor", color);
         material.SetFloat("speed", speed);
         material.SetFloat("tileSize", tileSize);
-        material.SetFloat("rotation", rotation);
 
-        // detail noise properties
+        // shape properties
         material.SetFloat("detailAmount", detailAmount);
         material.SetFloat("maxDetailModifier", detailModifier);
         material.SetFloat("densityConstant", densityConstant);
+        material.SetFloat("cloudHeightModifier", cloudHeightModifier);
+        material.SetFloat("cloudMaxHeight", cloudMaxHeight);
+        material.SetFloat("cloudBottomModifier", cloudBottomModifier);
 
         material.SetTexture("ShapeTexture", shapeTexture);
         material.SetTexture("DetailTexture", detailTexture);
