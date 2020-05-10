@@ -17,6 +17,9 @@ public class CloudScript : Editor
     private SerializedProperty henyeyCoeff;
     private SerializedProperty henyeyRatio;
     private SerializedProperty rotation;
+    private SerializedProperty detailAmount;
+    private SerializedProperty detailModifier;
+    private SerializedProperty densityConstant;
 
     private void OnEnable()
     {
@@ -30,6 +33,9 @@ public class CloudScript : Editor
         container = serializedObject.FindProperty("container");
         henyeyCoeff = serializedObject.FindProperty("henyeyCoeff");
         henyeyRatio = serializedObject.FindProperty("henyeyRatio");
+        detailAmount = serializedObject.FindProperty("detailAmount");
+        detailModifier = serializedObject.FindProperty("detailModifier");
+        densityConstant = serializedObject.FindProperty("densityConstant");
     }
     public static void DrawUILine(Color color, int thickness = 2, int padding = 10)
     {
@@ -46,17 +52,6 @@ public class CloudScript : Editor
         serializedObject.Update();
         EditorGUILayout.Space();
         EditorGUILayout.PropertyField(container);
-
-        // draw a line after the container settings to distinguish cloud properties
-        DrawUILine(new Color((float)0.5,(float)0.5,(float)0.5,1), 1, 10);
-
-        EditorGUILayout.LabelField("Cloud Properties", EditorStyles.boldLabel);
-        EditorGUI.indentLevel++;
-        EditorGUILayout.PropertyField(tileSize, new GUIContent("Cloud size"));
-        EditorGUILayout.PropertyField(speed, new GUIContent("Speed"));
-        EditorGUILayout.PropertyField(color);
-        EditorGUILayout.Slider(absorptionCoeff, 0, 1, new GUIContent("Absorption"));
-        EditorGUI.indentLevel--;
 
         // draw a line between above lighting settings
         DrawUILine(new Color((float)0.5,(float)0.5,(float)0.5,1), 1, 10);
@@ -84,6 +79,23 @@ public class CloudScript : Editor
             EditorGUILayout.Slider(henyeyCoeff, -1, 1, new GUIContent("Assymetry parameter"));
             EditorGUI.indentLevel--;
         }
+        EditorGUI.indentLevel--;
+
+        // draw a line after the container settings to distinguish cloud properties
+        DrawUILine(new Color((float)0.5,(float)0.5,(float)0.5,1), 1, 10);
+
+        EditorGUILayout.LabelField("Cloud Properties", EditorStyles.boldLabel);
+        EditorGUI.indentLevel++;
+        EditorGUILayout.PropertyField(tileSize, new GUIContent("Cloud size"));
+        EditorGUILayout.PropertyField(speed, new GUIContent("Speed"));
+        EditorGUILayout.PropertyField(color);
+        EditorGUILayout.Slider(absorptionCoeff, 0, 1, new GUIContent("Absorption"));
+        EditorGUI.indentLevel--;
+        EditorGUILayout.LabelField("Cloud Density", EditorStyles.boldLabel);
+        EditorGUI.indentLevel++;
+        EditorGUILayout.Slider(detailAmount, 0, 1, new GUIContent("Detail Noise Max Amount"));
+        EditorGUILayout.Slider(detailModifier, 0, 1, new GUIContent("Detail Noise Modifier"));
+        EditorGUILayout.Slider(densityConstant, 0, 5, new GUIContent("Density Modifier"));
         EditorGUI.indentLevel--;
 
         // draw a line between above performance settings

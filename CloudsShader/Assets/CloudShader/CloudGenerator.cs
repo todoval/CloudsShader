@@ -15,6 +15,11 @@ public class CloudGenerator : MonoBehaviour
     public float henyeyCoeff;
     public float henyeyRatio;
 
+    // density properties
+    public float detailAmount;
+    public float detailModifier;
+    public float densityConstant;
+
     // cloud properties
     public float absorptionCoeff;
     public int tileSize;
@@ -115,6 +120,11 @@ public class CloudGenerator : MonoBehaviour
         material.SetFloat("speed", speed);
         material.SetFloat("tileSize", tileSize);
         material.SetFloat("rotation", rotation);
+
+        // detail noise properties
+        material.SetFloat("detailAmount", detailAmount);
+        material.SetFloat("maxDetailModifier", detailModifier);
+        material.SetFloat("densityConstant", densityConstant);
 
         material.SetTexture("ShapeTexture", shapeTexture);
         material.SetTexture("DetailTexture", detailTexture);

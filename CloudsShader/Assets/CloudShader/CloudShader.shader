@@ -55,6 +55,11 @@ Shader "CloudShader"
             float absorptionCoef;
             float rotation;
 
+            // density properties
+            float detailAmount;
+            float maxDetailModifier;
+            float densityConstant;
+
             // texture and sampler properties
             sampler2D _MainTex;
             sampler2D _CameraDepthTexture;
@@ -146,37 +151,27 @@ Shader "CloudShader"
                 return new_min + (((value - original_min) / (original_max - original_min)) * (new_max - new_min));
             }
 
-            /* alters the cloud shape so that the clouds and slightly rounded towards the bottom and a lot to the top
-            percentHeight - the height percent of the point we want to change density to
-            heightValue - from the weather map
-            */
+            // alter the cloud shape so that the clouds are slightly rounded towards the bottom and a lot to the top (depending on the height value from weather map)
             float HeightAlter(float percentHeight, float heightValue)
             {
-                // round a bit to the bottom
-                float retVal = saturate(remap(percentHeight, 0.0, 0.07, 0.0, 1.0));
+                // round a bit to the bottom, almost unpercievable
+                float bottomRound = saturate(remap(percentHeight, 0.0, 0.07, 0.0, 1.0));
                 // round at the top
-                float stopHeight = saturate (heightValue + 0.12);
-                retVal *= saturate(remap(percentHeight, stopHeight * 0.2, stopHeight, 1.0, 0.0));
-
-                // apply storm clouds
-
-                //retVal = pow (retVal, saturate(remap(percent_height, 0.65, 0.95, 1.0, (1-cloud_anvil_amount * global_coverage))));
+                float stopHeight = saturate(heightValue + 0.12);
+                float retVal = saturate(remap(percentHeight, stopHeight * 0.2, stopHeight, 1.0, 0.0));
                 return retVal;
             }
 
-            float DensityAlter (float percent_height, float cloudType)
+            // depending on the cloud type, make the clouds more fluffy at the bottom and more rounded at the top
+            float DensityAlter (float percentHeight, float cloudType)
             {
-                // Have density be generally increasing over height
-                float ret_val = percent_height ;
-                // Reduce density at base
-                ret_val *= saturate(remap(percent_height, 0.0, 0.2, 0.0, 1.0));
-                // Apply weather_map density
-                ret_val *= cloudType * 2;
-                // Reduce density for the anvil ( cumulonimbus clouds)
-                ret_val *= lerp (1, saturate(remap(pow(percent_height, 0.5), 0.4, 0.95, 1.0, 0.2)), 0.2);
-                // Reduce density at top to make better transition
-                ret_val *= saturate(remap(percent_height, 0.9, 1.0, 1.0, 0.0));
-                return ret_val;
+                // Reduce density at bottom to make more fluffy clouds, bottom is to 0.2
+                float bottomDensity = saturate(remap(percentHeight, 0.0, 0.2, 0.0, 1.0));
+                // create more defined shape at the top, top is from 0.9
+                float topDensity = saturate(remap(percentHeight, 0.9, 1.0, 1.0, 0.0));
+
+                //density computation equation, applying both mapDensity, bottom and top density and a user-defined constant
+                return percentHeight * bottomDensity * topDensity * cloudType * densityConstant;
             }
 
             // returns the cloud density at given point
@@ -205,26 +200,22 @@ Shader "CloudShader"
                 // sample the detail noise that will be used to erode edges               
                 float4 detailDensity = DetailTexture.SampleLevel(samplerDetailTexture, samplePos, 0);
                 float detailNoise = detailDensity.r * 0.625 + detailDensity.g * 0.25 + detailDensity.a * 0.125; // similar sampling to shape texture
-                // Subtract detail noise from base shape (weighted by inverse density so that edges get eroded more than centre)
-                // For low altitude regions the detail noise is used (inverted) to instead of creating round shapes ,
-                // create more wispy shapes. Transitions to round shapes over altitude.
-                float detailModifier = lerp (detailNoise, 1 - detailNoise, saturate(heightPercentage * 7.0));
-                // Reduce the amount of detail noise is being "subtracted" with the global_coverage .
-                detailModifier *= 0.35 * exp(-cloudCoverage *0.75);
+                // adjust the detail noise with regards to the height percentage - the lower the point is, the wispier the shapes are
+                float detailModifier = lerp (detailNoise, 1-detailNoise, saturate(heightPercentage));
+                // reduce the amount of detail noise so the maximum is the detailAmount (inputted by user)
+                detailModifier *= detailAmount * exp(-maxDetailModifier);
 
-
-                float heightAlter = HeightAlter(heightPercentage, heightValue); // Shape altering height function, SA
-                float densityAlter = DensityAlter(heightPercentage, globalDensity); // Density altering height function, DA
-
-                // sample the detail noise (for erosion of the cloud edges) similarly to the shape noise
-
-
-
+                // sample the height and density altering functions from the current heightPercetange
+                float heightAlter = HeightAlter(heightPercentage, heightValue); 
+                float densityAlter = DensityAlter(heightPercentage, globalDensity); //edit the density so clouds are more fluffier at bottom and rounder at top
+                
                 float shapeND = saturate(remap(heightAlter * shapeNoise, 1 - cloudCoverage, 1.0, 0.0, 1.0));
 
-                // Carve away more from the shape_noise using detail_noise
-                float final_density = saturate(remap(shapeND, detailModifier, 1.0, 0.0, 1.0));
-                return final_density * densityAlter;
+                // subtract the detail noise from the shape noise to erode the edges
+                float finalDensity = saturate(remap(shapeND, detailModifier, 1.0, 0.0, 1.0));
+
+                // alter the density only at the end
+                return finalDensity * densityAlter;
             }
 
             // implementing the phase function, cosAngle is the cosine of the angle between two vectors, g is a parameter in [-1,1]  
