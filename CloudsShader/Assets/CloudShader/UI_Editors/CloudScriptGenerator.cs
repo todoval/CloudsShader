@@ -16,6 +16,7 @@ public class CloudScript : Editor
     private SerializedProperty phaseType;
     private SerializedProperty henyeyCoeff;
     private SerializedProperty henyeyRatio;
+    private SerializedProperty rotation;
 
     private void OnEnable()
     {
@@ -43,11 +44,19 @@ public class CloudScript : Editor
     public override void OnInspectorGUI() 
     {
         serializedObject.Update();
+        EditorGUILayout.Space();
         EditorGUILayout.PropertyField(container);
-        EditorGUILayout.Slider(absorptionCoeff, 0, 1, new GUIContent("Absorption"));
-        EditorGUILayout.PropertyField(tileSize, new GUIContent("Tile size"));
+
+        // draw a line after the container settings to distinguish cloud properties
+        DrawUILine(new Color((float)0.5,(float)0.5,(float)0.5,1), 1, 10);
+
+        EditorGUILayout.LabelField("Cloud Properties", EditorStyles.boldLabel);
+        EditorGUI.indentLevel++;
+        EditorGUILayout.PropertyField(tileSize, new GUIContent("Cloud size"));
         EditorGUILayout.PropertyField(speed, new GUIContent("Speed"));
         EditorGUILayout.PropertyField(color);
+        EditorGUILayout.Slider(absorptionCoeff, 0, 1, new GUIContent("Absorption"));
+        EditorGUI.indentLevel--;
 
         // draw a line between above lighting settings
         DrawUILine(new Color((float)0.5,(float)0.5,(float)0.5,1), 1, 10);

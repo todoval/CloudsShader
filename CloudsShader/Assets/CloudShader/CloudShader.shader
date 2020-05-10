@@ -53,6 +53,7 @@ Shader "CloudShader"
             float speed;
             float tileSize;
             float absorptionCoef;
+            float rotation;
 
             // texture and sampler properties
             sampler2D _MainTex;
@@ -149,7 +150,6 @@ Shader "CloudShader"
             percentHeight - the height percent of the point we want to change density to
             heightValue - from the weather map
             */
-            
             float HeightAlter(float percentHeight, float heightValue)
             {
                 // round a bit to the bottom
@@ -182,52 +182,48 @@ Shader "CloudShader"
             // returns the cloud density at given point
             float getDensity(float3 position)
             {
-                // sample the shape and detail textures from position
-                float3 samplePos = (position + _Time * speed )/tileSize;
+                // get the sample position
+                float3 samplePos = (position + _Time * speed)/tileSize;
 
-                // weather texture
-                // red channel - coverage, base density of the clouds
-                // green channel - height of the clouds
-                // blue channel - type of cloud (0 - stratus, 1 - cumulus, 0.5 - stratoculumus)
+                 // sample the weather texture, with red channel being coverage, green height and blue the density of the clouds
                 float2 weatherSamplePos = float2(samplePos.x, samplePos.z);
                 float4 weatherValue = WeatherMap.SampleLevel(samplerWeatherMap, weatherSamplePos, 0);
+                // get the individual values from the weather texture
+                float heightValue = weatherValue.g;
+                float globalDensity = weatherValue.b;
+                float cloudCoverage = weatherValue.r;
                 
-                // get the base shape of the clouds from the shape texture, use the perlin noise as base
+                // get the base shape of the clouds from the shape texture, use the perlin noise (red channel) as base
                 float4 shapeDensity = ShapeTexture.SampleLevel(samplerShapeTexture, samplePos, 0);
                 float shapeNoise = shapeDensity.g * 0.625 + shapeDensity.b * 0.25 + shapeDensity.a * 0.125;
                 shapeNoise = -(1 - shapeNoise);
-                shapeNoise = remap(shapeDensity.r, shapeNoise, 1.0, 0.0, 1.0); // this is now the base cloud - SNsample
-                
-                // use the red channel from weather texture as cloud coverage and apply it to the base cloud
-               // float cloudCoverage = weatherValue.r;
-               // float baseCloudWithCoverage = remap(shapeNoise, cloudCoverage, 1.0, 1.0, 0.0);
-               // baseCloudWithCoverage *= cloudCoverage;
-
-                // alter the height of the clouds so they are rounded at the bottom and a bit to the top as well
-                float heightValue = weatherValue.g; // get the height gradient from weather map
-                float globalDensity = weatherValue.b;
-                float cloudCoverage = weatherValue.r; // WMc
-                float globalCoverage = 1; //gc
+                shapeNoise = remap(shapeDensity.r, shapeNoise, 1.0, 0.0, 1.0); // this is now the base cloud
 
                 // get the height percentage of the current point
                 float heightPercentage = (position.y - containerBound_Min.y) / (containerBound_Max.y - containerBound_Min.y);
+
+                // sample the detail noise that will be used to erode edges               
+                float4 detailDensity = DetailTexture.SampleLevel(samplerDetailTexture, samplePos, 0);
+                float detailNoise = detailDensity.r * 0.625 + detailDensity.g * 0.25 + detailDensity.a * 0.125; // similar sampling to shape texture
+                // Subtract detail noise from base shape (weighted by inverse density so that edges get eroded more than centre)
+                // For low altitude regions the detail noise is used (inverted) to instead of creating round shapes ,
+                // create more wispy shapes. Transitions to round shapes over altitude.
+                float detailModifier = lerp (detailNoise, 1 - detailNoise, saturate(heightPercentage * 7.0));
+                // Reduce the amount of detail noise is being "subtracted" with the global_coverage .
+                detailModifier *= 0.35 * exp(-cloudCoverage *0.75);
+
+
                 float heightAlter = HeightAlter(heightPercentage, heightValue); // Shape altering height function, SA
                 float densityAlter = DensityAlter(heightPercentage, globalDensity); // Density altering height function, DA
 
                 // sample the detail noise (for erosion of the cloud edges) similarly to the shape noise
-                float4 detailDensity = DetailTexture.SampleLevel(samplerDetailTexture, samplePos, 0);
-                float detailNoise = detailDensity.r * 0.625 + detailDensity.g * 0.25 + detailDensity.a * 0.125;
-                // Subtract detail noise from base shape (weighted by inverse density so that edges get eroded more than centre)
-                // For low altitude regions the detail noise is used (inverted) to instead of creating round shapes ,
-                // create more wispy shapes. Transitions to round shapes over altitude.
-                float detail_modifier = lerp (detailNoise, 1 - detailNoise, saturate(heightPercentage * 5.0));
-                // Reduce the amount of detail noise is being "subtracted" with the global_coverage .
-                detail_modifier *= 0.35 * exp(-cloudCoverage *0.75);
 
-                float shapeND = saturate(remap(heightAlter * shapeNoise, 1 - globalCoverage * cloudCoverage, 1.0, 0.0, 1.0));
+
+
+                float shapeND = saturate(remap(heightAlter * shapeNoise, 1 - cloudCoverage, 1.0, 0.0, 1.0));
 
                 // Carve away more from the shape_noise using detail_noise
-                float final_density = saturate(remap(shapeND, detail_modifier, 1.0, 0.0, 1.0));
+                float final_density = saturate(remap(shapeND, detailModifier, 1.0, 0.0, 1.0));
                 return final_density * densityAlter;
             }
 
@@ -251,30 +247,26 @@ Shader "CloudShader"
                 float3 dirVector = float3(lightPosition.x, lightPosition.y, lightPosition.z) - pos;
                 dirVector = dirVector / length(dirVector);
 
-                // light shouldn't be inside the box, but if it is, only light the box from the inside accordingly
-                /*if (isInsideBox(lightPosition, dirVector))
-                {
-                    float distanceToLight = getDistance(float3(lightPosition.x, lightPosition.y, lightPosition.z), pos);
-                    float containerMaxDistance = getDistance(containerBound_Min, containerBound_Max);
-                    return (containerMaxDistance - distanceToLight)/containerMaxDistance;
-                }*/
-
                 // get intersection with the cloud container
+              //  float heightPer = WeatherMap.SampleLevel(samplerWeatherMap, pos, 0).b;
+               // float oldMax = containerBound_Max;
+              //  containerBound_Max = ((containerBound_Max - containerBound_Min) * heightPer) + containerBound_Min;
                 rayContainerInfo containerInfo = getRayContainerInfo(lightPosition, -dirVector);
                 float3 entryPoint = lightPosition - dirVector * containerInfo.dstToBox;
+               // containerBound_Max = oldMax;
 
-                // light marching, march in the direction from the entry point to my point
-                float3 currPoint = entryPoint;
+                // light marching, march from my position to the entry point
+                float3 currPoint = pos;
                 // number of steps should be the same for each light march
                 float distanceToMarch = getDistance(entryPoint, pos);
-                float noOfSteps = 2;
+                float noOfSteps = 10;
                 float stepSize = distanceToMarch/noOfSteps;
                 float accumDensity = 0; // accumulated density over all the ray from my point to the entry point
                 float transmittance = 1;
                 if (isInsideBox(lightPosition, dirVector))
                 {
                     stepSize = getDistance(float3(lightPosition.x, lightPosition.y, lightPosition.z), pos)/noOfSteps;
-                    currPoint = lightPosition;
+                    //currPoint = lightPosition;
                 }
                 while (noOfSteps > 0)
                 {
