@@ -22,6 +22,11 @@ public class CloudScript : Editor
     private SerializedProperty detailModifier;
     private SerializedProperty densityConstant;
     private SerializedProperty cloudBottomModifier;
+    private SerializedProperty useBlueNoiseRay;
+    private SerializedProperty useBlueNoiseLight;
+    private SerializedProperty blueNoiseLightAmount;
+    private SerializedProperty blueNoiseRayAmount;
+    private SerializedProperty lightMarchSteps;
 
     private void OnEnable()
     {
@@ -41,24 +46,18 @@ public class CloudScript : Editor
         cloudMaxHeight = serializedObject.FindProperty("cloudMaxHeight");
         cloudHeightModifier = serializedObject.FindProperty("cloudHeightModifier");
         cloudBottomModifier = serializedObject.FindProperty("cloudBottomModifier");
+        useBlueNoiseRay = serializedObject.FindProperty("useBlueNoiseRay");
+        useBlueNoiseLight = serializedObject.FindProperty("useBlueNoiseLight");
+        blueNoiseLightAmount = serializedObject.FindProperty("blueNoiseLightAmount");
+        blueNoiseRayAmount = serializedObject.FindProperty("blueNoiseRayAmount");
+        lightMarchSteps = serializedObject.FindProperty("lightMarchSteps");
     }
-    public static void DrawUILine(Color color, int thickness = 2, int padding = 10)
-    {
-        Rect r = EditorGUILayout.GetControlRect(GUILayout.Height(padding+thickness));
-        r.height = thickness;
-        r.y+=padding/2;
-        r.x-=30;
-        r.width +=36;
-        EditorGUI.DrawRect(r, color);
-    }
-
     public override void OnInspectorGUI() 
     {
         serializedObject.Update();
         EditorGUILayout.Space();
         EditorGUILayout.PropertyField(container);
         EditorGUILayout.Space();
-
 
         EditorGUILayout.LabelField("--- Main ---", EditorStyles.boldLabel);
         EditorGUI.indentLevel++;
@@ -85,7 +84,6 @@ public class CloudScript : Editor
         EditorGUI.indentLevel--;
         EditorGUI.indentLevel--;
         EditorGUILayout.Space();
-
 
         EditorGUILayout.LabelField("--- Lighting ---", EditorStyles.boldLabel);
         EditorGUI.indentLevel++;
@@ -115,7 +113,27 @@ public class CloudScript : Editor
 
         EditorGUILayout.LabelField("--- Performance ---", EditorStyles.boldLabel);
         EditorGUI.indentLevel++;
-        EditorGUILayout.Toggle("Default settings", true);
+        EditorGUILayout.LabelField("Ray march");
+        EditorGUI.indentLevel++;
+        useBlueNoiseRay.boolValue = EditorGUILayout.Toggle("Blue Noise",  useBlueNoiseRay.boolValue);
+        if (useBlueNoiseRay.boolValue)
+        {
+            EditorGUI.indentLevel++;
+            EditorGUILayout.Slider(blueNoiseRayAmount, 1, 2, new GUIContent("Amount"));
+            EditorGUI.indentLevel--;
+        }
+        EditorGUI.indentLevel--;
+        EditorGUILayout.LabelField("Light march");
+        EditorGUI.indentLevel++;
+        EditorGUILayout.IntSlider(lightMarchSteps, 1, 4, new GUIContent("Step size"));
+        useBlueNoiseLight.boolValue = EditorGUILayout.Toggle("Blue Noise", useBlueNoiseLight.boolValue);
+        if (useBlueNoiseLight.boolValue)
+        {
+            EditorGUI.indentLevel++;
+            EditorGUILayout.Slider(blueNoiseLightAmount, 0, (float) 0.5, new GUIContent("Amount"));
+            EditorGUI.indentLevel--;
+        }
+        EditorGUI.indentLevel--;
         EditorGUI.indentLevel--;
 
         serializedObject.ApplyModifiedProperties();

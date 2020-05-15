@@ -69,10 +69,19 @@ Shader "CloudShader"
             SamplerState samplerShapeTexture;
             SamplerState samplerDetailTexture;
             SamplerState samplerWeatherMap;
+            SamplerState samplerBlueNoise;
 
             Texture3D<float4> ShapeTexture;
             Texture3D<float4> DetailTexture;
             Texture2D<float4> WeatherMap;
+            Texture2D<float4> BlueNoise;
+
+            // performance properties
+            bool useBlueNoiseRay;
+            bool useBlueNoiseLight;
+            float blueNoiseLightAmount;
+            float blueNoiseRayAmount;
+            int lightMarchSteps;
 
             // container properties
             float3 containerBound_Min;
@@ -153,7 +162,6 @@ Shader "CloudShader"
                 return new_min + (((value - original_min) / (original_max - original_min)) * (new_max - new_min));
             }
 
-
             // alter the cloud shape so that the clouds are slightly rounded towards the bottom and a lot to the top (depending on the height value from weather map)
             float HeightAlter(float percentHeight, float heightValue)
             {
@@ -212,12 +220,13 @@ Shader "CloudShader"
                 float heightAlter = HeightAlter(heightPercentage, heightValue); //round the clouds to the bottom and to the top according to their height
                 float densityAlter = DensityAlter(heightPercentage, globalDensity); //edit the density so clouds are more fluffier at bottom and rounder at top
                 
+                // equation from the Haggstrom paper
                 float shapeND = saturate(remap(heightAlter * shapeNoise, 1 - cloudCoverage, 1.0, 0.0, 1.0));
 
                 // subtract the detail noise from the shape noise to erode the edges
                 float finalDensity = saturate(remap(shapeND, detailModifier, 1.0, 0.0, 1.0));
 
-                // alter the density only at the end
+                // alter the density at the end, once again Haggstrom
                 return finalDensity * densityAlter;
             }
 
@@ -235,26 +244,22 @@ Shader "CloudShader"
                 return (1 - henyeyRatio) + hg * henyeyRatio;
             }
 
-            float getIncidentLighting(float3 pos, float3 incVector)
+            float lightmarch(float3 pos, float heightPercentage)
             {
                 // normalized vector from my position to light position
                 float3 dirVector = float3(lightPosition.x, lightPosition.y, lightPosition.z) - pos;
                 dirVector = dirVector / length(dirVector);
 
                 // get intersection with the cloud container
-              //  float heightPer = WeatherMap.SampleLevel(samplerWeatherMap, pos, 0).b;
-               // float oldMax = containerBound_Max;
-              //  containerBound_Max = ((containerBound_Max - containerBound_Min) * heightPer) + containerBound_Min;
                 rayContainerInfo containerInfo = getRayContainerInfo(lightPosition, -dirVector);
                 float3 entryPoint = lightPosition - dirVector * containerInfo.dstToBox;
-               // containerBound_Max = oldMax;
 
                 // light marching, march from my position to the entry point
                 float3 currPoint = pos;
                 // number of steps should be the same for each light march
                 float distanceToMarch = getDistance(entryPoint, pos);
-                float noOfSteps = 10;
-                float stepSize = distanceToMarch/noOfSteps;
+                float noOfSteps = lightMarchSteps; // light march steps set up by users
+                float stepSize = heightPercentage * distanceToMarch/noOfSteps; //distanceToMarch/(noOfSteps * 10);
                 float accumDensity = 0; // accumulated density over all the ray from my point to the entry point
                 float transmittance = 1;
                 if (isInsideBox(lightPosition, dirVector))
@@ -266,15 +271,48 @@ Shader "CloudShader"
                 {
                     float density = getDensity(currPoint); // get the density for the current part of the ray
                     if (density > 0)
-                        accumDensity += density;
+                        accumDensity += density * stepSize;
                     
                     // take another step in the direction of the light
                     currPoint += dirVector * stepSize;
                     noOfSteps --;
                 }
                 // use the beer's law for the light attenuation (from the Fredrik Haggstrom paper)
-                float lightAttenuation = exp(-accumDensity * stepSize * absorptionCoef);
-                return lightAttenuation * lightIntensity * lightColor; // TO DO add light weights
+                float lightAttenuation = exp(-accumDensity * absorptionCoef);
+                float powder_effect = 1; // - exp(0.7 * accumDensity);
+                return lightAttenuation * lightIntensity * lightColor * powder_effect; // TO DO add light weights
+            }
+
+            float getIncidentLighting(float3 pos, float3 incVector, float currDensity)
+            {
+                // will be used multiple times in lighting calculations
+                float heightPercentage = (pos.y - containerBound_Min.y) / (containerBound_Max.y - containerBound_Min.y);
+
+                // get the light coming from sun, use the light marching algorithm
+                float lightFromSun = lightmarch(pos, heightPercentage);
+
+                // compute the value of the phase function only if desired
+                float phaseVal = 1;
+                if (henyeyRatio > 0)
+                {
+                    float3 lightVector = pos - float3(lightPosition.x, lightPosition.y, lightPosition.z);
+                    lightVector = lightVector / length(lightVector);
+                    lightVector = normalize(lightVector);
+                    float cosAngle = dot(normalize(incVector), lightVector);
+                    phaseVal = phaseFunction(cosAngle);
+                }
+                float incLight = phaseVal * lightFromSun;
+
+                // add blue noise at the end if desired
+                if (useBlueNoiseLight)
+                {
+                    float2 blueNoiseSamplePos = float2(pos.x, pos.y);
+                    float4 blueNoise = BlueNoise.SampleLevel(samplerBlueNoise, blueNoiseSamplePos, 0);
+                    float bnVal = saturate(blueNoise.x);
+                    incLight += bnVal * blueNoiseLightAmount;
+                }
+
+                return incLight;
             }
 
             // ray marching, implementation mostly from Palenik
@@ -285,41 +323,41 @@ Shader "CloudShader"
                 float4 totalDensity = float4(0,0,0,0); // accumulating variable for the resulting color
                 float3 currPoint = entryPoint; // current point on the ray during ray marching
 
+                // effect of blue noise
+                if (useBlueNoiseRay)
+                {
+                    float2 blueNoiseSamplePos = float2(entryPoint.x, entryPoint.y);
+                    float4 blueNoise = BlueNoise.SampleLevel(samplerBlueNoise, blueNoiseSamplePos, 0);
+                    float bnVal = saturate((blueNoise.x + blueNoise.y + blueNoise.z)/3);
+                    currPoint += rayDir *  ((bnVal* blueNoiseRayAmount - 0.5) * stepSize);
+                }
+
+                // the raymarching algorithm
                 while (isInsideBox(currPoint, rayDir))
                 {
                     float density = getDensity(currPoint); //density = color that is sampled from the noise texture
                     if (density > 0)
                     {
                         float incLight = 0;
-                        float phaseVal = 1;
                         if (useLight)
-                        {
-                            // use the light marching algorithm to get the light from the light source
-                            incLight = getIncidentLighting(currPoint, rayDir);
-                            // compute the value of the phase function only if desired
-                            if (henyeyRatio > 0)
-                            {
-                                float3 lightVector = currPoint - float3(lightPosition.x, lightPosition.y, lightPosition.z);
-                                lightVector = lightVector / length(lightVector);
-                                float cosAngle = dot(rayDir, lightVector);
-                                phaseVal = phaseFunction(cosAngle);
-                            }
-                        }
+                            incLight = getIncidentLighting(currPoint, rayDir, density);
 
                         // approximate the attenuation of light with the Beer-Lambert's law
                         float deltaT = exp(-absorptionCoef * stepSize * density);
 
                         // lower the transmittance as you march further away from the viewer
                         transmittance *= deltaT;
-                        if (transmittance < 0.0001) // break if transmittance is too low to avoid performance problems
+                        if (transmittance < 0.01) // break if transmittance is too low to avoid performance problems
                             break;
 
                         // raymarching render equation, the terms that are constant aren't added here to improve performance
-                        totalDensity += density * transmittance * incLight * phaseVal;
+                        totalDensity += density * transmittance * incLight;
                     }
 
                     // take a step forward along the ray
                     currPoint += rayDir * stepSize;
+                   // stepSize*= 1.01;
+                    
                 }
                 raymarchInfo result;
                 result.transmittance = transmittance;

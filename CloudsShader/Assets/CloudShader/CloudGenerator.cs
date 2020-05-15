@@ -31,6 +31,13 @@ public class CloudGenerator : MonoBehaviour
 
     public Transform container;
 
+    // performance properties
+    public bool useBlueNoiseLight;
+    public bool useBlueNoiseRay;
+    public float blueNoiseLightAmount;
+    public float blueNoiseRayAmount;
+    public int lightMarchSteps;
+
     // shader properties
     public Material material;
     public Shader shader;
@@ -43,11 +50,36 @@ public class CloudGenerator : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        // also debugging purposes, for moving the camera
+        if(Input.GetKey(KeyCode.RightArrow))
+        {
+            transform.Translate(new Vector3(speed * Time.deltaTime,0,0));
+        }
+        if(Input.GetKey(KeyCode.LeftArrow))
+        {
+            transform.Translate(new Vector3(-speed * Time.deltaTime,0,0));
+        }
+        if(Input.GetKey(KeyCode.DownArrow))
+        {
+            transform.Translate(new Vector3(0,-speed * Time.deltaTime,0));
+        }
+        if(Input.GetKey(KeyCode.UpArrow))
+        {
+            transform.Translate(new Vector3(0,speed * Time.deltaTime,0));
+        }
+
+        float scroll = Input.GetAxis("Mouse ScrollWheel");
+        transform.Translate(0, 0, scroll * 100, Space.World);
     }
 
     void OnDestroy() 
     {
+    }
+
+    // for measuring fps
+    void OnGUI()
+    {
+        GUI.Label(new Rect(0, 0, 100, 100), ((int)(1.0f / Time.smoothDeltaTime)).ToString());        
     }
 
     Texture3D LoadTexture3D(string name)
@@ -75,11 +107,6 @@ public class CloudGenerator : MonoBehaviour
         {
             material = new Material (shader);
         }
-
-        // set parameters to the shader
-        Texture3D detailTexture = LoadTexture3D("DetailNoise");
-        Texture3D shapeTexture = LoadTexture3D("ShapeNoise");
-        Texture2D WeatherMap = LoadTexture2D("WeatherMap");
 
         // lighting settings
         material.SetInt("useLight", lightingType == 2 || (sceneLight == null && lightingType == 1) ? 0 : 1);
@@ -116,6 +143,11 @@ public class CloudGenerator : MonoBehaviour
         material.SetFloat("absorptionCoef", absorptionCoeff);
 
         // performance settings
+        material.SetInt("useBlueNoiseRay", useBlueNoiseRay ? 1 : 0);
+        material.SetInt("useBlueNoiseLight", useBlueNoiseLight ? 1 : 0);
+        material.SetFloat("blueNoiseRayAmount", blueNoiseRayAmount);
+        material.SetFloat("blueNoiseLightAmount", blueNoiseLightAmount);
+        material.SetInt("lightMarchSteps", lightMarchSteps);
 
         // set other cloud properties
         material.SetVector("cloudColor", color);
@@ -130,7 +162,14 @@ public class CloudGenerator : MonoBehaviour
         material.SetFloat("cloudMaxHeight", cloudMaxHeight);
         material.SetFloat("cloudBottomModifier", cloudBottomModifier);
 
+        // set all textures the shader needs
+        Texture3D detailTexture = LoadTexture3D("DetailNoise");
+        Texture3D shapeTexture = LoadTexture3D("ShapeNoise");
+        Texture2D WeatherMap = LoadTexture2D("WeatherMap");
+        Texture2D blueNoiseTex = LoadTexture2D("BlueNoise");
+
         material.SetTexture("ShapeTexture", shapeTexture);
+        material.SetTexture("BlueNoise", blueNoiseTex);
         material.SetTexture("DetailTexture", detailTexture);
         material.SetTexture("WeatherMap", WeatherMap);
         material.SetVector("containerBound_Min", container.position - container.localScale/2);

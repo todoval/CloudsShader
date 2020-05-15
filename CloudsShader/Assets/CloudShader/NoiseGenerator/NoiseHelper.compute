@@ -97,7 +97,7 @@ int inc(int num, int repeat)
 // returns the value of the Perlin function in [x,y] point
 float getPerlinValue2D(float x, float y)
 {
-    int repeat = 4;
+    int repeat = 16;
     if(repeat > 0) 
     {                                 
         x = x%repeat;
