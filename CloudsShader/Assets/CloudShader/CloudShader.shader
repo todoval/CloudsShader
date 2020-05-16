@@ -92,14 +92,15 @@ Shader "CloudShader"
             float3 lightPosition;
             float4 lightColor;
             float lightIntensity;
+            float cloudIntensity;
 
             float henyeyCoeff;
             float henyeyRatio;
+            float henyeyIntensity;
 
             float powderCoeff;
             float powderAmount;
             float powderIntensity;
-
 
             // structures used for storage of results from different functions
             struct rayContainerInfo
@@ -238,10 +239,7 @@ Shader "CloudShader"
             // implementing the phase function, cosAngle is the cosine of the angle between two vectors, g is a parameter in [-1,1]  
             float getHenyeyGreenstein(float cosAngle, float g)
             {
-                float k = 100 * 3.0 / (8.0 * 3.1415926f) * (1.0 - g * g) / (2.0 + g * g);
-	            //return k * (1.0 + cosTheta * cosTheta) / pow(abs(1.0 + g * g - 2.0 * g * cosTheta), 1.5);
-                
-                return k * (1 - g*g)/( 4*PI* sqrt(pow(abs(1 + g*g - 2*g*cosAngle), 3)));
+                return (1-g*g)/ (PI) * sqrt(pow(1 + g*g - 2*g*cosAngle, 3)); // I left the 4 factor out due to the result being too dark
             }
 
             // implementation of the phase function with user-chosen henyey coefficient and the weight/ratio of the phase function
@@ -249,7 +247,7 @@ Shader "CloudShader"
             {
                 // get the henyey-greenstein phase function
                 float hg = getHenyeyGreenstein(cosAngle, henyeyCoeff);
-                return (1 - henyeyRatio) + hg * henyeyRatio;
+                return (1 - henyeyRatio) + hg * henyeyRatio *  henyeyIntensity;
             }
 
             float powderEffect(float depth)
@@ -272,12 +270,12 @@ Shader "CloudShader"
                 // number of steps should be the same for each light march
                 float distanceToMarch = getDistance(entryPoint, pos);
                 float noOfSteps = lightMarchSteps; // light march steps set up by users
-                float stepSize = heightPercentage * distanceToMarch/noOfSteps; //distanceToMarch/(noOfSteps * 10);
+                float stepSize = heightPercentage * distanceToMarch/noOfSteps;
                 float accumDensity = 0; // accumulated density over all the ray from my point to the entry point
                 float transmittance = 1;
                 if (isInsideBox(lightPosition, dirVector))
                 {
-                    stepSize = getDistance(float3(lightPosition.x, lightPosition.y, lightPosition.z), pos)/noOfSteps;
+               //     stepSize = getDistance(float3(lightPosition.x, lightPosition.y, lightPosition.z), pos)/noOfSteps;
                     //currPoint = lightPosition;
                 }
                 while (noOfSteps > 0)
@@ -312,7 +310,7 @@ Shader "CloudShader"
                     lightVector = lightVector / length(lightVector);
                     lightVector = normalize(lightVector);
                     float cosAngle = dot(normalize(incVector), lightVector);
-                    phaseVal =  1;//phaseFunction(cosAngle);
+                    phaseVal = phaseFunction(cosAngle);
                 }
                 float incLight = phaseVal * lightFromSun;
 
@@ -321,10 +319,9 @@ Shader "CloudShader"
                 {
                     float2 blueNoiseSamplePos = float2(pos.x, pos.y);
                     float4 blueNoise = BlueNoise.SampleLevel(samplerBlueNoise, blueNoiseSamplePos, 0);
-                    float bnVal = saturate(blueNoise.x);
+                    float bnVal = saturate(blueNoise.x + blueNoise.y + blueNoise.z)/3;
                     incLight += bnVal * blueNoiseLightAmount;
                 }
-
                 return incLight;
             }
 
@@ -332,7 +329,7 @@ Shader "CloudShader"
             raymarchInfo raymarch(float3 entryPoint, float3 rayDir)
             {
                 float transmittance = 1; // the current ratio between light that was emitted and light that is received (accumulating variable for transparency)
-                float stepSize = 2;
+                float stepSize = 0.2;
                 float depth = 0;
                 float4 totalDensity = float4(0,0,0,0); // accumulating variable for the resulting color
                 float3 currPoint = entryPoint; // current point on the ray during ray marching
@@ -342,8 +339,8 @@ Shader "CloudShader"
                 {
                     float2 blueNoiseSamplePos = float2(entryPoint.x, entryPoint.y);
                     float4 blueNoise = BlueNoise.SampleLevel(samplerBlueNoise, blueNoiseSamplePos, 0);
-                    float bnVal = saturate((blueNoise.x + blueNoise.y + blueNoise.z)/3);
-                    currPoint += rayDir *  ((bnVal* blueNoiseRayAmount - 0.5) * stepSize);
+                    float bnVal = saturate(blueNoise.x + blueNoise.y + blueNoise.z)/3;
+                    currPoint += rayDir * ((bnVal* blueNoiseRayAmount - 0.5) * stepSize);
                 }
 
                 // the raymarching algorithm
@@ -365,7 +362,7 @@ Shader "CloudShader"
                             break;
 
                         // raymarching render equation, the terms that are constant aren't added here to improve performance
-                        totalDensity += density * transmittance * incLight;// * BeerPowder(depth) * 50;
+                        totalDensity += density * transmittance * incLight;
                         depth+= density * stepSize; 
                     }
 
@@ -408,7 +405,7 @@ Shader "CloudShader"
                 raymarchInfo raymarchInfo = raymarch(entryPoint, rayDir); // raymarch through the clouds and get the density and transmittance
 
                 // TO DO - eliminate bounding artifacts with depth
-                float4 result = raymarchInfo.transmittance * base + raymarchInfo.density * cloudColor;
+                float4 result = raymarchInfo.transmittance * base + raymarchInfo.density * cloudColor * cloudIntensity;
                 return result;
             }
             ENDCG

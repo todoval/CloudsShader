@@ -30,6 +30,8 @@ public class CloudScript : Editor
     private SerializedProperty powderCoeff;
     private SerializedProperty powderAmount;
     private SerializedProperty powderIntensity;
+    private SerializedProperty henyeyIntensity;
+    private SerializedProperty cloudIntensity;
 
     private void OnEnable()
     {
@@ -43,6 +45,7 @@ public class CloudScript : Editor
         container = serializedObject.FindProperty("container");
         henyeyCoeff = serializedObject.FindProperty("henyeyCoeff");
         henyeyRatio = serializedObject.FindProperty("henyeyRatio");
+        henyeyIntensity = serializedObject.FindProperty("henyeyIntensity");
         detailAmount = serializedObject.FindProperty("detailAmount");
         detailModifier = serializedObject.FindProperty("detailModifier");
         densityConstant = serializedObject.FindProperty("densityConstant");
@@ -57,6 +60,7 @@ public class CloudScript : Editor
         powderCoeff = serializedObject.FindProperty("powderCoeff");
         powderAmount = serializedObject.FindProperty("powderAmount");
         powderIntensity = serializedObject.FindProperty("powderIntensity");
+        cloudIntensity = serializedObject.FindProperty("cloudIntensity");
     }
     public override void OnInspectorGUI() 
     {
@@ -69,7 +73,7 @@ public class CloudScript : Editor
         EditorGUI.indentLevel++;
         EditorGUILayout.PropertyField(tileSize, new GUIContent("Cloud size"));
         EditorGUILayout.PropertyField(speed, new GUIContent("Speed"));
-        EditorGUILayout.PropertyField(color);
+        EditorGUILayout.PropertyField(color, new GUIContent("Color"));
         EditorGUILayout.Slider(absorptionCoeff, 0, 1, new GUIContent("Absorption"));
         EditorGUI.indentLevel--;
         EditorGUILayout.Space();
@@ -93,6 +97,7 @@ public class CloudScript : Editor
 
         EditorGUILayout.LabelField("--- Lighting ---", EditorStyles.boldLabel);
         EditorGUI.indentLevel++;
+        EditorGUILayout.PropertyField(cloudIntensity, new GUIContent("Light intensity"));
         int[] lightOptionsValues = {0,1,2};
         string[] lightOptionsDisplayed = {"Environmental", "Scene light","None"};
         lightingType.intValue = EditorGUILayout.IntPopup("Sun", lightingType.intValue, lightOptionsDisplayed, lightOptionsValues);
@@ -103,7 +108,6 @@ public class CloudScript : Editor
             EditorGUILayout.PropertyField(sceneLight, new GUIContent("Scene light"));
             EditorGUI.indentLevel--;
         }
-
         int[] phaseOptionsValues = {0,1};
         string[] phaseOptionsDisplayed = {"Henyey-Greenstein", "None"};
         phaseType.intValue = EditorGUILayout.IntPopup("Phase function", phaseType.intValue, phaseOptionsDisplayed, phaseOptionsValues);
@@ -111,6 +115,7 @@ public class CloudScript : Editor
         {
             EditorGUI.indentLevel++;
             EditorGUILayout.Slider(henyeyRatio, 0, 1, new GUIContent("Weight"));
+            EditorGUILayout.PropertyField(henyeyIntensity, new GUIContent("Intensity"));
             EditorGUILayout.Slider(henyeyCoeff, -1, 1, new GUIContent("Assymetry parameter"));
             EditorGUI.indentLevel--;
         }

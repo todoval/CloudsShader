@@ -14,9 +14,11 @@ public class CloudGenerator : MonoBehaviour
     public int phaseType;
     public float henyeyCoeff;
     public float henyeyRatio;
+    public float henyeyIntensity;
     public float powderCoeff;
     public float powderAmount;
     public float powderIntensity;
+    public float cloudIntensity;
 
     // shape properties
     public float detailAmount;
@@ -112,6 +114,7 @@ public class CloudGenerator : MonoBehaviour
         }
 
         // lighting settings
+        material.SetFloat("cloudIntensity", cloudIntensity);
         material.SetInt("useLight", lightingType == 2 || (sceneLight == null && lightingType == 1) ? 0 : 1);
         // if the user has chosen to use sun, get sun settings
         if (lightingType == 0)
@@ -143,6 +146,7 @@ public class CloudGenerator : MonoBehaviour
             henyeyRatio = 0;
         material.SetFloat("henyeyCoeff", henyeyCoeff);
         material.SetFloat("henyeyRatio", henyeyRatio);
+        material.SetFloat("henyeyIntensity", henyeyIntensity);
 
         material.SetFloat("powderCoeff", powderCoeff);
         material.SetFloat("powderAmount", powderAmount);
