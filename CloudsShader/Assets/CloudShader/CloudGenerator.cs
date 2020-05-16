@@ -14,6 +14,9 @@ public class CloudGenerator : MonoBehaviour
     public int phaseType;
     public float henyeyCoeff;
     public float henyeyRatio;
+    public float powderCoeff;
+    public float powderAmount;
+    public float powderIntensity;
 
     // shape properties
     public float detailAmount;
@@ -140,6 +143,11 @@ public class CloudGenerator : MonoBehaviour
             henyeyRatio = 0;
         material.SetFloat("henyeyCoeff", henyeyCoeff);
         material.SetFloat("henyeyRatio", henyeyRatio);
+
+        material.SetFloat("powderCoeff", powderCoeff);
+        material.SetFloat("powderAmount", powderAmount);
+        material.SetFloat("powderIntensity", powderIntensity);
+
         material.SetFloat("absorptionCoef", absorptionCoeff);
 
         // performance settings

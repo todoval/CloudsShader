@@ -207,7 +207,7 @@ Transform:
   m_GameObject: {fileID: 56149225}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 500, y: 580.0919, z: 463.0006}
+  m_LocalScale: {x: 2026.6311, y: 218.31982, z: 1387.3896}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
@@ -390,7 +390,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 705507993}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 63, y: 400, z: 0}
+  m_LocalPosition: {x: 163, y: 942, z: 0}
   m_LocalScale: {x: 3.5139, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -532,14 +532,17 @@ MonoBehaviour:
   phaseType: 1
   henyeyCoeff: -0.526
   henyeyRatio: 1
-  detailAmount: 0.622
-  detailModifier: 0.514
-  densityConstant: 0.55
-  cloudMaxHeight: 0.075
-  cloudHeightModifier: 0.616
-  cloudBottomModifier: 0.2
+  powderCoeff: 0.656
+  powderAmount: 0.689
+  powderIntensity: 29.1
+  detailAmount: 0.681
+  detailModifier: 0.541
+  densityConstant: 0.86
+  cloudMaxHeight: 0.232
+  cloudHeightModifier: 0.213
+  cloudBottomModifier: 0.0771
   absorptionCoeff: 0.663
-  tileSize: 200
+  tileSize: 500
   speed: 10
   color: {r: 1, g: 1, b: 1, a: 0}
   container: {fileID: 56149229}

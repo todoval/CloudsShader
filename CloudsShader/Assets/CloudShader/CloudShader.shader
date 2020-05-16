@@ -96,6 +96,11 @@ Shader "CloudShader"
             float henyeyCoeff;
             float henyeyRatio;
 
+            float powderCoeff;
+            float powderAmount;
+            float powderIntensity;
+
+
             // structures used for storage of results from different functions
             struct rayContainerInfo
             {
@@ -163,7 +168,7 @@ Shader "CloudShader"
             }
 
             // alter the cloud shape so that the clouds are slightly rounded towards the bottom and a lot to the top (depending on the height value from weather map)
-            float HeightAlter(float percentHeight, float heightValue)
+            float heightAlter(float percentHeight, float heightValue)
             {
                 // round a bit to the bottom, almost unpercievable
                 float bottomRound = saturate(remap(percentHeight, 0.0, cloudBottomModifier, 0.0, 1.0));
@@ -174,7 +179,7 @@ Shader "CloudShader"
             }
 
             // depending on the cloud type, make the clouds more fluffy at the bottom and more rounded at the top
-            float DensityAlter (float percentHeight, float cloudType)
+            float densityAlter (float percentHeight, float cloudType)
             {
                 // Reduce density at bottom to make more fluffy clouds, bottom is to 0.2
                 float bottomDensity = saturate(remap(percentHeight, 0.0, 0.2, 0.0, 1.0));
@@ -217,23 +222,26 @@ Shader "CloudShader"
                 detailModifier *= detailAmount * exp(-maxDetailModifier);
 
                 // sample the height and density altering functions from the current heightPercetange
-                float heightAlter = HeightAlter(heightPercentage, heightValue); //round the clouds to the bottom and to the top according to their height
-                float densityAlter = DensityAlter(heightPercentage, globalDensity); //edit the density so clouds are more fluffier at bottom and rounder at top
+                float heightModifier = heightAlter(heightPercentage, heightValue); //round the clouds to the bottom and to the top according to their height
+                float densityFactor = densityAlter(heightPercentage, globalDensity); //edit the density so clouds are more fluffier at bottom and rounder at top
                 
                 // equation from the Haggstrom paper
-                float shapeND = saturate(remap(heightAlter * shapeNoise, 1 - cloudCoverage, 1.0, 0.0, 1.0));
+                float shapeND = saturate(remap(heightModifier * shapeNoise, 1 - cloudCoverage, 1.0, 0.0, 1.0));
 
                 // subtract the detail noise from the shape noise to erode the edges
                 float finalDensity = saturate(remap(shapeND, detailModifier, 1.0, 0.0, 1.0));
 
                 // alter the density at the end, once again Haggstrom
-                return finalDensity * densityAlter;
+                return finalDensity * densityFactor;
             }
 
             // implementing the phase function, cosAngle is the cosine of the angle between two vectors, g is a parameter in [-1,1]  
             float getHenyeyGreenstein(float cosAngle, float g)
             {
-                return (1 - g*g)/( 4*PI* sqrt(pow(1 + g*g - 2*g*cosAngle, 3)));
+                float k = 100 * 3.0 / (8.0 * 3.1415926f) * (1.0 - g * g) / (2.0 + g * g);
+	            //return k * (1.0 + cosTheta * cosTheta) / pow(abs(1.0 + g * g - 2.0 * g * cosTheta), 1.5);
+                
+                return k * (1 - g*g)/( 4*PI* sqrt(pow(abs(1 + g*g - 2*g*cosAngle), 3)));
             }
 
             // implementation of the phase function with user-chosen henyey coefficient and the weight/ratio of the phase function
@@ -242,6 +250,11 @@ Shader "CloudShader"
                 // get the henyey-greenstein phase function
                 float hg = getHenyeyGreenstein(cosAngle, henyeyCoeff);
                 return (1 - henyeyRatio) + hg * henyeyRatio;
+            }
+
+            float powderEffect(float depth)
+            {
+                return (1 - exp(-powderCoeff * 2 * depth)) * powderAmount * powderIntensity + (1 - powderAmount);
             }
 
             float lightmarch(float3 pos, float heightPercentage)
@@ -272,15 +285,14 @@ Shader "CloudShader"
                     float density = getDensity(currPoint); // get the density for the current part of the ray
                     if (density > 0)
                         accumDensity += density * stepSize;
-                    
                     // take another step in the direction of the light
                     currPoint += dirVector * stepSize;
                     noOfSteps --;
                 }
+
                 // use the beer's law for the light attenuation (from the Fredrik Haggstrom paper)
                 float lightAttenuation = exp(-accumDensity * absorptionCoef);
-                float powder_effect = 1; // - exp(0.7 * accumDensity);
-                return lightAttenuation * lightIntensity * lightColor * powder_effect; // TO DO add light weights
+                return lightAttenuation * lightIntensity * lightColor;
             }
 
             float getIncidentLighting(float3 pos, float3 incVector, float currDensity)
@@ -290,6 +302,7 @@ Shader "CloudShader"
 
                 // get the light coming from sun, use the light marching algorithm
                 float lightFromSun = lightmarch(pos, heightPercentage);
+               lightFromSun *= powderEffect(currDensity);
 
                 // compute the value of the phase function only if desired
                 float phaseVal = 1;
@@ -299,7 +312,7 @@ Shader "CloudShader"
                     lightVector = lightVector / length(lightVector);
                     lightVector = normalize(lightVector);
                     float cosAngle = dot(normalize(incVector), lightVector);
-                    phaseVal = phaseFunction(cosAngle);
+                    phaseVal =  1;//phaseFunction(cosAngle);
                 }
                 float incLight = phaseVal * lightFromSun;
 
@@ -320,6 +333,7 @@ Shader "CloudShader"
             {
                 float transmittance = 1; // the current ratio between light that was emitted and light that is received (accumulating variable for transparency)
                 float stepSize = 2;
+                float depth = 0;
                 float4 totalDensity = float4(0,0,0,0); // accumulating variable for the resulting color
                 float3 currPoint = entryPoint; // current point on the ray during ray marching
 
@@ -351,7 +365,8 @@ Shader "CloudShader"
                             break;
 
                         // raymarching render equation, the terms that are constant aren't added here to improve performance
-                        totalDensity += density * transmittance * incLight;
+                        totalDensity += density * transmittance * incLight;// * BeerPowder(depth) * 50;
+                        depth+= density * stepSize; 
                     }
 
                     // take a step forward along the ray

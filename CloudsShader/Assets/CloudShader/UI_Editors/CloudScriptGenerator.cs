@@ -27,6 +27,9 @@ public class CloudScript : Editor
     private SerializedProperty blueNoiseLightAmount;
     private SerializedProperty blueNoiseRayAmount;
     private SerializedProperty lightMarchSteps;
+    private SerializedProperty powderCoeff;
+    private SerializedProperty powderAmount;
+    private SerializedProperty powderIntensity;
 
     private void OnEnable()
     {
@@ -51,6 +54,9 @@ public class CloudScript : Editor
         blueNoiseLightAmount = serializedObject.FindProperty("blueNoiseLightAmount");
         blueNoiseRayAmount = serializedObject.FindProperty("blueNoiseRayAmount");
         lightMarchSteps = serializedObject.FindProperty("lightMarchSteps");
+        powderCoeff = serializedObject.FindProperty("powderCoeff");
+        powderAmount = serializedObject.FindProperty("powderAmount");
+        powderIntensity = serializedObject.FindProperty("powderIntensity");
     }
     public override void OnInspectorGUI() 
     {
@@ -108,7 +114,13 @@ public class CloudScript : Editor
             EditorGUILayout.Slider(henyeyCoeff, -1, 1, new GUIContent("Assymetry parameter"));
             EditorGUI.indentLevel--;
         }
+        EditorGUILayout.LabelField("Powder Effect");
+        EditorGUI.indentLevel++;
+        EditorGUILayout.Slider(powderAmount, 0, 1, new GUIContent("Amount"));
+        EditorGUILayout.Slider(powderIntensity, 0, 50, new GUIContent("Intensity"));
+        EditorGUILayout.Slider(powderCoeff, 0, 1, new GUIContent("Extinction Coefficient"));
         EditorGUI.indentLevel--;
+
         EditorGUILayout.Space();
 
         EditorGUILayout.LabelField("--- Performance ---", EditorStyles.boldLabel);
