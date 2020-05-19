@@ -207,7 +207,7 @@ Transform:
   m_GameObject: {fileID: 56149225}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 17.16, z: 0}
-  m_LocalScale: {x: 40, y: 20, z: 40}
+  m_LocalScale: {x: 106.804115, y: 20, z: 91.256}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
@@ -390,12 +390,47 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 705507993}
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 25.2, z: -0}
+  m_LocalPosition: {x: -2.43, y: 14.9, z: -0}
   m_LocalScale: {x: 3.5139, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!84 &742742341
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_ForcedFallbackFormat: 4
+  m_DownscaleFallback: 0
+  serializedVersion: 3
+  m_Width: 32
+  m_Height: 32
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthFormat: 0
+  m_ColorFormat: 24
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 3
+  m_VolumeDepth: 32
 --- !u!84 &915693028
 RenderTexture:
   m_ObjectHideFlags: 0
@@ -531,27 +566,27 @@ MonoBehaviour:
   sceneLight: {fileID: 705507994}
   phaseType: 0
   henyeyCoeff: 0.507
-  henyeyRatio: 1
+  henyeyRatio: 0
   henyeyIntensity: 2
   powderCoeff: 0.205
   powderAmount: 0.705
   powderIntensity: 29.3
   cloudIntensity: 1
-  detailAmount: 0.417
-  detailModifier: 0.521
+  detailAmount: 0.515
+  detailModifier: 1
   densityConstant: 1.14
-  cloudMaxHeight: 0.674
+  cloudMaxHeight: 0.675
   cloudHeightModifier: 0.272
   cloudBottomModifier: 0.0912
   absorptionCoeff: 0.663
-  tileSize: 20
+  tileSize: 50
   speed: 1
   color: {r: 1, g: 1, b: 1, a: 0}
   container: {fileID: 56149229}
   useBlueNoiseLight: 0
-  useBlueNoiseRay: 0
-  blueNoiseLightAmount: 0.089
-  blueNoiseRayAmount: 1
+  useBlueNoiseRay: 1
+  blueNoiseLightAmount: 0.5
+  blueNoiseRayAmount: 2
   lightMarchSteps: 3
   material: {fileID: 1528695582}
   shader: {fileID: 4800000, guid: 793b6161ac488cd45b2d76408561a0ab, type: 3}
@@ -812,25 +847,25 @@ MonoBehaviour:
     type: 3}
   slicer: {fileID: 7200000, guid: a60837efe51cbc742afd865d8fea6fbf, type: 3}
   weatherMap: {fileID: 915693028}
-  detailTexture: {fileID: 1913037387}
+  detailTexture: {fileID: 742742341}
   shapeTexture: {fileID: 1189422417}
-  shapePerlinTextureResolution: 0
-  shapePerlinOctaves: 0
-  shapePerlinPersistence: 0
-  shapePerlinLacunarity: 0
-  shapePerlinFrequency: 0
-  shapeGreenChannelOctaves: 4
-  shapeBlueChannelOctaves: 2
-  shapeAlphaChannelOctaves: 8
+  shapePerlinTextureResolution: 16
+  shapePerlinOctaves: 1
+  shapePerlinPersistence: 1
+  shapePerlinLacunarity: 1
+  shapePerlinFrequency: 1
+  shapeGreenChannelOctaves: 1
+  shapeBlueChannelOctaves: 1
+  shapeAlphaChannelOctaves: 1
   shapeGreenChannelCellSize: 16
   shapeBlueChannelCellSize: 8
   shapeAlphaChannelCellSize: 16
-  detailGreenChannelOctaves: 4
+  detailGreenChannelOctaves: 2
   detailBlueChannelOctaves: 2
-  detailRedChannelOctaves: 8
-  detailGreenChannelCellSize: 16
+  detailRedChannelOctaves: 2
+  detailGreenChannelCellSize: 2
   detailBlueChannelCellSize: 2
-  detailRedChannelCellSize: 16
+  detailRedChannelCellSize: 2
   coveragePerlinTextureResolution: 512
   coveragePerlinOctaves: 1
   coveragePerlinPersistence: 0.6
@@ -1005,38 +1040,3 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!84 &1913037387
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_ForcedFallbackFormat: 4
-  m_DownscaleFallback: 0
-  serializedVersion: 3
-  m_Width: 32
-  m_Height: 32
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthFormat: 0
-  m_ColorFormat: 24
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 3
-  m_VolumeDepth: 32

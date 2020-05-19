@@ -197,6 +197,10 @@ Shader "CloudShader"
                 // get the sample position
                 float3 samplePos = (position + _Time * speed)/tileSize;
 
+                // do not even sample if outside of box
+                if (!isInsideBox(position, lightPosition))
+                    return 0;
+
                  // sample the weather texture, with red channel being coverage, green height and blue the density of the clouds
                 float2 weatherSamplePos = float2(samplePos.x, samplePos.z);
                 float4 weatherValue = WeatherMap.SampleLevel(samplerWeatherMap, weatherSamplePos, 0);
@@ -250,6 +254,7 @@ Shader "CloudShader"
                 return (1 - henyeyRatio) + hg * henyeyRatio *  henyeyIntensity;
             }
 
+            // returns the beer-powder effect value from Horizon Zero Dawn
             float powderEffect(float depth)
             {
                 return (1 - exp(-powderCoeff * 2 * depth)) * powderAmount * powderIntensity + (1 - powderAmount);
@@ -273,16 +278,14 @@ Shader "CloudShader"
                 float stepSize = heightPercentage * distanceToMarch/noOfSteps;
                 float accumDensity = 0; // accumulated density over all the ray from my point to the entry point
                 float transmittance = 1;
-                if (isInsideBox(lightPosition, dirVector))
-                {
-               //     stepSize = getDistance(float3(lightPosition.x, lightPosition.y, lightPosition.z), pos)/noOfSteps;
-                    //currPoint = lightPosition;
-                }
+
                 while (noOfSteps > 0)
                 {
                     float density = getDensity(currPoint); // get the density for the current part of the ray
                     if (density > 0)
                         accumDensity += density * stepSize;
+                    else
+                        break; //performance measures, when density is zero it usually means we're out of the clouds
                     // take another step in the direction of the light
                     currPoint += dirVector * stepSize;
                     noOfSteps --;
@@ -300,7 +303,7 @@ Shader "CloudShader"
 
                 // get the light coming from sun, use the light marching algorithm
                 float lightFromSun = lightmarch(pos, heightPercentage);
-               lightFromSun *= powderEffect(currDensity);
+                lightFromSun *= powderEffect(currDensity);
 
                 // compute the value of the phase function only if desired
                 float phaseVal = 1;
@@ -329,8 +332,7 @@ Shader "CloudShader"
             raymarchInfo raymarch(float3 entryPoint, float3 rayDir)
             {
                 float transmittance = 1; // the current ratio between light that was emitted and light that is received (accumulating variable for transparency)
-                float stepSize = 0.2;
-                float depth = 0;
+                float stepSize = 0.5;
                 float4 totalDensity = float4(0,0,0,0); // accumulating variable for the resulting color
                 float3 currPoint = entryPoint; // current point on the ray during ray marching
 
@@ -363,7 +365,6 @@ Shader "CloudShader"
 
                         // raymarching render equation, the terms that are constant aren't added here to improve performance
                         totalDensity += density * transmittance * incLight;
-                        depth+= density * stepSize; 
                     }
 
                     // take a step forward along the ray
@@ -375,7 +376,7 @@ Shader "CloudShader"
                 result.transmittance = transmittance;
                 
                 // the other part of the raymarch render equation - adding the terms that were constant so they didn't have to be added in each raymarch step
-                result.density = totalDensity * lightColor  * absorptionCoef * stepSize;
+                result.density = totalDensity * absorptionCoef * stepSize;
                 return result;
             }
 
@@ -391,20 +392,19 @@ Shader "CloudShader"
                 // get the information about the intersection of ray and the container
                 rayContainerInfo containerInfo = getRayContainerInfo(rayOrigin, rayDir);
                 
-                // return base if the box was not intersected 
-                float4 base = tex2D(_MainTex, i.uv);
-                
-                //if there are other objects, do not render clouds
+                // if there are other objects, do not render clouds
                 float nonLinearDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uv);
                 float depth = LinearEyeDepth(nonLinearDepth) * viewLength;
 
+                // return base if the box was not intersected 
+                float4 base = tex2D(_MainTex, i.uv);
                 if (!containerInfo.intersectedBox && !containerInfo.dstToBox < depth)
                     return base;
 
                 float3 entryPoint = rayOrigin + rayDir * containerInfo.dstToBox; // intersection with the cloud container
                 raymarchInfo raymarchInfo = raymarch(entryPoint, rayDir); // raymarch through the clouds and get the density and transmittance
 
-                // TO DO - eliminate bounding artifacts with depth
+                // add user defined intensity and cloud color to the already sampled density, also add the light color from the environmental sun
                 float4 result = raymarchInfo.transmittance * base + raymarchInfo.density * cloudColor * cloudIntensity;
                 return result;
             }

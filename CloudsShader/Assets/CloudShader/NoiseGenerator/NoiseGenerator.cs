@@ -127,6 +127,7 @@ public class NoiseGenerator : MonoBehaviour
     public void createDetailNoise()
     {
         prepForNewRenderTexture();
+        detailTexture = null;
         if (null == detailTexture) 
         {
             detailTexture = new RenderTexture(detailNoiseResolution, detailNoiseResolution, 0);
@@ -155,7 +156,6 @@ public class NoiseGenerator : MonoBehaviour
     public void createShapeNoise()
     {
         prepForNewRenderTexture();
-
         // create noiseTexture
         shapeTexture = null;
         if (null == shapeTexture) 

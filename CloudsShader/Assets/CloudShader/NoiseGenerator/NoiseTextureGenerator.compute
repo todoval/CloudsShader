@@ -24,8 +24,8 @@ int detailGreenOctaves;
 int detailBlueOctaves;
 int detailRedOctaves;
 
-RWTexture2D<float4> ResultWeatherMap;
 RWTexture3D<float4> Result;
+RWTexture2D<float4> ResultWeatherMap;
 RWStructuredBuffer<float3> FeaturePoints;
 
 // perlin settings
@@ -68,7 +68,7 @@ float getPerlinNoise3D (float x, float y, float z)
 }
 
 // returns the perlin noise at 3D point [id.x, id.y, id.z]
-float getPerlinNoise2D (float x, float y)
+float getPerlinNoise2D (float x, float y, int currRes)
 {
     // initialize perm array to avoid buffer overflow (by repeating the permutation array)
     resizePermArray();
@@ -79,7 +79,7 @@ float getPerlinNoise2D (float x, float y)
 	float max = 0;
 	for (int i = 0; i < coveragePerlinOctaves; i++) //compute perlin noise for each octave
 	{
-		result += getPerlinValue2D(x * coveragePerlinFrequency, y * coveragePerlinFrequency) * amplitude;
+		result += getPerlinValue2D(x * coveragePerlinFrequency, y * coveragePerlinFrequency, currRes) * amplitude;
 		max += amplitude;
 		amplitude *= coveragePerlinPersistence;
 		coveragePerlinFrequency *= coveragePerlinLacunarity;
@@ -268,7 +268,7 @@ void WeatherMapGen (uint3 id : SV_DispatchThreadID)
         float tex = (float) coveragePerlinTextureResolution;
         float x = (float) id.x / tex;
         float y = (float) id.y / tex;
-        redChannel = getPerlinNoise2D(x,y);
+        redChannel = getPerlinNoise2D(x,y,tex);
     }
 
     //compute the cloud height from 400nm to 1000nm as a value from 0 to 1
