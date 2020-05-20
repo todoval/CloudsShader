@@ -82,6 +82,9 @@ Shader "CloudShader"
             float blueNoiseLightAmount;
             float blueNoiseRayAmount;
             int lightMarchSteps;
+            float rayMarchStepSize;
+            float lightMarchDecrease;
+            float rayMarchDecrease;
 
             // container properties
             float3 containerBound_Min;
@@ -273,9 +276,19 @@ Shader "CloudShader"
                 // light marching, march from my position to the entry point
                 float3 currPoint = pos;
                 // number of steps should be the same for each light march
-                float distanceToMarch = getDistance(entryPoint, pos);
+                float distanceToMarch = getDistance(entryPoint, pos) * heightPercentage;
                 float noOfSteps = lightMarchSteps; // light march steps set up by users
-                float stepSize = heightPercentage * distanceToMarch/noOfSteps;
+                float stepDecrease = lightMarchDecrease;
+                float stepSize = distanceToMarch/noOfSteps;
+
+                // use this property to decrease the step size when marching, number of steps can be max 4
+                if (noOfSteps == 2)
+                    stepSize = distanceToMarch/(1 + stepDecrease);
+                else if (stepSize == 3)
+                    stepSize = distanceToMarch/(1 + stepDecrease + pow(stepDecrease,2));
+                else if (stepSize == 4)
+                    stepSize = distanceToMarch/(1 + stepDecrease + pow(stepDecrease,2) + pow(stepDecrease,3));
+
                 float accumDensity = 0; // accumulated density over all the ray from my point to the entry point
                 float transmittance = 1;
 
@@ -288,7 +301,8 @@ Shader "CloudShader"
                         break; //performance measures, when density is zero it usually means we're out of the clouds
                     // take another step in the direction of the light
                     currPoint += dirVector * stepSize;
-                    noOfSteps --;
+                    stepSize *= stepDecrease;
+                    noOfSteps--;
                 }
 
                 // use the beer's law for the light attenuation (from the Fredrik Haggstrom paper)
@@ -331,8 +345,17 @@ Shader "CloudShader"
             // ray marching, implementation mostly from Palenik
             raymarchInfo raymarch(float3 entryPoint, float3 rayDir)
             {
+                float stepSize = rayMarchStepSize; // user defined step size
+                // a check so that we're not dividing by zero
+                if (stepSize == 0 || rayMarchDecrease == 0)
+                {
+                    raymarchInfo result;
+                    result.transmittance = 0;
+                    result.density = 0;
+                    return result;
+                }
+
                 float transmittance = 1; // the current ratio between light that was emitted and light that is received (accumulating variable for transparency)
-                float stepSize = 0.5;
                 float4 totalDensity = float4(0,0,0,0); // accumulating variable for the resulting color
                 float3 currPoint = entryPoint; // current point on the ray during ray marching
 
@@ -369,7 +392,7 @@ Shader "CloudShader"
 
                     // take a step forward along the ray
                     currPoint += rayDir * stepSize;
-                   // stepSize*= 1.01;
+                    stepSize *= rayMarchDecrease; // user defined decrease
                     
                 }
                 raymarchInfo result;

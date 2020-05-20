@@ -32,6 +32,9 @@ public class CloudScript : Editor
     private SerializedProperty powderIntensity;
     private SerializedProperty henyeyIntensity;
     private SerializedProperty cloudIntensity;
+    private SerializedProperty lightMarchDecrease;
+    private SerializedProperty rayMarchDecrease;
+    private SerializedProperty rayMarchStepSize;
 
     private void OnEnable()
     {
@@ -61,6 +64,9 @@ public class CloudScript : Editor
         powderAmount = serializedObject.FindProperty("powderAmount");
         powderIntensity = serializedObject.FindProperty("powderIntensity");
         cloudIntensity = serializedObject.FindProperty("cloudIntensity");
+        lightMarchDecrease = serializedObject.FindProperty("lightMarchDecrease");
+        rayMarchStepSize = serializedObject.FindProperty("rayMarchStepSize");
+        rayMarchDecrease = serializedObject.FindProperty("rayMarchDecrease");
     }
     public override void OnInspectorGUI() 
     {
@@ -132,6 +138,8 @@ public class CloudScript : Editor
         EditorGUI.indentLevel++;
         EditorGUILayout.LabelField("Ray march");
         EditorGUI.indentLevel++;
+        EditorGUILayout.PropertyField(rayMarchStepSize, new GUIContent("Step size"));
+        EditorGUILayout.PropertyField(rayMarchDecrease, new GUIContent("Step size decrease"));
         useBlueNoiseRay.boolValue = EditorGUILayout.Toggle("Blue Noise",  useBlueNoiseRay.boolValue);
         if (useBlueNoiseRay.boolValue)
         {
@@ -142,7 +150,8 @@ public class CloudScript : Editor
         EditorGUI.indentLevel--;
         EditorGUILayout.LabelField("Light march");
         EditorGUI.indentLevel++;
-        EditorGUILayout.IntSlider(lightMarchSteps, 1, 4, new GUIContent("Step size"));
+        EditorGUILayout.IntSlider(lightMarchSteps, 1, 4, new GUIContent("Number of steps"));
+        EditorGUILayout.Slider(lightMarchDecrease, 1, 10, new GUIContent("Step size decrease"));
         useBlueNoiseLight.boolValue = EditorGUILayout.Toggle("Blue Noise", useBlueNoiseLight.boolValue);
         if (useBlueNoiseLight.boolValue)
         {

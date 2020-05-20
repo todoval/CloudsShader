@@ -42,6 +42,9 @@ public class CloudGenerator : MonoBehaviour
     public float blueNoiseLightAmount;
     public float blueNoiseRayAmount;
     public int lightMarchSteps;
+    public float lightMarchDecrease;
+    public float rayMarchStepSize;
+    public float rayMarchDecrease;
 
     // shader properties
     public Material material;
@@ -160,6 +163,9 @@ public class CloudGenerator : MonoBehaviour
         material.SetFloat("blueNoiseRayAmount", blueNoiseRayAmount);
         material.SetFloat("blueNoiseLightAmount", blueNoiseLightAmount);
         material.SetInt("lightMarchSteps", lightMarchSteps);
+        material.SetFloat("lightMarchDecrease", lightMarchDecrease);
+        material.SetFloat("rayMarchStepSize", rayMarchStepSize);
+        material.SetFloat("rayMarchDecrease", rayMarchDecrease);
 
         // set other cloud properties
         material.SetVector("cloudColor", color);

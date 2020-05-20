@@ -127,16 +127,13 @@ public class NoiseGenerator : MonoBehaviour
     public void createDetailNoise()
     {
         prepForNewRenderTexture();
-        detailTexture = null;
-        if (null == detailTexture) 
-        {
-            detailTexture = new RenderTexture(detailNoiseResolution, detailNoiseResolution, 0);
-            detailTexture.graphicsFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_UNorm;
-            detailTexture.volumeDepth = detailNoiseResolution;
-            detailTexture.enableRandomWrite = true;
-            detailTexture.dimension = TextureDimension.Tex3D;
-            detailTexture.Create();
-        }
+        
+        detailTexture = new RenderTexture(detailNoiseResolution, detailNoiseResolution, 0);
+        detailTexture.graphicsFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_UNorm;
+        detailTexture.volumeDepth = detailNoiseResolution;
+        detailTexture.enableRandomWrite = true;
+        detailTexture.dimension = TextureDimension.Tex3D;
+        detailTexture.Create();
 
         // call the perlin compute shader which saves the perlin texture into perlinTexture variable
         NoiseTextureGenerator.SetBuffer(detailTextureKernel, "FeaturePoints", worleyFeaturePointsBuffer);
@@ -156,17 +153,14 @@ public class NoiseGenerator : MonoBehaviour
     public void createShapeNoise()
     {
         prepForNewRenderTexture();
+
         // create noiseTexture
-        shapeTexture = null;
-        if (null == shapeTexture) 
-        {
-            shapeTexture = new RenderTexture(shapeNoiseResolution, shapeNoiseResolution, 0);
-            shapeTexture.graphicsFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_UNorm;
-            shapeTexture.volumeDepth = shapeNoiseResolution;
-            shapeTexture.enableRandomWrite = true;
-            shapeTexture.dimension = TextureDimension.Tex3D;
-            shapeTexture.Create();
-        }
+        shapeTexture = new RenderTexture(shapeNoiseResolution, shapeNoiseResolution, 0);
+        shapeTexture.graphicsFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_UNorm;
+        shapeTexture.volumeDepth = shapeNoiseResolution;
+        shapeTexture.enableRandomWrite = true;
+        shapeTexture.dimension = TextureDimension.Tex3D;
+        shapeTexture.Create();
 
         // call the worley compute shader which saves the worley texture into shapeTexture variable
         NoiseTextureGenerator.SetBuffer(shapeTextureKernel, "FeaturePoints", worleyFeaturePointsBuffer);
@@ -203,14 +197,11 @@ public class NoiseGenerator : MonoBehaviour
     public void createWeatherMap()
     {
         prepForNewRenderTexture();
-        weatherMap = null;
-        if (null == weatherMap) 
-        {
-            weatherMap = new RenderTexture(weatherMapResolution, weatherMapResolution, 0);
-            weatherMap.enableRandomWrite = true;
-            weatherMap.dimension = TextureDimension.Tex2D;
-            weatherMap.Create();
-        }
+
+        weatherMap = new RenderTexture(weatherMapResolution, weatherMapResolution, 0);
+        weatherMap.enableRandomWrite = true;
+        weatherMap.dimension = TextureDimension.Tex2D;
+        weatherMap.Create();
 
         NoiseTextureGenerator.SetBuffer(weatherMapKernel, "FeaturePoints", worleyFeaturePointsBuffer);
         NoiseTextureGenerator.SetTexture(weatherMapKernel, "ResultWeatherMap", weatherMap);

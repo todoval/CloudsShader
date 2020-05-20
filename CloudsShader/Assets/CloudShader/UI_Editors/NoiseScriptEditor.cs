@@ -129,8 +129,8 @@ public class NoiseScriptEditor : Editor
         // add octaves, add cellSize
         EditorGUI.indentLevel++;
         EditorGUILayout.IntSlider(shapeGreenChannelOctaves, 1, 8,"Octaves");
-        string[] cellOptionNames = {"1","2","4","8","16", "32"};
-        int[] cellOptionValues = {1,2,4,8,16,32};
+        string[] cellOptionNames = {"4","8","16", "32"};
+        int[] cellOptionValues = {4,8,16,32};
         shapeGreenChannelCellSize.intValue = EditorGUILayout.IntPopup("Cell Size", shapeGreenChannelCellSize.intValue,cellOptionNames, cellOptionValues);
         EditorGUI.indentLevel--;
 
