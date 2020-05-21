@@ -35,7 +35,9 @@ public class CloudScript : Editor
     private SerializedProperty lightMarchDecrease;
     private SerializedProperty rayMarchDecrease;
     private SerializedProperty rayMarchStepSize;
-
+    private SerializedProperty renderingShader;
+    private SerializedProperty blendingShader;
+    private SerializedProperty temporalUpsampling;
     private void OnEnable()
     {
         lightingType = serializedObject.FindProperty("lightingType");
@@ -67,12 +69,17 @@ public class CloudScript : Editor
         lightMarchDecrease = serializedObject.FindProperty("lightMarchDecrease");
         rayMarchStepSize = serializedObject.FindProperty("rayMarchStepSize");
         rayMarchDecrease = serializedObject.FindProperty("rayMarchDecrease");
+        renderingShader = serializedObject.FindProperty("renderingShader");
+        blendingShader = serializedObject.FindProperty("blendingShader");
+        temporalUpsampling = serializedObject.FindProperty("temporalUpsampling");
     }
     public override void OnInspectorGUI() 
     {
         serializedObject.Update();
         EditorGUILayout.Space();
         EditorGUILayout.PropertyField(container);
+        EditorGUILayout.PropertyField(renderingShader, new GUIContent("Cloud rendering shader"));
+        EditorGUILayout.PropertyField(blendingShader, new GUIContent("Environment blending shader"));
         EditorGUILayout.Space();
 
         EditorGUILayout.LabelField("--- Main ---", EditorStyles.boldLabel);
@@ -136,6 +143,7 @@ public class CloudScript : Editor
 
         EditorGUILayout.LabelField("--- Performance ---", EditorStyles.boldLabel);
         EditorGUI.indentLevel++;
+        temporalUpsampling.boolValue = EditorGUILayout.Toggle("Temporal Upsampling", temporalUpsampling.boolValue);
         EditorGUILayout.LabelField("Ray march");
         EditorGUI.indentLevel++;
         EditorGUILayout.PropertyField(rayMarchStepSize, new GUIContent("Step size"));

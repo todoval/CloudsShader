@@ -1,5 +1,5 @@
 ﻿
-Shader "CloudShader"
+Shader "CloudRendering"
 {
     Properties
     {
@@ -65,6 +65,7 @@ Shader "CloudShader"
             // texture and sampler properties
             sampler2D _MainTex;
             sampler2D _CameraDepthTexture;
+            sampler2D _LastCloudTex;
 
             SamplerState samplerShapeTexture;
             SamplerState samplerDetailTexture;
@@ -85,6 +86,8 @@ Shader "CloudShader"
             float rayMarchStepSize;
             float lightMarchDecrease;
             float rayMarchDecrease;
+            float4x4 _LastVP;
+            int useTemporalUpsampling;
 
             // container properties
             float3 containerBound_Min;
@@ -429,7 +432,22 @@ Shader "CloudShader"
 
                 // add user defined intensity and cloud color to the already sampled density, also add the light color from the environmental sun
                 float4 result = raymarchInfo.transmittance * base + raymarchInfo.density * cloudColor * cloudIntensity;
-                return result;
+                if (useTemporalUpsampling == 0)
+                    return result;
+
+                // THIS IS NEW NEEDED TO EDIT
+
+                float3 endPoint = entryPoint + containerInfo.dstInsideBox * rayDir;
+				float4 reprojectionPoint = float4((entryPoint + endPoint) / 2,1);
+                float4 lastFrameClipCoord = mul(_LastVP, reprojectionPoint);
+                float2 lastFrameUV  = float2(lastFrameClipCoord.x / lastFrameClipCoord.w, lastFrameClipCoord.y / lastFrameClipCoord.w) * 0.5 + 0.5;
+				float4 lastFrameCol = tex2D(_LastCloudTex, lastFrameUV);    
+
+                float _TemporalBlendFactor = 0.1;
+
+				if (lastFrameUV.x < 0 || lastFrameUV.x > 1 || lastFrameUV.y < 0 || lastFrameUV.y > 1)
+				    _TemporalBlendFactor = 1;
+                return result * _TemporalBlendFactor + lastFrameCol * (1 - _TemporalBlendFactor);
             }
             ENDCG
         }
