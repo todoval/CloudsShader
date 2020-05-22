@@ -61,20 +61,36 @@ public class CloudGenerator : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        previousVP = Camera.main.projectionMatrix * Camera.main.worldToCameraMatrix;
-        cam = GetComponent<Camera>();
-        cam.depthTextureMode = DepthTextureMode.Depth;
-        cloud = new RenderTexture(1920, 1080, 24, RenderTextureFormat.Default);
-        cloudLastFrame = new RenderTexture(1920, 1080, 24, RenderTextureFormat.Default);
+        if (temporalUpsampling)
+        {
+            previousVP = Camera.main.projectionMatrix * Camera.main.worldToCameraMatrix;
+            cam = GetComponent<Camera>();
+            if (cam == null)
+            {
+                Debug.Log("Cannot use temporal upsampling without camera");
+                return;                
+            }
+            cam.depthTextureMode = DepthTextureMode.Depth;
+            cloud = new RenderTexture(1920, 1080, 24, RenderTextureFormat.Default);
+            cloudLastFrame = new RenderTexture(1920, 1080, 24, RenderTextureFormat.Default);
+        }
     }
     
     void OnEnable()
     {
-        previousVP = Camera.main.projectionMatrix * Camera.main.worldToCameraMatrix;
-        cam = GetComponent<Camera>();
-        cam.depthTextureMode = DepthTextureMode.Depth;
-        cloud = new RenderTexture(1920, 1080, 24, RenderTextureFormat.Default);
-        cloudLastFrame = new RenderTexture(1920, 1080, 24, RenderTextureFormat.Default);
+        if (temporalUpsampling)
+        {
+            previousVP = Camera.main.projectionMatrix * Camera.main.worldToCameraMatrix;
+            cam = GetComponent<Camera>();
+            if (cam == null)
+            {
+                Debug.Log("Cannot use temporal upsampling without camera");
+                return;                
+            }
+            cam.depthTextureMode = DepthTextureMode.Depth;
+            cloud = new RenderTexture(1920, 1080, 24, RenderTextureFormat.Default);
+            cloudLastFrame = new RenderTexture(1920, 1080, 24, RenderTextureFormat.Default);
+        }
     }
 
     // for measuring fps
