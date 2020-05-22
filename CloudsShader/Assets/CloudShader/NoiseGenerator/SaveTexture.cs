@@ -56,7 +56,7 @@ public class SaveTexture
         slicer.SetTexture(kernelIndex, "voxels", source);
         slicer.SetInt("layer", layer);
         slicer.SetTexture(kernelIndex, "Result", render);
-        slicer.Dispatch(kernelIndex, 16, 16, 1);
+        slicer.Dispatch(kernelIndex, resolution/8, resolution/8, 1); // as the number of threads in slicer is 8
         return render;
     }
 

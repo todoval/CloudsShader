@@ -72,10 +72,10 @@ Shader "CloudRendering"
             SamplerState samplerWeatherMap;
             SamplerState samplerBlueNoise;
 
-            Texture3D<float4> _ShapeTexture;
-            Texture3D<float4> _DetailTexture;
-            Texture2D<float4> _WeatherMap;
-            Texture2D<float4> _BlueNoise;
+            Texture3D<float4> ShapeTexture;
+            Texture3D<float4> DetailTexture;
+            Texture2D<float4> WeatherMap;
+            Texture2D<float4> BlueNoise;
 
             // performance properties
             bool _useBlueNoiseRay;
@@ -210,14 +210,14 @@ Shader "CloudRendering"
 
                  // sample the weather texture, with red channel being coverage, green height and blue the density of the clouds
                 float2 weatherSamplePos = float2(samplePos.x, samplePos.z);
-                float4 weatherValue = _WeatherMap.SampleLevel(samplerWeatherMap, weatherSamplePos, 0);
+                float4 weatherValue = WeatherMap.SampleLevel(samplerWeatherMap, weatherSamplePos, 0);
                 // get the individual values from the weather texture
                 float heightValue = weatherValue.g;
                 float globalDensity = weatherValue.b;
                 float cloudCoverage = weatherValue.r;
                 
                 // get the base shape of the clouds from the shape texture, use the perlin noise (red channel) as base
-                float4 shapeDensity = _ShapeTexture.SampleLevel(samplerShapeTexture, samplePos, 0);
+                float4 shapeDensity = ShapeTexture.SampleLevel(samplerShapeTexture, samplePos, 0);
                 float shapeNoise = shapeDensity.g * 0.625 + shapeDensity.b * 0.25 + shapeDensity.a * 0.125;
                 shapeNoise = -(1 - shapeNoise);
                 shapeNoise = remap(shapeDensity.r, shapeNoise, 1.0, 0.0, 1.0); // this is now the base cloud
@@ -226,7 +226,7 @@ Shader "CloudRendering"
                 float heightPercentage = (position.y - containerBound_Min.y) / (containerBound_Max.y - containerBound_Min.y);
 
                 // sample the detail noise that will be used to erode edges               
-                float4 detailDensity = _DetailTexture.SampleLevel(samplerDetailTexture, samplePos, 0);
+                float4 detailDensity = DetailTexture.SampleLevel(samplerDetailTexture, samplePos, 0);
                 float detailNoise = detailDensity.r * 0.625 + detailDensity.g * 0.25 + detailDensity.a * 0.125; // similar sampling to shape texture
                 // adjust the detail noise with regards to the height percentage - the lower the point is, the wispier the shapes are
                 float detailModifier = lerp (detailNoise, 1-detailNoise, saturate(heightPercentage));
@@ -338,7 +338,7 @@ Shader "CloudRendering"
                 if (_useBlueNoiseLight)
                 {
                     float2 blueNoiseSamplePos = float2(pos.x, pos.y);
-                    float4 blueNoise = _BlueNoise.SampleLevel(samplerBlueNoise, blueNoiseSamplePos, 0);
+                    float4 blueNoise = BlueNoise.SampleLevel(samplerBlueNoise, blueNoiseSamplePos, 0);
                     float bnVal = saturate(blueNoise.x + blueNoise.y + blueNoise.z)/3;
                     incLight += bnVal * _blueNoiseLightAmount;
                 }
@@ -366,7 +366,7 @@ Shader "CloudRendering"
                 if (_useBlueNoiseRay)
                 {
                     float2 blueNoiseSamplePos = float2(entryPoint.x, entryPoint.y);
-                    float4 blueNoise = _BlueNoise.SampleLevel(samplerBlueNoise, blueNoiseSamplePos, 0);
+                    float4 blueNoise = BlueNoise.SampleLevel(samplerBlueNoise, blueNoiseSamplePos, 0);
                     float bnVal = saturate(blueNoise.x + blueNoise.y + blueNoise.z)/3;
                     currPoint += rayDir * ((bnVal* _blueNoiseRayAmount - 0.5) * stepSize);
                 }

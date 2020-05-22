@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEditor;
 
-//ExecuteInEditMode,
 [ExecuteInEditMode, ImageEffectAllowedInSceneView]
 public class CloudGenerator : MonoBehaviour
 {
@@ -314,10 +313,10 @@ public class CloudGenerator : MonoBehaviour
         Texture2D WeatherMap = LoadTexture2D("WeatherMap");
         Texture2D blueNoiseTex = LoadTexture2D("BlueNoise");
 
-        renderingMaterial.SetTexture("_ShapeTexture", shapeTexture);
-        renderingMaterial.SetTexture("_BlueNoise", blueNoiseTex);
-        renderingMaterial.SetTexture("_DetailTexture", detailTexture);
-        renderingMaterial.SetTexture("_WeatherMap", WeatherMap);
+        renderingMaterial.SetTexture("ShapeTexture", shapeTexture);
+        renderingMaterial.SetTexture("BlueNoise", blueNoiseTex);
+        renderingMaterial.SetTexture("DetailTexture", detailTexture);
+        renderingMaterial.SetTexture("WeatherMap", WeatherMap);
         renderingMaterial.SetVector("containerBound_Min", container.position - container.localScale/2);
         renderingMaterial.SetVector("containerBound_Max", container.position + container.localScale/2);
 
