@@ -1,5 +1,6 @@
-﻿// Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel Slicer
+﻿#pragma kernel Slicer
+
+// used only for slicing
 
  Texture3D<float4> voxels;
  RWTexture2D<float4> Result;

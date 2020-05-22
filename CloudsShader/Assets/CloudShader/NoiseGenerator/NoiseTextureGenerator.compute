@@ -4,10 +4,12 @@
 
 #include "NoiseHelper.compute"
 
+// used for dispatching the shaders
 static const int numThreads = 8;
 static const int numGroupsShape = 16;
 static const int numGroupsDetail = 4;
 
+// parameters of the shape noise
 int shapeCellSizeGreen;
 int shapeCellSizeBlue;
 int shapeCellSizeAlpha;
@@ -15,6 +17,8 @@ int shapeCellSizeAlpha;
 int shapeGreenOctaves;
 int shapeBlueOctaves;
 int shapeAlphaOctaves;
+
+// parameters of the detail noise
 
 int detailCellSizeGreen;
 int detailCellSizeBlue;
@@ -24,11 +28,11 @@ int detailGreenOctaves;
 int detailBlueOctaves;
 int detailRedOctaves;
 
-RWTexture3D<float4> Result;
-RWTexture2D<float4> ResultWeatherMap;
-RWStructuredBuffer<float3> FeaturePoints;
+RWTexture3D<float4> Result; // result texture used both for shape and detail noise
+RWTexture2D<float4> ResultWeatherMap; // result texture used for weather map
+RWStructuredBuffer<float3> FeaturePoints; // random points given from the noise generator script
 
-// perlin settings
+// perlin settings of the shape noise
 int perlinOctaves; // 8 by default
 float perlinFrequency; // 1 by default
 float perlinPersistence; // 0.6 by default
@@ -47,7 +51,7 @@ float cloudHeight;
 float cloudType;
 
 // returns the perlin noise at 3D point [id.x, id.y, id.z]
-float getPerlinNoise3D (float x, float y, float z)
+float getPerlinNoise3D (float x, float y, float z, int currRes)
 {
     // initialize perm array to avoid buffer overflow (by repeating the permutation array)
     resizePermArray();
@@ -58,7 +62,7 @@ float getPerlinNoise3D (float x, float y, float z)
 	float max = 0;
 	for (int i = 0; i < perlinOctaves; i++) //compute perlin noise for each octave
 	{
-		result += getPerlinValue3D(x * perlinFrequency, y * perlinFrequency, z * perlinFrequency) * amplitude;
+		result += getPerlinValue3D(x * perlinFrequency, y * perlinFrequency, z * perlinFrequency, currRes) * amplitude;
 		max += amplitude;
 		amplitude *= perlinPersistence;
 		perlinFrequency *= perlinLacunarity;
@@ -84,9 +88,10 @@ float getPerlinNoise2D (float x, float y, int currRes)
 		amplitude *= coveragePerlinPersistence;
 		coveragePerlinFrequency *= coveragePerlinLacunarity;
 	}
-    return result;
+    return result/max;
 }
 
+// get the worley noise value
 float getWorleyValue(uint3 id, uint cellSize, uint textureResolution)
 {
     int noOfCells = textureResolution / cellSize;
@@ -195,11 +200,13 @@ float getWorleyValue(uint3 id, uint cellSize, uint textureResolution)
     return bestDistance;
 }
 
+// worley noise for multiple octaves
 float getWorleyNoise(uint3 id, uint cellSize, uint textureResolution, uint octaves)
 {
     if (octaves == 1)
         return getWorleyValue(uint3(id.x, id.y, id.z), cellSize, textureResolution);
 
+    // set worley noise settings
 	float result = 0;
 	float worleyFrequency = 1;
     float worleyPersistence = 0.6;
@@ -215,15 +222,14 @@ float getWorleyNoise(uint3 id, uint cellSize, uint textureResolution, uint octav
 		worleyFrequency *= worleyLacunarity;
 	}
 
-	float res = result / max;
-    return result;
+	float res = result/max;
+    return res;
 }
 
 [numthreads(numThreads,numThreads,numThreads)]
 void ShapeTextureGen (uint3 id : SV_DispatchThreadID)
 {
-    // we create one feature point for one cell, and for all the other points we compute the distances to these feature points
-    int resolution = numThreads * numGroupsShape;
+    int resolution = numThreads * numGroupsShape; //resolution of the shape texture
     
     float worleyChannelGreen = getWorleyNoise(id, shapeCellSizeGreen, resolution, shapeGreenOctaves);
     float worleyChannelBlue = getWorleyNoise(id, shapeCellSizeBlue, resolution, shapeBlueOctaves);
@@ -237,16 +243,16 @@ void ShapeTextureGen (uint3 id : SV_DispatchThreadID)
     float x = (float) id.x / tex;
     float y = (float) id.y / tex;
     float z = (float) id.z / tex;
-    float perlinChannelRed = getPerlinValue3D(x, y, z);
+    float perlinChannelRed = getPerlinNoise3D(x, y, z, tex);
 
-    // invert the worley noise
+    // invert worley noise and return perlin noise in the red channel
     Result[id.xyz] = float4(1,1,1,1) - float4(1 - perlinChannelRed, worleyChannelGreen,worleyChannelBlue,  worleyChannelAlpha);
 }
 
 [numthreads(numThreads,numThreads,numThreads)]
 void DetailTextureGen (uint3 id : SV_DispatchThreadID)
 {
-    int resolution = numThreads * numGroupsDetail;
+    int resolution = numThreads * numGroupsDetail; // get the resolution of the detail texture
     
     float worleyChannelGreen = getWorleyNoise(id, detailCellSizeGreen, resolution, detailGreenOctaves);
     float worleyChannelBlue = getWorleyNoise(id, detailCellSizeBlue, resolution, detailBlueOctaves);
@@ -275,5 +281,5 @@ void WeatherMapGen (uint3 id : SV_DispatchThreadID)
     float greenChannel = (cloudHeight - 400) / 600;
     // cloud type is already from 0 to 1
     float blueChannel = cloudType;
-    ResultWeatherMap[id.xy] = float4(redChannel,greenChannel,blueChannel,1);
+    ResultWeatherMap[id.xy] = float4(redChannel, greenChannel, blueChannel, 1);
 }

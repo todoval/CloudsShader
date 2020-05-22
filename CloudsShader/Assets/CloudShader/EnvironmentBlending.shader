@@ -1,5 +1,7 @@
 ﻿Shader "EnvironmentBlending"
 {
+    // implementation from riverluara's github: https://github.com/riverluara/VolumetricCloudRendering/
+
     Properties
     {
 		_MainTex("Texture", 2D) = "white" {}
@@ -53,14 +55,15 @@
 
             fixed4 frag (v2f i) : SV_Target
             {
-				half4 col = tex2D(_MainTex, i.uv);
-				float4 cloud = tex2D(_CloudTex, i.uv);
+				half4 base = tex2D(_MainTex, i.uv); // sample base color
+				float4 cloud = tex2D(_CloudTex, i.uv); // sample the clouds from the given texture
 				float d = Linear01Depth(tex2D(_CameraDepthTexture, i.uv_depth));
-				if (cloud.a > 0.97) cloud.a = 1;
+				if (cloud.a > 0.97)
+                    cloud.a = 1;
 				if (d == 1)
-					return lerp(col, cloud, 1 - cloud.a);
+					return lerp(base, cloud, 1 - cloud.a); // the blending of the two layers
 				else
-					return col;
+					return base; // if we're not in the clouds, return only base
             }
             ENDCG
         }

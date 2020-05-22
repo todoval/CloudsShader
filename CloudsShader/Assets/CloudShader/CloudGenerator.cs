@@ -51,7 +51,7 @@ public class CloudGenerator : MonoBehaviour
     private RenderTexture cloudLastFrame;
     private RenderTexture cloud;
     public bool temporalUpsampling;
-    private bool upsamplingBoolChanged;
+    public float blendingCoeff;
 
     // shader properties
     public Material renderingMaterial;
@@ -71,7 +71,6 @@ public class CloudGenerator : MonoBehaviour
         cam.depthTextureMode = DepthTextureMode.Depth;
         cloud = new RenderTexture(1920, 1080, 24, RenderTextureFormat.Default);
         cloudLastFrame = new RenderTexture(1920, 1080, 24, RenderTextureFormat.Default);
-        upsamplingBoolChanged = false;
     }
 
     void UpdateDrag()
@@ -156,50 +155,54 @@ public class CloudGenerator : MonoBehaviour
         GUI.Label(new Rect(0, 0, 100, 100), ((int)(1.0f / Time.smoothDeltaTime)).ToString());        
     }
 
+    // customized blit used only when doing temporal upsampling
     void CustomBlit(RenderTexture source, RenderTexture dest, Material mat)
     {
-        float camFov = cam.fieldOfView;
+        float fieldOfView = cam.fieldOfView;
         float camAspect = cam.aspect;
 
-        float fovWHalf = camFov * 0.5f;
+        float halfFOV = fieldOfView/2;
 
         var cameraTransform = cam.transform;
-        Vector3 toRight = camAspect * Mathf.Tan(fovWHalf * Mathf.Deg2Rad) * cameraTransform.right;
-        Vector3 toTop = Mathf.Tan(fovWHalf * Mathf.Deg2Rad) * cameraTransform.up;
-        //direction of rays
+        Vector3 toRight = camAspect * Mathf.Tan(halfFOV * Mathf.Deg2Rad) * cameraTransform.right;
+        Vector3 toTop = Mathf.Tan(halfFOV * Mathf.Deg2Rad) * cameraTransform.up;
+        
+        // direction of rays
         var forward = cameraTransform.forward;
         Vector3 topLeft = forward - toRight + toTop;
         Vector3 topRight = forward + toRight + toTop;
         Vector3 bottomRight = forward + toRight - toTop;
         Vector3 bottomLeft = forward - toRight - toTop;
 
-        RenderTexture.active = dest;
+        // when applying an image effect we shade a Quad with our rendered screen output (rendertexture) on it
+        // this part is from vhttp://www.thelazydev.net/82_/shading-toolbox-3-unity-depth-buffer-and-depth-blur/
+        RenderTexture.active = dest; // set the destination renderTexture as active
 
-        GL.PushMatrix();
-        GL.LoadOrtho();
+        GL.PushMatrix(); // calculate MVP Matrix and push it to the GL stack
+        GL.LoadOrtho(); // set up Ortho-Perspective Transform
 
-        mat.SetPass(0);
+        mat.SetPass(0); // start the first rendering pass
 
-        GL.Begin(GL.QUADS);
+        GL.Begin(GL.QUADS); // begin rendering quads
 
-        GL.MultiTexCoord2(0, 0.0f, 0.0f);
+        GL.MultiTexCoord2(0, 0.0f, 0.0f); // prepare input struct (Texcoord0 (UV's)) for this vertex
         GL.MultiTexCoord(1, bottomLeft);
-        GL.Vertex3(0.0f, 0.0f, 0.0f);
+        GL.Vertex3(0.0f, 0.0f, 0.0f); // finalize and submit this vertex for rendering (bottom left)
 
-        GL.MultiTexCoord2(0, 1.0f, 0.0f);
+        GL.MultiTexCoord2(0, 1.0f, 0.0f); // prepare input struct (Texcoord0 (UV's)) for this vertex
         GL.MultiTexCoord(1, bottomRight);
-        GL.Vertex3(1.0f, 0.0f, 0.0f);
+        GL.Vertex3(1.0f, 0.0f, 0.0f); // finalize and submit this vertex for rendering (bottom right)
 
-        GL.MultiTexCoord2(0, 1.0f, 1.0f);
+        GL.MultiTexCoord2(0, 1.0f, 1.0f); // prepare input struct (Texcoord0 (UV's)) for this vertex
         GL.MultiTexCoord(1, topRight);
-        GL.Vertex3(1.0f, 1.0f, 0.0f);
+        GL.Vertex3(1.0f, 1.0f, 0.0f); // finalize and submit this vertex for rendering (top right)
 
-        GL.MultiTexCoord2(0, 0.0f, 1.0f);
+        GL.MultiTexCoord2(0, 0.0f, 1.0f); // prepare input struct (Texcoord0 (UV's)) for this vertex
         GL.MultiTexCoord(1, topLeft);
-        GL.Vertex3(0.0f, 1.0f, 0.0f);
+        GL.Vertex3(0.0f, 1.0f, 0.0f); // finalize and submit this vertex for rendering (top left)
 
-        GL.End();
-        GL.PopMatrix();
+        GL.End(); // finalize drawing the Quad
+        GL.PopMatrix(); // pop the matrices off the stack
     }
 
     Texture3D LoadTexture3D(string name)
@@ -216,6 +219,7 @@ public class CloudGenerator : MonoBehaviour
 
     void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
+        // first check whether all settings are alright, if not return and output an error
         if (renderingShader == null)
         {
             Debug.Log("Cloud Rendering Shader missing");
@@ -241,68 +245,68 @@ public class CloudGenerator : MonoBehaviour
             blendingMaterial = new Material(blendingShader);
 
         // lighting settings
-        renderingMaterial.SetFloat("cloudIntensity", cloudIntensity);
-        renderingMaterial.SetInt("useLight", lightingType == 2 || (sceneLight == null && lightingType == 1) ? 0 : 1);
+        renderingMaterial.SetFloat("_absorptionCoef", absorptionCoeff);
+        renderingMaterial.SetFloat("_cloudIntensity", cloudIntensity);
+        renderingMaterial.SetInt("_useLight", lightingType == 2 || (sceneLight == null && lightingType == 1) ? 0 : 1);
         // if the user has chosen to use sun, get sun settings
         if (lightingType == 0)
         {
             Light sun = RenderSettings.sun;
             if (sun.isActiveAndEnabled)
             {
-                renderingMaterial.SetVector("lightPosition", sun.transform.position);
-                renderingMaterial.SetVector("lightColor", sun.color);
-                renderingMaterial.SetFloat("lightIntensity", sun.intensity);
+                renderingMaterial.SetVector("_lightPosition", sun.transform.position);
+                renderingMaterial.SetVector("_lightColor", sun.color);
+                renderingMaterial.SetFloat("_lightIntensity", sun.intensity);
             }
             else
-                renderingMaterial.SetInt("useLight", 0);
+                renderingMaterial.SetInt("_useLight", 0);
         }
         else if (lightingType == 1 && sceneLight != null) // otherwise get the settings of the light the user has set
         {
             if (sceneLight.isActiveAndEnabled)
             {
-                renderingMaterial.SetVector("lightPosition", sceneLight.transform.position);
-                renderingMaterial.SetVector("lightColor", sceneLight.color);
-                renderingMaterial.SetFloat("lightIntensity", sceneLight.intensity);
+                renderingMaterial.SetVector("_lightPosition", sceneLight.transform.position);
+                renderingMaterial.SetVector("_lightColor", sceneLight.color);
+                renderingMaterial.SetFloat("_lightIntensity", sceneLight.intensity);
             }
             else
-                renderingMaterial.SetInt("useLight", 0);
+                renderingMaterial.SetInt("_useLight", 0);
         }
 
         // phase function settings
         if (phaseType == 1)
             henyeyRatio = 0;
-        renderingMaterial.SetFloat("henyeyCoeff", henyeyCoeff);
-        renderingMaterial.SetFloat("henyeyRatio", henyeyRatio);
-        renderingMaterial.SetFloat("henyeyIntensity", henyeyIntensity);
+        renderingMaterial.SetFloat("_henyeyCoeff", henyeyCoeff);
+        renderingMaterial.SetFloat("_henyeyRatio", henyeyRatio);
+        renderingMaterial.SetFloat("_henyeyIntensity", henyeyIntensity);
 
-        renderingMaterial.SetFloat("powderCoeff", powderCoeff);
-        renderingMaterial.SetFloat("powderAmount", powderAmount);
-        renderingMaterial.SetFloat("powderIntensity", powderIntensity);
-
-        renderingMaterial.SetFloat("absorptionCoef", absorptionCoeff);
+        // powder effect settings
+        renderingMaterial.SetFloat("_powderCoeff", powderCoeff);
+        renderingMaterial.SetFloat("_powderAmount", powderAmount);
+        renderingMaterial.SetFloat("_powderIntensity", powderIntensity);
 
         // performance settings
-        renderingMaterial.SetInt("useBlueNoiseRay", useBlueNoiseRay ? 1 : 0);
-        renderingMaterial.SetInt("useBlueNoiseLight", useBlueNoiseLight ? 1 : 0);
-        renderingMaterial.SetFloat("blueNoiseRayAmount", blueNoiseRayAmount);
-        renderingMaterial.SetFloat("blueNoiseLightAmount", blueNoiseLightAmount);
-        renderingMaterial.SetInt("lightMarchSteps", lightMarchSteps);
-        renderingMaterial.SetFloat("lightMarchDecrease", lightMarchDecrease);
-        renderingMaterial.SetFloat("rayMarchStepSize", rayMarchStepSize);
-        renderingMaterial.SetFloat("rayMarchDecrease", rayMarchDecrease);
+        renderingMaterial.SetInt("_useBlueNoiseRay", useBlueNoiseRay ? 1 : 0);
+        renderingMaterial.SetInt("_useBlueNoiseLight", useBlueNoiseLight ? 1 : 0);
+        renderingMaterial.SetFloat("_blueNoiseRayAmount", blueNoiseRayAmount);
+        renderingMaterial.SetFloat("_blueNoiseLightAmount", blueNoiseLightAmount);
+        renderingMaterial.SetInt("_lightMarchSteps", lightMarchSteps);
+        renderingMaterial.SetFloat("_lightMarchDecrease", lightMarchDecrease);
+        renderingMaterial.SetFloat("_rayMarchStepSize", rayMarchStepSize);
+        renderingMaterial.SetFloat("_rayMarchDecrease", rayMarchDecrease);
 
         // set other cloud properties
-        renderingMaterial.SetVector("cloudColor", color);
-        renderingMaterial.SetFloat("speed", speed);
-        renderingMaterial.SetFloat("tileSize", tileSize);
+        renderingMaterial.SetVector("_cloudColor", color);
+        renderingMaterial.SetFloat("_speed", speed);
+        renderingMaterial.SetFloat("_tileSize", tileSize);
 
         // shape properties
-        renderingMaterial.SetFloat("detailAmount", detailAmount);
-        renderingMaterial.SetFloat("maxDetailModifier", detailModifier);
-        renderingMaterial.SetFloat("densityConstant", densityConstant);
-        renderingMaterial.SetFloat("cloudHeightModifier", cloudHeightModifier);
-        renderingMaterial.SetFloat("cloudMaxHeight", cloudMaxHeight);
-        renderingMaterial.SetFloat("cloudBottomModifier", cloudBottomModifier);
+        renderingMaterial.SetFloat("_detailAmount", detailAmount);
+        renderingMaterial.SetFloat("_maxDetailModifier", detailModifier);
+        renderingMaterial.SetFloat("_densityConstant", densityConstant);
+        renderingMaterial.SetFloat("_cloudHeightModifier", cloudHeightModifier);
+        renderingMaterial.SetFloat("_cloudMaxHeight", cloudMaxHeight);
+        renderingMaterial.SetFloat("_cloudBottomModifier", cloudBottomModifier);
 
         // set all textures the shader needs
         Texture3D detailTexture = LoadTexture3D("DetailNoise");
@@ -310,13 +314,16 @@ public class CloudGenerator : MonoBehaviour
         Texture2D WeatherMap = LoadTexture2D("WeatherMap");
         Texture2D blueNoiseTex = LoadTexture2D("BlueNoise");
 
-        renderingMaterial.SetTexture("ShapeTexture", shapeTexture);
-        renderingMaterial.SetTexture("BlueNoise", blueNoiseTex);
-        renderingMaterial.SetTexture("DetailTexture", detailTexture);
-        renderingMaterial.SetTexture("WeatherMap", WeatherMap);
+        renderingMaterial.SetTexture("_ShapeTexture", shapeTexture);
+        renderingMaterial.SetTexture("_BlueNoise", blueNoiseTex);
+        renderingMaterial.SetTexture("_DetailTexture", detailTexture);
+        renderingMaterial.SetTexture("_WeatherMap", WeatherMap);
         renderingMaterial.SetVector("containerBound_Min", container.position - container.localScale/2);
         renderingMaterial.SetVector("containerBound_Max", container.position + container.localScale/2);
-        renderingMaterial.SetInt("useTemporalUpsampling", temporalUpsampling ? 1 : 0);
+
+        // set the temporal upsampling properties
+        renderingMaterial.SetInt("_useTemporalUpsampling", temporalUpsampling ? 1 : 0);
+        renderingMaterial.SetFloat("_temporalBlendFactor", blendingCoeff);
 
         if (temporalUpsampling)
         {
@@ -330,6 +337,6 @@ public class CloudGenerator : MonoBehaviour
             previousVP = Camera.main.projectionMatrix * Camera.main.worldToCameraMatrix; // set the new projection matrix
         }
         else
-            Graphics.Blit(source, destination, renderingMaterial); // blend the cloud texture with background
+            Graphics.Blit(source, destination, renderingMaterial); // only do a simple one pass rendering
     }
 }

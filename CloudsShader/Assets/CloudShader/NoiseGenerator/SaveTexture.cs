@@ -33,6 +33,8 @@ public class SaveTexture
                 for (int j = 0; j < resolution; j++)
                     outputPixels[i + j * resolution + k * resolution * resolution] = layerPixels[i + j * resolution];
         }
+
+        // save the texture into the resources folder
         output.SetPixels(outputPixels);
         output.Apply();
         AssetDatabase.CreateAsset(output, "Assets/Resources/" + textureName + ".asset");

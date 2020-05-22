@@ -1,4 +1,6 @@
-﻿static float lerp(float a, float b, float x)
+﻿
+// interpolation function
+static float lerp(float a, float b, float x)
 {
 	return a + x * (b - a);
 }
@@ -10,7 +12,7 @@ static float fade(float t)
     return t * t * t * (t * (6 * t - 15) + 10);
 }
 
-/* create a gradient vector from the hash
+/* create a gradient vector from the hash for 3D perlin noise
  * return the dot product between the gradient vector and [x,y,z] vector (the location vector of the current vertex)*/
 static float grad(int hash, float x, float y, float z)
 {
@@ -36,6 +38,7 @@ static float grad(int hash, float x, float y, float z)
     }
 }
 
+// gradient function for 2D perlin noise
 static float grad(int hash, double x, double y)
 {
     switch(hash & 0xF)
@@ -86,6 +89,7 @@ static void resizePermArray()
         perm[i] = permutation[i % 256];
 }
 
+// increase function with repeat for tiling the texture
 int inc(int num, int repeat) 
 {
     num++;
@@ -97,7 +101,7 @@ int inc(int num, int repeat)
 // returns the value of the Perlin function in [x,y] point
 float getPerlinValue2D(float x, float y, int res)
 {
-    int repeat = 512/res;
+    int repeat = 512/res; // for tiling the texture
     if(repeat > 0) 
     {                                 
         x = x%repeat;
@@ -136,13 +140,13 @@ float getPerlinValue2D(float x, float y, int res)
     float x2 = lerp(dot3, dot4, u);
     float y1 = lerp(x1, x2, v);
     
-    return (y1+1)/2;
+    return (y1+1)/2; // so the perlin value is between 0 and 1
 }
 
 // returns the value of the Perlin function in [x,y,z] point
-float getPerlinValue3D(float x, float y, float z)
+float getPerlinValue3D(float x, float y, float z, int res)
 {
-    int repeat = 8;
+    int repeat = 128/res; // for tiling purposes
     if(repeat > 0) 
     {                                 
         x = x%repeat;
@@ -203,5 +207,5 @@ float getPerlinValue3D(float x, float y, float z)
     // interpolate the existing ones by the z coordinate (interpolate with w vector)
     float z1 = lerp(y1, y2, w);
 
-    return (z1+1)/2;
+    return (z1+1)/2; // so the perlin value is between 0 and 1
 }
