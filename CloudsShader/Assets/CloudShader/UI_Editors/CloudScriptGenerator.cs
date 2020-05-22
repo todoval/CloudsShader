@@ -118,17 +118,17 @@ public class CloudScript : Editor
         // the crucial parameters that need to be set by the user
         EditorGUILayout.Space();
         EditorGUILayout.PropertyField(container, new GUIContent("Container"));
-        EditorGUILayout.PropertyField(renderingShader, new GUIContent("Cloud rendering shader"));
-        EditorGUILayout.PropertyField(blendingShader, new GUIContent("Environment blending shader"));
+        EditorGUILayout.PropertyField(renderingShader, new GUIContent("Cloud Rendering Shader"));
+        EditorGUILayout.PropertyField(blendingShader, new GUIContent("Environment Blending Shader"));
         EditorGUILayout.Space();
 
         // the main properties of the cloud shader
         EditorGUILayout.LabelField("--- Main ---", EditorStyles.boldLabel);
         EditorGUI.indentLevel++;
-        EditorGUILayout.PropertyField(tileSize, new GUIContent("Cloud size"));
+        EditorGUILayout.PropertyField(tileSize, new GUIContent("Cloud Size"));
         EditorGUILayout.PropertyField(speed, new GUIContent("Speed"));
         EditorGUILayout.PropertyField(color, new GUIContent("Color"));
-        EditorGUILayout.Slider(absorptionCoeff, 0, 1, new GUIContent("Absorption"));
+        EditorGUILayout.Slider(absorptionCoeff, 0, 1, new GUIContent("Absorption Coefficient"));
         EditorGUI.indentLevel--;
         EditorGUILayout.Space();
 
@@ -153,27 +153,27 @@ public class CloudScript : Editor
         // lighting properties
         EditorGUILayout.LabelField("--- Lighting ---", EditorStyles.boldLabel);
         EditorGUI.indentLevel++;
-        EditorGUILayout.PropertyField(cloudIntensity, new GUIContent("Light intensity"));
+        EditorGUILayout.PropertyField(cloudIntensity, new GUIContent("Light Intensity"));
         int[] lightOptionsValues = {0,1,2};
-        string[] lightOptionsDisplayed = {"Environmental", "Scene light","None"};
+        string[] lightOptionsDisplayed = {"Environmental", "Scene Light","None"};
         lightingType.intValue = EditorGUILayout.IntPopup("Sun", lightingType.intValue, lightOptionsDisplayed, lightOptionsValues);
         // if scene light is set, let the user pick which light he wants to use
         if (lightingType.intValue == 1)
         {
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(sceneLight, new GUIContent("Scene light"));
+            EditorGUILayout.PropertyField(sceneLight, new GUIContent("Scene Light"));
             EditorGUI.indentLevel--;
         }
         int[] phaseOptionsValues = {0,1};
         string[] phaseOptionsDisplayed = {"Henyey-Greenstein", "None"};
-        phaseType.intValue = EditorGUILayout.IntPopup("Phase function", phaseType.intValue, phaseOptionsDisplayed, phaseOptionsValues);
+        phaseType.intValue = EditorGUILayout.IntPopup("Phase Function", phaseType.intValue, phaseOptionsDisplayed, phaseOptionsValues);
         // if the phase function is chosen, choose its properties
         if (phaseType.intValue == 0)
         {
             EditorGUI.indentLevel++;
             EditorGUILayout.Slider(henyeyRatio, 0, 1, new GUIContent("Weight"));
             EditorGUILayout.PropertyField(henyeyIntensity, new GUIContent("Intensity"));
-            EditorGUILayout.Slider(henyeyCoeff, -1, 1, new GUIContent("Assymetry parameter"));
+            EditorGUILayout.Slider(henyeyCoeff, -1, 1, new GUIContent("Assymetry Parameter"));
             EditorGUI.indentLevel--;
         }
         EditorGUILayout.LabelField("Powder Effect");
@@ -182,15 +182,16 @@ public class CloudScript : Editor
         EditorGUILayout.Slider(powderIntensity, 0, 50, new GUIContent("Intensity"));
         EditorGUILayout.Slider(powderCoeff, 0, 1, new GUIContent("Extinction Coefficient"));
         EditorGUI.indentLevel--;
+        EditorGUI.indentLevel--;
         EditorGUILayout.Space();
 
         // the performance parameters 
         EditorGUILayout.LabelField("--- Performance ---", EditorStyles.boldLabel);
         EditorGUI.indentLevel++;
-        EditorGUILayout.LabelField("Ray march");
+        EditorGUILayout.LabelField("Ray March");
         EditorGUI.indentLevel++;
-        EditorGUILayout.PropertyField(rayMarchStepSize, new GUIContent("Step size"));
-        EditorGUILayout.PropertyField(rayMarchDecrease, new GUIContent("Step size decrease"));
+        EditorGUILayout.PropertyField(rayMarchStepSize, new GUIContent("Step Size"));
+        EditorGUILayout.PropertyField(rayMarchDecrease, new GUIContent("Step Size Decrease"));
         useBlueNoiseRay.boolValue = EditorGUILayout.Toggle("Blue Noise",  useBlueNoiseRay.boolValue);
         // if blue noise for raymarch is chosen, choose its settings
         if (useBlueNoiseRay.boolValue)
@@ -200,10 +201,10 @@ public class CloudScript : Editor
             EditorGUI.indentLevel--;
         }
         EditorGUI.indentLevel--;
-        EditorGUILayout.LabelField("Light march");
+        EditorGUILayout.LabelField("Light March");
         EditorGUI.indentLevel++;
-        EditorGUILayout.IntSlider(lightMarchSteps, 1, 4, new GUIContent("Number of steps"));
-        EditorGUILayout.Slider(lightMarchDecrease, 1, 10, new GUIContent("Step size decrease"));
+        EditorGUILayout.IntSlider(lightMarchSteps, 1, 4, new GUIContent("Step Count"));
+        EditorGUILayout.Slider(lightMarchDecrease, 1, 10, new GUIContent("Step Size Decrease"));
         useBlueNoiseLight.boolValue = EditorGUILayout.Toggle("Blue Noise", useBlueNoiseLight.boolValue);
         // if blue noise for lightmarch is chosen, choose its settings
         if (useBlueNoiseLight.boolValue)
@@ -213,7 +214,6 @@ public class CloudScript : Editor
             EditorGUI.indentLevel--;
         }
         EditorGUI.indentLevel--;
-        EditorGUI.indentLevel--;
         temporalUpsampling.boolValue = EditorGUILayout.Toggle("Temporal Upsampling", temporalUpsampling.boolValue);
         // if temporal upsampling is chosen, choose its settings
         if (temporalUpsampling.boolValue)
@@ -222,6 +222,7 @@ public class CloudScript : Editor
             EditorGUILayout.Slider(blendingCoeff, 0, 1, new GUIContent("Blending Coefficient"));
             EditorGUI.indentLevel--;
         }
+        EditorGUI.indentLevel--;
 
         serializedObject.ApplyModifiedProperties();
         

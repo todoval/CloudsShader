@@ -139,7 +139,7 @@ public class NoiseGenerator : MonoBehaviour
 
         // call the perlin compute shader which saves the perlin texture into perlinTexture variable
         NoiseTextureGenerator.SetBuffer(detailTextureKernel, "FeaturePoints", worleyFeaturePointsBuffer);
-        NoiseTextureGenerator.SetTexture(detailTextureKernel, "Result", detailTexture);
+        NoiseTextureGenerator.SetTexture(detailTextureKernel, "ResultDetail", detailTexture);
 
         // set the properties of the worley cells
         NoiseTextureGenerator.SetInt("detailCellSizeGreen", detailGreenChannelCellSize);
@@ -166,7 +166,7 @@ public class NoiseGenerator : MonoBehaviour
         shapeTexture.Create();
 
         NoiseTextureGenerator.SetBuffer(shapeTextureKernel, "FeaturePoints", worleyFeaturePointsBuffer);
-        NoiseTextureGenerator.SetTexture(shapeTextureKernel, "Result", shapeTexture);
+        NoiseTextureGenerator.SetTexture(shapeTextureKernel, "ResultShape", shapeTexture);
 
         // set the properties of the worley cells
         NoiseTextureGenerator.SetInt("shapeCellSizeGreen", shapeGreenChannelCellSize);

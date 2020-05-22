@@ -28,7 +28,8 @@ int detailGreenOctaves;
 int detailBlueOctaves;
 int detailRedOctaves;
 
-RWTexture3D<float4> Result; // result texture used both for shape and detail noise
+RWTexture3D<float4> ResultShape; // result texture used both for shape noise
+RWTexture3D<float4> ResultDetail; // result texture used both for detail noise
 RWTexture2D<float4> ResultWeatherMap; // result texture used for weather map
 RWStructuredBuffer<float3> FeaturePoints; // random points given from the noise generator script
 
@@ -71,7 +72,7 @@ float getPerlinNoise3D (float x, float y, float z, int currRes)
     return res;
 }
 
-// returns the perlin noise at 3D point [id.x, id.y, id.z]
+// returns the perlin noise at 2D point [id.x, id.y]
 float getPerlinNoise2D (float x, float y, int currRes)
 {
     // initialize perm array to avoid buffer overflow (by repeating the permutation array)
@@ -94,7 +95,7 @@ float getPerlinNoise2D (float x, float y, int currRes)
 // get the worley noise value
 float getWorleyValue(uint3 id, uint cellSize, uint textureResolution)
 {
-    int noOfCells = textureResolution / cellSize;
+    uint noOfCells = textureResolution / cellSize;
 
     // save the position of the current point
     float3 myPos = float3(id.x, id.y, id.z);
@@ -243,10 +244,10 @@ void ShapeTextureGen (uint3 id : SV_DispatchThreadID)
     float x = (float) id.x / tex;
     float y = (float) id.y / tex;
     float z = (float) id.z / tex;
-    float perlinChannelRed = getPerlinNoise3D(x, y, z, tex);
+    float perlinChannelRed = getPerlinNoise3D(x, y, z, perlinTextureResolution);
 
     // invert worley noise and return perlin noise in the red channel
-    Result[id.xyz] = float4(1,1,1,1) - float4(1 - perlinChannelRed, worleyChannelGreen,worleyChannelBlue,  worleyChannelAlpha);
+    ResultShape[id.xyz] = float4(1,1,1,1) - float4(1 - perlinChannelRed, worleyChannelGreen,worleyChannelBlue,  worleyChannelAlpha);
 }
 
 [numthreads(numThreads,numThreads,numThreads)]
@@ -259,7 +260,7 @@ void DetailTextureGen (uint3 id : SV_DispatchThreadID)
     float worleyChannelRed = getWorleyNoise(id, detailCellSizeRed, resolution, detailRedOctaves);
 
     // invert the worley noise
-    Result[id.xyz] = float4(1,1,1,1) - float4(worleyChannelRed, worleyChannelGreen, worleyChannelBlue, 0);
+    ResultDetail[id.xyz] = float4(1,1,1,1) - float4(worleyChannelRed, worleyChannelGreen, worleyChannelBlue, 0);
 }
 
 [numthreads(numThreads,numThreads,1)]

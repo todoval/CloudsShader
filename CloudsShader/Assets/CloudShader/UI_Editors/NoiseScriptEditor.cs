@@ -123,12 +123,12 @@ public class NoiseScriptEditor : Editor
         EditorGUI.indentLevel++;
         EditorGUILayout.LabelField("Red Channel");
         EditorGUI.indentLevel++;
-        string[] textureResolutionOptionNames = {"1","2","4","8","16"};
-        int[] textureResolutionOptionValues = {1,2,4,8,16};
+        string[] textureResolutionOptionNames = {"4","8","16", "32", "64"};
+        int[] textureResolutionOptionValues = {4,8,16, 32, 64};
         shapePerlinTextureResolution.intValue = EditorGUILayout.IntPopup("Resolution", shapePerlinTextureResolution.intValue, textureResolutionOptionNames, textureResolutionOptionValues);
         EditorGUILayout.IntSlider(shapePerlinOctaves, 1, 8, "Octaves");
         EditorGUILayout.PropertyField(shapePerlinFrequency, new GUIContent("Frequency"));
-        EditorGUILayout.PropertyField(shapePerlinPersistence, new GUIContent("Persistence"));
+        EditorGUILayout.Slider(shapePerlinPersistence, 0, 1, new GUIContent("Persistence"));
         EditorGUILayout.PropertyField(shapePerlinLacunarity, new GUIContent("Lacunarity"));
         EditorGUI.indentLevel--;
         EditorGUI.indentLevel--;
@@ -141,21 +141,21 @@ public class NoiseScriptEditor : Editor
         // add octaves, add cellSize
         EditorGUI.indentLevel++;
         EditorGUILayout.IntSlider(shapeGreenChannelOctaves, 1, 8,"Octaves");
-        string[] cellOptionNames = {"4","8","16"};
-        int[] cellOptionValues = {4,8,16};
-        shapeGreenChannelCellSize.intValue = EditorGUILayout.IntPopup("Cell Size", shapeGreenChannelCellSize.intValue,cellOptionNames, cellOptionValues);
+        string[] shapeCellOptionNames = {"4","8","16", "32", "64"};
+        int[] shapeCellOptionValues = {4,8,16,32,64};
+        shapeGreenChannelCellSize.intValue = EditorGUILayout.IntPopup("Cell Size", shapeGreenChannelCellSize.intValue,shapeCellOptionNames, shapeCellOptionValues);
         EditorGUI.indentLevel--;
 
         EditorGUILayout.LabelField("Blue Channel");
         EditorGUI.indentLevel++;
         EditorGUILayout.IntSlider(shapeBlueChannelOctaves, 1, 8,"Octaves");
-        shapeBlueChannelCellSize.intValue = EditorGUILayout.IntPopup("Cell Size", shapeBlueChannelCellSize.intValue,cellOptionNames, cellOptionValues);
+        shapeBlueChannelCellSize.intValue = EditorGUILayout.IntPopup("Cell Size", shapeBlueChannelCellSize.intValue,shapeCellOptionNames,shapeCellOptionValues);
         EditorGUI.indentLevel--;
 
         EditorGUILayout.LabelField("Alpha Channel");
         EditorGUI.indentLevel++;
         EditorGUILayout.IntSlider(shapeAlphaChannelOctaves, 1, 8,"Octaves");
-        shapeAlphaChannelCellSize.intValue = EditorGUILayout.IntPopup("Cell Size", shapeAlphaChannelCellSize.intValue,cellOptionNames, cellOptionValues);
+        shapeAlphaChannelCellSize.intValue = EditorGUILayout.IntPopup("Cell Size", shapeAlphaChannelCellSize.intValue,shapeCellOptionNames, shapeCellOptionValues);
         EditorGUI.indentLevel--;
         EditorGUILayout.Space();
 
@@ -181,20 +181,22 @@ public class NoiseScriptEditor : Editor
         EditorGUI.indentLevel++;
 
         // the individual detail noise channels
+        string[] detailCellOptionNames = {"2", "4","8","16"};
+        int[] detailCellOptionValues = {2, 4,8,16};
         EditorGUILayout.LabelField("Red Channel");
         EditorGUI.indentLevel++;
         EditorGUILayout.IntSlider(detailRedChannelOctaves, 1, 8,"Octaves");
-        detailRedChannelCellSize.intValue = EditorGUILayout.IntPopup("Cell Size", detailRedChannelCellSize.intValue,cellOptionNames, cellOptionValues);
+        detailRedChannelCellSize.intValue = EditorGUILayout.IntPopup("Cell Size", detailRedChannelCellSize.intValue,detailCellOptionNames, detailCellOptionValues);
         EditorGUI.indentLevel--;
         EditorGUILayout.LabelField("Green Channel");
         EditorGUI.indentLevel++;
         EditorGUILayout.IntSlider(detailGreenChannelOctaves, 1, 8,"Octaves");
-        detailGreenChannelCellSize.intValue = EditorGUILayout.IntPopup("Cell Size", detailGreenChannelCellSize.intValue,cellOptionNames, cellOptionValues);
+        detailGreenChannelCellSize.intValue = EditorGUILayout.IntPopup("Cell Size", detailGreenChannelCellSize.intValue,detailCellOptionNames, detailCellOptionValues);
         EditorGUI.indentLevel--;
         EditorGUILayout.LabelField("Blue Channel");
         EditorGUI.indentLevel++;
         EditorGUILayout.IntSlider(detailBlueChannelOctaves, 1, 8,"Octaves");
-        detailBlueChannelCellSize.intValue = EditorGUILayout.IntPopup("Cell Size", detailBlueChannelCellSize.intValue,cellOptionNames, cellOptionValues);
+        detailBlueChannelCellSize.intValue = EditorGUILayout.IntPopup("Cell Size", detailBlueChannelCellSize.intValue,detailCellOptionNames, detailCellOptionValues);
         EditorGUI.indentLevel--;
         EditorGUI.indentLevel--;
         EditorGUI.indentLevel--;
@@ -237,7 +239,7 @@ public class NoiseScriptEditor : Editor
             coveragePerlinTextureResolution.intValue = EditorGUILayout.IntPopup("Resolution", coveragePerlinTextureResolution.intValue, wmTexResolutionOptionNames, wmTexResolutionOptionValues);
             EditorGUILayout.IntSlider(coveragePerlinOctaves, 1, 8, "Octaves");
             EditorGUILayout.PropertyField(coveragePerlinFrequency, new GUIContent("Frequency"));
-            EditorGUILayout.PropertyField(coveragePerlinPersistence, new GUIContent("Persistence"));
+            EditorGUILayout.Slider(coveragePerlinPersistence, 0, 1, new GUIContent("Persistence"));
             EditorGUILayout.PropertyField(coveragePerlinLacunarity, new GUIContent("Lacunarity"));  
             EditorGUI.indentLevel--; 
         }

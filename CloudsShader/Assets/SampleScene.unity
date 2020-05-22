@@ -207,7 +207,7 @@ Transform:
   m_GameObject: {fileID: 56149225}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 25.4, z: 0}
-  m_LocalScale: {x: 100, y: 10, z: 100}
+  m_LocalScale: {x: 100, y: 10, z: 510.49603}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
@@ -330,41 +330,6 @@ Transform:
   m_Father: {fileID: 1794112105}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!84 &499560809
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_ForcedFallbackFormat: 4
-  m_DownscaleFallback: 0
-  serializedVersion: 3
-  m_Width: 128
-  m_Height: 128
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthFormat: 0
-  m_ColorFormat: 24
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 3
-  m_VolumeDepth: 128
 --- !u!21 &624235978
 Material:
   serializedVersion: 6
@@ -394,6 +359,41 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats: []
     m_Colors: []
+--- !u!84 &631029333
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_ForcedFallbackFormat: 4
+  m_DownscaleFallback: 0
+  serializedVersion: 3
+  m_Width: 32
+  m_Height: 32
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthFormat: 0
+  m_ColorFormat: 24
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 3
+  m_VolumeDepth: 32
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -497,6 +497,7 @@ GameObject:
   - component: {fileID: 963194227}
   - component: {fileID: 963194226}
   - component: {fileID: 963194229}
+  - component: {fileID: 963194230}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -616,6 +617,18 @@ MonoBehaviour:
   blendingMaterial: {fileID: 624235978}
   renderingShader: {fileID: 4800000, guid: 204f49c754aff6145b842588740fe3cd, type: 3}
   blendingShader: {fileID: 4800000, guid: a43238f2f11833a48a166a9338fcc530, type: 3}
+--- !u!114 &963194230
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963194225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a25241d143ba643459cb0d2c913fdb0c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!84 &1069135243
 RenderTexture:
   m_ObjectHideFlags: 0
@@ -867,31 +880,30 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   shapeNoiseResolution: 128
   detailNoiseResolution: 32
-  worleyPointsPerRes: 128
   weatherMapResolution: 512
   NoiseTextureGenerator: {fileID: 7200000, guid: d3f22e70ad025f544ae493664e4f1e44,
     type: 3}
   slicer: {fileID: 7200000, guid: a60837efe51cbc742afd865d8fea6fbf, type: 3}
   weatherMap: {fileID: 1344115287}
-  detailTexture: {fileID: 1683195953}
-  shapeTexture: {fileID: 499560809}
-  shapePerlinTextureResolution: 16
-  shapePerlinOctaves: 1
-  shapePerlinPersistence: 1
-  shapePerlinLacunarity: 0.3
+  detailTexture: {fileID: 631029333}
+  shapeTexture: {fileID: 1818766130}
+  shapePerlinTextureResolution: 64
+  shapePerlinOctaves: 3
+  shapePerlinPersistence: 0.785
+  shapePerlinLacunarity: 0.4
   shapePerlinFrequency: 2
-  shapeGreenChannelOctaves: 5
+  shapeGreenChannelOctaves: 1
   shapeBlueChannelOctaves: 1
   shapeAlphaChannelOctaves: 1
-  shapeGreenChannelCellSize: 32
-  shapeBlueChannelCellSize: 32
-  shapeAlphaChannelCellSize: 32
+  shapeGreenChannelCellSize: 4
+  shapeBlueChannelCellSize: 64
+  shapeAlphaChannelCellSize: 64
   detailGreenChannelOctaves: 2
   detailBlueChannelOctaves: 2
   detailRedChannelOctaves: 2
-  detailGreenChannelCellSize: 32
-  detailBlueChannelCellSize: 8
-  detailRedChannelCellSize: 16
+  detailGreenChannelCellSize: 8
+  detailBlueChannelCellSize: 16
+  detailRedChannelCellSize: 4
   coveragePerlinTextureResolution: 512
   coveragePerlinOctaves: 2
   coveragePerlinPersistence: 0.6
@@ -1042,41 +1054,6 @@ Transform:
   m_Father: {fileID: 1794112105}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!84 &1683195953
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_ForcedFallbackFormat: 4
-  m_DownscaleFallback: 0
-  serializedVersion: 3
-  m_Width: 32
-  m_Height: 32
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthFormat: 0
-  m_ColorFormat: 24
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 3
-  m_VolumeDepth: 32
 --- !u!1 &1794112104
 GameObject:
   m_ObjectHideFlags: 0
@@ -1111,3 +1088,38 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!84 &1818766130
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_ForcedFallbackFormat: 4
+  m_DownscaleFallback: 0
+  serializedVersion: 3
+  m_Width: 128
+  m_Height: 128
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthFormat: 0
+  m_ColorFormat: 24
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 3
+  m_VolumeDepth: 128
