@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 3
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 2100000, guid: f2b5f3f20933f434e850db1b710542fd, type: 2}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 03389866351d19a47adc95c57d054097, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.449638, g: 0.443754, b: 0.4363289, a: 1}
+  m_IndirectSpecularColor: {r: 0.41518906, g: 0.20504808, b: 0.19856745, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -206,8 +206,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 56149225}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 25.4, z: 0}
-  m_LocalScale: {x: 100, y: 10, z: 510.49603}
+  m_LocalPosition: {x: 232, y: -19, z: 258.7}
+  m_LocalScale: {x: 2283.68, y: 442.17102, z: 2358.3}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
@@ -237,6 +237,41 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats: []
     m_Colors: []
+--- !u!84 &375422840
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_ForcedFallbackFormat: 4
+  m_DownscaleFallback: 0
+  serializedVersion: 3
+  m_Width: 32
+  m_Height: 32
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthFormat: 0
+  m_ColorFormat: 24
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 3
+  m_VolumeDepth: 32
 --- !u!1 &439390557
 GameObject:
   m_ObjectHideFlags: 0
@@ -359,41 +394,6 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats: []
     m_Colors: []
---- !u!84 &631029333
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_ForcedFallbackFormat: 4
-  m_DownscaleFallback: 0
-  serializedVersion: 3
-  m_Width: 32
-  m_Height: 32
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthFormat: 0
-  m_ColorFormat: 24
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 3
-  m_VolumeDepth: 32
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -485,6 +485,41 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!84 &906847397
+RenderTexture:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_ForcedFallbackFormat: 4
+  m_DownscaleFallback: 0
+  serializedVersion: 3
+  m_Width: 128
+  m_Height: 128
+  m_AntiAliasing: 1
+  m_MipCount: -1
+  m_DepthFormat: 0
+  m_ColorFormat: 24
+  m_MipMap: 0
+  m_GenerateMips: 1
+  m_SRGB: 0
+  m_UseDynamicScale: 0
+  m_BindMS: 0
+  m_EnableCompatibleFormat: 1
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_Dimension: 3
+  m_VolumeDepth: 128
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
@@ -588,18 +623,18 @@ MonoBehaviour:
   henyeyCoeff: 0.577
   henyeyRatio: 0
   henyeyIntensity: 1
-  powderCoeff: 0.201
-  powderAmount: 0.313
-  powderIntensity: 33.9
+  powderCoeff: 0.299
+  powderAmount: 0.213
+  powderIntensity: 20.9
   cloudIntensity: 1
   detailAmount: 0.285
   detailModifier: 0.895
-  densityConstant: 1.32
-  cloudMaxHeight: 0.315
-  cloudHeightModifier: 0.301
+  densityConstant: 1.05
+  cloudMaxHeight: 0.522
+  cloudHeightModifier: 0.104
   cloudBottomModifier: 0.2
-  absorptionCoeff: 0.663
-  tileSize: 100
+  absorptionCoeff: 0.406
+  tileSize: 1000
   speed: 1
   color: {r: 1, g: 1, b: 1, a: 0}
   container: {fileID: 56149229}
@@ -607,9 +642,9 @@ MonoBehaviour:
   useBlueNoiseRay: 1
   blueNoiseLightAmount: 0.5
   blueNoiseRayAmount: 2
-  lightMarchSteps: 4
-  lightMarchDecrease: 1
-  rayMarchStepSize: 1
+  lightMarchSteps: 2
+  lightMarchDecrease: 6.48
+  rayMarchStepSize: 25
   rayMarchDecrease: 1
   temporalUpsampling: 0
   blendingCoeff: 0.505
@@ -884,34 +919,34 @@ MonoBehaviour:
   NoiseTextureGenerator: {fileID: 7200000, guid: d3f22e70ad025f544ae493664e4f1e44,
     type: 3}
   slicer: {fileID: 7200000, guid: a60837efe51cbc742afd865d8fea6fbf, type: 3}
-  weatherMap: {fileID: 1344115287}
-  detailTexture: {fileID: 631029333}
-  shapeTexture: {fileID: 1818766130}
+  weatherMap: {fileID: 2015272436}
+  detailTexture: {fileID: 375422840}
+  shapeTexture: {fileID: 906847397}
   shapePerlinTextureResolution: 64
-  shapePerlinOctaves: 3
+  shapePerlinOctaves: 1
   shapePerlinPersistence: 0.785
   shapePerlinLacunarity: 0.4
   shapePerlinFrequency: 2
   shapeGreenChannelOctaves: 1
   shapeBlueChannelOctaves: 1
   shapeAlphaChannelOctaves: 1
-  shapeGreenChannelCellSize: 4
+  shapeGreenChannelCellSize: 32
   shapeBlueChannelCellSize: 64
   shapeAlphaChannelCellSize: 64
-  detailGreenChannelOctaves: 2
+  detailGreenChannelOctaves: 5
   detailBlueChannelOctaves: 2
-  detailRedChannelOctaves: 2
-  detailGreenChannelCellSize: 8
+  detailRedChannelOctaves: 1
+  detailGreenChannelCellSize: 4
   detailBlueChannelCellSize: 16
-  detailRedChannelCellSize: 4
-  coveragePerlinTextureResolution: 512
+  detailRedChannelCellSize: 8
+  coveragePerlinTextureResolution: 256
   coveragePerlinOctaves: 2
   coveragePerlinPersistence: 0.6
   coveragePerlinLacunarity: 2
   coveragePerlinFrequency: 1
   coverageOption: 1
   coverageConstant: 0.53
-  cloudHeight: 763
+  cloudHeight: 726
   cloudType: 0.8
 --- !u!4 &1340083853
 Transform:
@@ -927,41 +962,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!84 &1344115287
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_ForcedFallbackFormat: 4
-  m_DownscaleFallback: 0
-  serializedVersion: 3
-  m_Width: 512
-  m_Height: 512
-  m_AntiAliasing: 1
-  m_MipCount: -1
-  m_DepthFormat: 0
-  m_ColorFormat: 8
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_BindMS: 0
-  m_EnableCompatibleFormat: 1
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 2
-  m_VolumeDepth: 1
 --- !u!1 &1444484219
 GameObject:
   m_ObjectHideFlags: 0
@@ -1069,7 +1069,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1794112105
 Transform:
   m_ObjectHideFlags: 0
@@ -1088,7 +1088,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!84 &1818766130
+--- !u!84 &2015272436
 RenderTexture:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1101,12 +1101,12 @@ RenderTexture:
   m_ForcedFallbackFormat: 4
   m_DownscaleFallback: 0
   serializedVersion: 3
-  m_Width: 128
-  m_Height: 128
+  m_Width: 512
+  m_Height: 512
   m_AntiAliasing: 1
   m_MipCount: -1
   m_DepthFormat: 0
-  m_ColorFormat: 24
+  m_ColorFormat: 8
   m_MipMap: 0
   m_GenerateMips: 1
   m_SRGB: 0
@@ -1121,5 +1121,5 @@ RenderTexture:
     m_WrapU: 1
     m_WrapV: 1
     m_WrapW: 1
-  m_Dimension: 3
-  m_VolumeDepth: 128
+  m_Dimension: 2
+  m_VolumeDepth: 1

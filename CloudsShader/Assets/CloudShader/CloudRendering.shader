@@ -424,7 +424,8 @@ Shader "CloudRendering"
 
                 // return base if the box was not intersected 
                 float4 base = tex2D(_MainTex, i.uv);
-                if (!containerInfo.intersectedBox && !containerInfo.dstToBox < depth)
+
+                if (!containerInfo.intersectedBox || containerInfo.dstToBox > depth)
                     return base;
 
                 float3 entryPoint = rayOrigin + rayDir * containerInfo.dstToBox; // intersection with the cloud container
