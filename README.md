@@ -61,8 +61,8 @@ This section shows some of the results that can be achieved with the Cloud Gener
 </p>
 
 Linked down below are also the presentation and a video that was used for the project defense, as this asset was created as a part of a *Computer Graphics for Computer Games course* on MatFyz: 
-* *Presentation:* https://github.com/todoval/CloudsShader/blob/master/Screenshots/DefensePresentation.pdf  
-* *Video:* https://www.youtube.com/watch?v=K_v5DLWDhNI  
+* *Presentation:* https://github.com/todoval/CloudsShader/blob/master/Screenshots/DefensePresentation.pdf 
+* *Video:* https://www.youtube.com/watch?v=Qkw5DFRNGcg
 
 ## Future work
 Following are the future plans for this project: 
