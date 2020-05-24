@@ -2,8 +2,7 @@
 ## How to use
 
 This asset contains both a script (and shaders) for cloud generation and, as a subproduct, a script for noise generation.
-
-The cloud shader package **ALSO** contains the script for noise generation!
+The cloud shader package **ALSO** contains the script for noise generation, so downloading the both assets is unnecessary!
 
 ### How to use the cloud asset: 
 1. import the unity package found in https://github.com/todoval/CloudsShader/blob/master/CloudShader.unitypackage to your project
@@ -18,6 +17,11 @@ The cloud shader package **ALSO** contains the script for noise generation!
    - beware, properties such as *Cloud Size*, *Ray March Step Size*, *Ray March Step Decrease*, *Absorption Coefficient*, *Density Multiplier* and *Speed* must be set to value other than 0 in order for the cloud shader to work 
 7. run the game (however, script will run in edit mode also)
 
+<p align="center">
+    <img src="https://github.com/todoval/CloudsShader/blob/master/Screenshots/CloudScript.png" width="300px"</img>  
+</p>
+<p align="center"> The Cloud Generation Script </p>
+
 ### How to use the noise generation asset:
 1. import the unity package found in https://github.com/todoval/CloudsShader/blob/master/NoiseGenerator.unitypackage to your project
 1. add the *CloudShader/NoiseGenerator/NoiseGenerator.cs* script to any object
@@ -29,8 +33,35 @@ The cloud shader package **ALSO** contains the script for noise generation!
 5. click individual buttons (Create Shape Texture, Create Detail Texture, Create Weather Map) to create the textures
 6. textures will be stored in the *Resources/texture_name* folder
 
+<p align="center">
+   <img src="https://github.com/todoval/CloudsShader/blob/master/Screenshots/NoiseGenScript1.png" width="300px" />
+   <img src="https://github.com/todoval/CloudsShader/blob/master/Screenshots/NoiseGenScript2.png" width="300px" />
+</p>
+<p align="center"> The Noise Generation Script </p>
+
+
+<p align="center">
+   <img src="https://github.com/todoval/CloudsShader/blob/master/Screenshots/Resources.png" width="500px" />
+</p>
+<p align="center"> What the <i>Resources</i> folder should look like after importing either one of the scripts </p>
+
 ## Project Results
 
+This section shows a some of the results that can be achieved with this asset. 
+
+
+Linked down below are also the presentation and a video that was used for the project defense, as this asset was created as a part of a *Computer Graphics for Computer Games course* on MatFyz: 
+
+*Presentation:* https://github.com/todoval/CloudsShader/blob/master/Screenshots/DefensePresentation.pdf
+*Video:* https://www.youtube.com/watch?v=K_v5DLWDhNI  
+
+## Future work
+Following are the future plans for this project: 
+* Directional light support
+* Wind direction support
+* Performance improvement
+   - Temporal reprojection
+   - Temporal upsampling improvement
 
 ## References
 - [Fredrik Haggstrom: Real-time rendering of volumetric clouds](http://www.diva-portal.org/smash/record.jsf?pid=diva2%3A1223894&dswid=-5880)
