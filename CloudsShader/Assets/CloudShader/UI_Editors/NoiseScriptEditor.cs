@@ -129,7 +129,7 @@ public class NoiseScriptEditor : Editor
         EditorGUILayout.IntSlider(shapePerlinOctaves, 1, 8, "Octaves");
         EditorGUILayout.PropertyField(shapePerlinFrequency, new GUIContent("Frequency"));
         EditorGUILayout.Slider(shapePerlinPersistence, 0, 1, new GUIContent("Persistence"));
-        EditorGUILayout.PropertyField(shapePerlinLacunarity, new GUIContent("Lacunarity"));
+        EditorGUILayout.IntSlider(shapePerlinLacunarity, 1, 5, new GUIContent("Lacunarity"));
         EditorGUI.indentLevel--;
         EditorGUI.indentLevel--;
 
@@ -240,7 +240,7 @@ public class NoiseScriptEditor : Editor
             EditorGUILayout.IntSlider(coveragePerlinOctaves, 1, 8, "Octaves");
             EditorGUILayout.PropertyField(coveragePerlinFrequency, new GUIContent("Frequency"));
             EditorGUILayout.Slider(coveragePerlinPersistence, 0, 1, new GUIContent("Persistence"));
-            EditorGUILayout.PropertyField(coveragePerlinLacunarity, new GUIContent("Lacunarity"));  
+            EditorGUILayout.IntSlider(coveragePerlinLacunarity, 1, 5, new GUIContent("Lacunarity"));  
             EditorGUI.indentLevel--; 
         }
 

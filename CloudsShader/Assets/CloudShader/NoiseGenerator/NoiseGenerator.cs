@@ -31,7 +31,7 @@ public class NoiseGenerator : MonoBehaviour
     public int shapePerlinTextureResolution;
     public int shapePerlinOctaves;
     public float shapePerlinPersistence;
-    public float shapePerlinLacunarity;
+    public int shapePerlinLacunarity;
     public float shapePerlinFrequency;
 
     // Worley noise settings of the shape texture
@@ -56,7 +56,7 @@ public class NoiseGenerator : MonoBehaviour
     public int coveragePerlinTextureResolution;
     public int coveragePerlinOctaves;
     public float coveragePerlinPersistence;
-    public float coveragePerlinLacunarity;
+    public int coveragePerlinLacunarity;
     public float coveragePerlinFrequency;
 
     public int coverageOption; // 0 - constant, 1 - perlin
@@ -181,7 +181,7 @@ public class NoiseGenerator : MonoBehaviour
         NoiseTextureGenerator.SetInt("perlinOctaves", shapePerlinOctaves);
         NoiseTextureGenerator.SetFloat("perlinFrequency", shapePerlinFrequency);
         NoiseTextureGenerator.SetFloat("perlinPersistence", shapePerlinPersistence);
-        NoiseTextureGenerator.SetFloat("perlinLacunarity", shapePerlinLacunarity);
+        NoiseTextureGenerator.SetInt("perlinLacunarity", shapePerlinLacunarity);
 
         // dispatch the shader
         int threadGroups = shapeNoiseResolution / 8;
@@ -214,7 +214,7 @@ public class NoiseGenerator : MonoBehaviour
         NoiseTextureGenerator.SetInt("coveragePerlinOctaves",coveragePerlinOctaves);
         NoiseTextureGenerator.SetInt("coveragePerlinTextureResolution",coveragePerlinTextureResolution);
         NoiseTextureGenerator.SetFloat("coveragePerlinPersistence", coveragePerlinPersistence);
-        NoiseTextureGenerator.SetFloat("coveragePerlinLacunarity", coveragePerlinLacunarity);
+        NoiseTextureGenerator.SetInt("coveragePerlinLacunarity", coveragePerlinLacunarity);
         NoiseTextureGenerator.SetFloat("coveragePerlinFrequency", coveragePerlinFrequency);
 
         // set other weather map properties

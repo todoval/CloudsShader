@@ -37,14 +37,14 @@ RWStructuredBuffer<float3> FeaturePoints; // random points given from the noise 
 int perlinOctaves; // 8 by default
 float perlinFrequency; // 1 by default
 float perlinPersistence; // 0.6 by default
-float perlinLacunarity; // 2 by default
+int perlinLacunarity; // 2 by default
 int perlinTextureResolution;
 
 // weather map settings
 int coveragePerlinOctaves; // 8 by default
 float coveragePerlinFrequency; // 1 by default
 float coveragePerlinPersistence; // 0.6 by default
-float coveragePerlinLacunarity; // 2 by default
+int coveragePerlinLacunarity; // 2 by default
 int coveragePerlinTextureResolution;
 bool coverageOption;
 float coverageConstant;
