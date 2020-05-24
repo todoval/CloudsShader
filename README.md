@@ -3,16 +3,19 @@
 
 This asset contains both a script (and shaders) for cloud generation and, as a subproduct, a script for noise generation.
 
+The cloud shader package **ALSO** contains the script for noise generation!
+
 ### How to use the cloud asset: 
 1. import the unity package found in https://github.com/todoval/CloudsShader/blob/master/CloudShader.unitypackage to your project
 2. create a new 3D Cube object as a container for the clouds
 3. turn off the Mesh renderer of the container
-4. find the *CloudShader/CloudGenerator.cs* script and add it to a camera (a camera MUST be present in the scene)
+4. find the *CloudShader/CloudGenerator.cs* script and add it to a camera (a camera **MUST** be present in the scene)
 5. set the following properties of the script:
    - *Container:* set this to your created cube container
    - *Cloud Rendering Shader:* set this to *CloudShader/CloudRendering*
    - *Environment Blending Shader:* set this to *CloudShader/EnvironmentBlending*
 6. set other script properties according to your liking
+   - beware, properties such as *Cloud Size*, *Ray March Step Size*, *Ray March Step Decrease*, *Absorption Coefficient*, *Density Multiplier* and *Speed* must be set to value other than 0 in order for the cloud shader to work 
 7. run the game (however, script will run in edit mode also)
 
 ### How to use the noise generation asset:
@@ -20,7 +23,7 @@ This asset contains both a script (and shaders) for cloud generation and, as a s
 1. add the *CloudShader/NoiseGenerator/NoiseGenerator.cs* script to any object
 2. set the following properties of the script:
    - *Noise Texture Generator:* set this to *Assets/CloudShader/NoiseGenerator/NoiseTextureGenerator.compute*
-   - *Slicer: * set this to *Assets/CloudShader/NoiseGenerator/Slicerr.compute*
+   - *Slicer:* set this to *Assets/CloudShader/NoiseGenerator/Slicerr.compute*
 3. set other script properties according to your liking
 4. run the game
 5. click individual buttons (Create Shape Texture, Create Detail Texture, Create Weather Map) to create the textures
