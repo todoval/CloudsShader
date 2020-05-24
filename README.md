@@ -49,10 +49,19 @@ The cloud shader package **ALSO** contains the script for noise generation, so d
 
 This section shows a some of the results that can be achieved with this asset. 
 
+<p align="center">
+   <img src="https://github.com/todoval/CloudsShader/blob/master/Screenshots/sample1.png" width="300px" />
+   <img src="https://github.com/todoval/CloudsShader/blob/master/Screenshots/sample2.png" width="300px" />
+   <img src="https://github.com/todoval/CloudsShader/blob/master/Screenshots/sample3.png" width="300px" />
+   <br/>
+   <img src="https://github.com/todoval/CloudsShader/blob/master/Screenshots/sample4.png" width="300px" />
+   <img src="https://github.com/todoval/CloudsShader/blob/master/Screenshots/sample5.png" width="300px" />
+   <img src="https://github.com/todoval/CloudsShader/blob/master/Screenshots/sample6.png" width="300px" />
+</p>
 
 Linked down below are also the presentation and a video that was used for the project defense, as this asset was created as a part of a *Computer Graphics for Computer Games course* on MatFyz: 
 
-*Presentation:* https://github.com/todoval/CloudsShader/blob/master/Screenshots/DefensePresentation.pdf
+*Presentation:* https://github.com/todoval/CloudsShader/blob/master/Screenshots/DefensePresentation.pdf  
 *Video:* https://www.youtube.com/watch?v=K_v5DLWDhNI  
 
 ## Future work
