@@ -2,7 +2,7 @@
 ## How to use
 
 This asset contains both a script (and shaders) for cloud generation and, as a subproduct, a script for noise generation.
-The cloud shader package **ALSO** contains the script for noise generation, so downloading the both assets is unnecessary!
+The cloud shader package **ALSO** contains the script for noise generation, so downloading both assets is unnecessary!
 
 ### How to use the cloud asset: 
 1. import the unity package found in https://github.com/todoval/CloudsShader/blob/master/CloudShader.unitypackage to your project
@@ -14,8 +14,8 @@ The cloud shader package **ALSO** contains the script for noise generation, so d
    - *Cloud Rendering Shader:* set this to *CloudShader/CloudRendering*
    - *Environment Blending Shader:* set this to *CloudShader/EnvironmentBlending*
 6. set other script properties according to your liking
-   - beware, properties such as *Cloud Size*, *Ray March Step Size*, *Ray March Step Decrease*, *Absorption Coefficient*, *Density Multiplier* and *Speed* must be set to value other than 0 in order for the cloud shader to work 
-7. run the game (however, script will run in edit mode also)
+   - beware, properties such as *Cloud Size*, *Ray March Step Size*, *Ray March Step Decrease*, *Absorption Coefficient*, *Density Multiplier* and *Speed* must be set to values other than 0 in order for the cloud shader to work 
+7. run the game (the script will run in edit mode also)
 
 <p align="center">
     <img src="https://github.com/todoval/CloudsShader/blob/master/Screenshots/CloudScript.png" width="300px"</img>  
@@ -30,7 +30,8 @@ The cloud shader package **ALSO** contains the script for noise generation, so d
    - *Slicer:* set this to *Assets/CloudShader/NoiseGenerator/Slicerr.compute*
 3. set other script properties according to your liking
 4. run the game
-5. click individual buttons (Create Shape Texture, Create Detail Texture, Create Weather Map) to create the textures
+5. use buttons in the script (*Create Shape Texture*, *Create Detail Texture*, *Create Weather Map*) to create the desired textures
+   - game **MUST** be running at this point!
 6. textures will be stored in the *Resources/texture_name* folder
 
 <p align="center">
@@ -47,7 +48,7 @@ The cloud shader package **ALSO** contains the script for noise generation, so d
 
 ## Project Results
 
-This section shows a some of the results that can be achieved with this asset. 
+This section shows some of the results that can be achieved with the Cloud Generation asset:
 
 <p align="center">
    <img src="https://github.com/todoval/CloudsShader/blob/master/Screenshots/sample1.png" width="300px" />
@@ -60,15 +61,14 @@ This section shows a some of the results that can be achieved with this asset.
 </p>
 
 Linked down below are also the presentation and a video that was used for the project defense, as this asset was created as a part of a *Computer Graphics for Computer Games course* on MatFyz: 
-
-*Presentation:* https://github.com/todoval/CloudsShader/blob/master/Screenshots/DefensePresentation.pdf  
-*Video:* https://www.youtube.com/watch?v=K_v5DLWDhNI  
+* *Presentation:* https://github.com/todoval/CloudsShader/blob/master/Screenshots/DefensePresentation.pdf  
+* *Video:* https://www.youtube.com/watch?v=K_v5DLWDhNI  
 
 ## Future work
 Following are the future plans for this project: 
 * Directional light support
-* Wind direction support
-* Performance improvement
+* User-adjustable wind direction
+* Performance improvements:
    - Temporal reprojection
    - Temporal upsampling improvement
 
