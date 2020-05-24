@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 3
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 2100000, guid: 03389866351d19a47adc95c57d054097, type: 2}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 3ce33a5b03b15794a885b3f3319d90a4, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -206,11 +206,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 56149225}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 232, y: -19, z: 258.7}
-  m_LocalScale: {x: 2283.68, y: 442.17102, z: 2358.3}
+  m_LocalPosition: {x: 99, y: 80, z: 258.7}
+  m_LocalScale: {x: 2473.5999, y: 20, z: 2226.2002}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!21 &168421811
 Material:
@@ -483,8 +483,77 @@ Transform:
   m_LocalScale: {x: 3.5139, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!1001 &836026929
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 7410285428203478077, guid: d665e30c68a9801459b0d173920f7d9c,
+        type: 3}
+      propertyPath: m_Name
+      value: Terrain_0_0_a9319bca-3ed6-407e-8581-bcf015055d20
+      objectReference: {fileID: 0}
+    - target: {fileID: 7410285428203478078, guid: d665e30c68a9801459b0d173920f7d9c,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7410285428203478078, guid: d665e30c68a9801459b0d173920f7d9c,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7410285428203478078, guid: d665e30c68a9801459b0d173920f7d9c,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7410285428203478078, guid: d665e30c68a9801459b0d173920f7d9c,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7410285428203478078, guid: d665e30c68a9801459b0d173920f7d9c,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7410285428203478078, guid: d665e30c68a9801459b0d173920f7d9c,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7410285428203478078, guid: d665e30c68a9801459b0d173920f7d9c,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7410285428203478078, guid: d665e30c68a9801459b0d173920f7d9c,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7410285428203478078, guid: d665e30c68a9801459b0d173920f7d9c,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7410285428203478078, guid: d665e30c68a9801459b0d173920f7d9c,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7410285428203478078, guid: d665e30c68a9801459b0d173920f7d9c,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: d665e30c68a9801459b0d173920f7d9c, type: 3}
 --- !u!84 &906847397
 RenderTexture:
   m_ObjectHideFlags: 0
@@ -629,22 +698,22 @@ MonoBehaviour:
   cloudIntensity: 1
   detailAmount: 0.285
   detailModifier: 0.895
-  densityConstant: 1.05
+  densityConstant: 1.8
   cloudMaxHeight: 0.522
-  cloudHeightModifier: 0.104
+  cloudHeightModifier: 0.369
   cloudBottomModifier: 0.2
-  absorptionCoeff: 0.406
-  tileSize: 1000
-  speed: 1
+  absorptionCoeff: 0.353
+  tileSize: 400
+  speed: 15
   color: {r: 1, g: 1, b: 1, a: 0}
   container: {fileID: 56149229}
-  useBlueNoiseLight: 0
+  useBlueNoiseLight: 1
   useBlueNoiseRay: 1
   blueNoiseLightAmount: 0.5
   blueNoiseRayAmount: 2
   lightMarchSteps: 2
-  lightMarchDecrease: 6.48
-  rayMarchStepSize: 25
+  lightMarchDecrease: 1.97
+  rayMarchStepSize: 2
   rayMarchDecrease: 1
   temporalUpsampling: 0
   blendingCoeff: 0.505
@@ -960,7 +1029,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1444484219
 GameObject:
@@ -1086,7 +1155,7 @@ Transform:
   - {fileID: 439390561}
   - {fileID: 1444484223}
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!84 &2015272436
 RenderTexture:
