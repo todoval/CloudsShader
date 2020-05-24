@@ -28,4 +28,4 @@ This asset contains both a script (and shaders) for cloud generation and, as a s
 - [Dean Babić: Volumetric Atmospheric Rendering](https://bib.irb.hr/datoteka/949019.Final_0036470256_56.pdf)
 - [Juraj Páleník: Real-time rendering of volumetric clouds](https://is.muni.cz/th/d099f/thesis.pdf)
 - [Horizon Zero Dawn: Real-time Volumetric Cloudscapes](https://www.guerrilla-games.com/read/the-real-time-volumetric-cloudscapes-of-horizon-zero-dawn)
-- [Sebastian Lague: Coding Adventure - Clouds] (https://www.youtube.com/watch?v=4QOcCGI6xOU&t=624s)
+- [Sebastian Lague: Coding Adventure - Clouds](https://www.youtube.com/watch?v=4QOcCGI6xOU&t=624s)
