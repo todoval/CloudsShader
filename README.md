@@ -27,7 +27,7 @@ The cloud shader package **ALSO** contains the script for noise generation, so d
 1. add the *CloudShader/NoiseGenerator/NoiseGenerator.cs* script to any object
 2. set the following properties of the script:
    - *Noise Texture Generator:* set this to *Assets/CloudShader/NoiseGenerator/NoiseTextureGenerator.compute*
-   - *Slicer:* set this to *Assets/CloudShader/NoiseGenerator/Slicerr.compute*
+   - *Slicer:* set this to *Assets/CloudShader/NoiseGenerator/Slicer.compute*
 3. set other script properties according to your liking
 4. run the game
 5. use buttons in the script (*Create Shape Texture*, *Create Detail Texture*, *Create Weather Map*) to create the desired textures
